@@ -406,7 +406,7 @@ public:
     /**
      * @brief Destructor for RSProperty.
      */
-    ~RSProperty() override = default;
+    ~RSProperty() override {};
 
     using ValueType = T;
 
@@ -511,6 +511,10 @@ protected:
     friend class ModifierNG::RSCustomModifier;
     friend class RSNGEffectUtils;
 };
+
+// Out-of-line destructor specialization (defined in rs_property.cpp).
+template<>
+RSProperty<AtlasInfo>::~RSProperty();
 
 /**
  * @class RSAnimatableProperty

@@ -422,6 +422,14 @@ RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetSamplingMode(
     return { ScreenPropertyType::SAMPLING_MODE, prop };
 }
 
+RSScreenThreadSafeProperty::ResType RSScreenThreadSafeProperty::SetPostProcessingShader(
+    const std::vector<uint8_t>& param)
+{
+    UniqueLock lock(propertyMutex_);
+    auto prop = property_->Set<ScreenPropertyType::POST_PROCESSING_SHADER>(param);
+    return { ScreenPropertyType::POST_PROCESSING_SHADER, prop };
+}
+
 ScreenId RSScreenThreadSafeProperty::GetId() const
 {
     SharedLock lock(propertyMutex_);
@@ -732,6 +740,12 @@ ScreenSamplingMode RSScreenThreadSafeProperty::GetSamplingMode() const
 {
     SharedLock lock(propertyMutex_);
     return property_->GetSamplingMode();
+}
+
+std::vector<uint8_t> RSScreenThreadSafeProperty::GetPostProcessingShader() const
+{
+    SharedLock lock(propertyMutex_);
+    return property_->GetPostProcessingShader();
 }
 
 ScreenInfo RSScreenThreadSafeProperty::GetScreenInfo() const

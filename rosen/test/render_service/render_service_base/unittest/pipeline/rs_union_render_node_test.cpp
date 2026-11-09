@@ -13,8 +13,10 @@
  * limitations under the License.
  */
 
+#include "ge_sdf_uber_shader_shape.h"
 #include "gtest/gtest.h"
 #include "params/rs_render_params.h"
+#include "pixel_map.h"
 #include "pipeline/rs_union_render_node.h"
 #include "pipeline/rs_dirty_region_manager.h"
 #include "render_thread/rs_render_thread_visitor.h"
@@ -1222,6 +1224,293 @@ HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape010, TestSize.Level1)
 
     ASSERT_NE(unionNode->renderProperties_.renderSDFShape_, nullptr);
     ASSERT_EQ(unionNode->renderProperties_.renderSDFShape_->GetType(), RSNGEffectType::SDF_EMPTY_SHAPE);
+}
+
+/**
+ * @tc.name: GetSDFUberNodeType_StructuralAndBasicShapes
+ * @tc.desc: test GetSDFUberNodeType classifies structural op nodes and basic shape leaves
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, GetSDFUberNodeType_StructuralAndBasicShapes, TestSize.Level1)
+{
+    auto transformShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRANSFORM_SHAPE);
+    auto unionOpShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    auto smoothUnionOpShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE);
+    auto rrectShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    auto triangleShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRIANGLE_SHAPE);
+    auto ellipseShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_ELLIPSE_SHAPE);
+    ASSERT_NE(transformShape, nullptr);
+    ASSERT_NE(unionOpShape, nullptr);
+    ASSERT_NE(smoothUnionOpShape, nullptr);
+    ASSERT_NE(rrectShape, nullptr);
+    ASSERT_NE(triangleShape, nullptr);
+    ASSERT_NE(ellipseShape, nullptr);
+
+    EXPECT_EQ(RSUnionRenderNode::GetSDFUberNodeType(transformShape), UberType::OP);
+    EXPECT_EQ(RSUnionRenderNode::GetSDFUberNodeType(unionOpShape), UberType::OP);
+    EXPECT_EQ(RSUnionRenderNode::GetSDFUberNodeType(smoothUnionOpShape), UberType::OP);
+    EXPECT_EQ(RSUnionRenderNode::GetSDFUberNodeType(rrectShape), UberType::BASIC_SHAPE);
+    EXPECT_EQ(RSUnionRenderNode::GetSDFUberNodeType(triangleShape), UberType::BASIC_SHAPE);
+    EXPECT_EQ(RSUnionRenderNode::GetSDFUberNodeType(ellipseShape), UberType::BASIC_SHAPE);
+}
+
+/**
+ * @tc.name: GetSDFUberNodeType_PixelmapAndUnsupportedShapes
+ * @tc.desc: test GetSDFUberNodeType distinguishes the pixelmap image state and unsupported types
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, GetSDFUberNodeType_PixelmapAndUnsupportedShapes, TestSize.Level1)
+{
+    auto pixelmapShape = std::static_pointer_cast<RSNGRenderSDFPixelmapShape>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_PIXELMAP_SHAPE));
+    auto unsupportedShape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_EMPTY_SHAPE);
+    ASSERT_NE(pixelmapShape, nullptr);
+    ASSERT_NE(unsupportedShape, nullptr);
+
+    // An empty image keeps the cascade, a valid image makes the leaf a pixelmap uber leaf.
+    EXPECT_EQ(RSUnionRenderNode::GetSDFUberNodeType(pixelmapShape), UberType::OTHER);
+    pixelmapShape->Setter<SDFPixelmapShapeImageRenderTag>(std::make_shared<Media::PixelMap>());
+    EXPECT_EQ(RSUnionRenderNode::GetSDFUberNodeType(pixelmapShape), UberType::PIXELMAP);
+    EXPECT_EQ(RSUnionRenderNode::GetSDFUberNodeType(unsupportedShape), UberType::OTHER);
+}
+
+/**
+ * @tc.name: UpdateUberTreeType_FoldsLeafTypesAndCounts
+ * @tc.desc: test UpdateUberTreeType null input, homogeneous leaf folding and mixed leaf collapsing
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, UpdateUberTreeType_FoldsLeafTypesAndCounts, TestSize.Level1)
+{
+    auto nullInputNode = std::make_shared<RSUnionRenderNode>(id, context);
+    nullInputNode->UpdateUberTreeType(nullptr);
+    EXPECT_EQ(nullInputNode->uberType_, UberType::OTHER);
+    EXPECT_EQ(nullInputNode->uberLeafCount_, 0);
+
+    auto homogeneousNode = std::make_shared<RSUnionRenderNode>(id, context);
+    homogeneousNode->UpdateUberTreeType(RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
+    homogeneousNode->UpdateUberTreeType(RSNGRenderShapeBase::Create(RSNGEffectType::SDF_ELLIPSE_SHAPE));
+    EXPECT_EQ(homogeneousNode->uberType_, UberType::BASIC_SHAPE);
+    EXPECT_EQ(homogeneousNode->uberLeafCount_, 2);
+
+    // A basic shape mixed with a path leaf is a genuinely heterogeneous tree, so the type collapses.
+    auto mixedNode = std::make_shared<RSUnionRenderNode>(id, context);
+    mixedNode->UpdateUberTreeType(RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
+    mixedNode->UpdateUberTreeType(RSNGRenderShapeBase::Create(RSNGEffectType::SDF_PATH_SHAPE));
+    EXPECT_EQ(mixedNode->uberType_, UberType::OTHER);
+    EXPECT_EQ(mixedNode->uberLeafCount_, 2);
+}
+
+namespace {
+// The dispatch switch default is defensive: this shape flips its reported type
+// between the classification and dispatch calls to exercise that fallback.
+class RSTogglingSDFShape : public RSNGRenderSDFRRectShape {
+public:
+    RSNGEffectType GetType() const override
+    {
+        return typeCallCount_++ == 0 ? RSNGEffectType::SDF_TRANSFORM_SHAPE : RSNGEffectType::SDF_EMPTY_SHAPE;
+    }
+
+private:
+    mutable int typeCallCount_ = 0;
+};
+} // namespace
+
+/**
+ * @tc.name: UpdateUberTreeType_OpTypeFallsThroughDispatch
+ * @tc.desc: test UpdateUberTreeType leaves the classification untouched when no dispatch branch matches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, UpdateUberTreeType_OpTypeFallsThroughDispatch, TestSize.Level1)
+{
+    auto togglingShape = std::make_shared<RSTogglingSDFShape>();
+    ASSERT_NE(togglingShape, nullptr);
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
+    unionNode->UpdateUberTreeType(togglingShape);
+    EXPECT_EQ(unionNode->uberType_, UberType::UNDETERMINED);
+    EXPECT_EQ(unionNode->uberLeafCount_, 0);
+}
+
+/**
+ * @tc.name: UpdateUberTreeType_RecursesThroughOpNodes
+ * @tc.desc: test UpdateUberTreeType recursion through transform, union op and smooth union op branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, UpdateUberTreeType_RecursesThroughOpNodes, TestSize.Level1)
+{
+    auto transformShape = std::static_pointer_cast<RSNGRenderSDFTransformShape>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRANSFORM_SHAPE));
+    ASSERT_NE(transformShape, nullptr);
+    transformShape->Setter<SDFTransformShapeShapeRenderTag>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
+    auto transformNode = std::make_shared<RSUnionRenderNode>(id, context);
+    transformNode->UpdateUberTreeType(transformShape);
+    EXPECT_EQ(transformNode->uberType_, UberType::BASIC_SHAPE);
+    EXPECT_EQ(transformNode->uberLeafCount_, 1);
+
+    auto unionOpShape = std::static_pointer_cast<RSNGRenderSDFUnionOpShape>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE));
+    ASSERT_NE(unionOpShape, nullptr);
+    unionOpShape->Setter<SDFUnionOpShapeShapeXRenderTag>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
+    unionOpShape->Setter<SDFUnionOpShapeShapeYRenderTag>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_ELLIPSE_SHAPE));
+    auto unionOpNode = std::make_shared<RSUnionRenderNode>(id, context);
+    unionOpNode->UpdateUberTreeType(unionOpShape);
+    EXPECT_EQ(unionOpNode->uberType_, UberType::BASIC_SHAPE);
+    EXPECT_EQ(unionOpNode->uberLeafCount_, 2);
+
+    // The smooth union op has an empty Y branch: the null leaf forces OTHER.
+    auto smoothUnionOpShape = std::static_pointer_cast<RSNGRenderSDFSmoothUnionOpShape>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_SMOOTH_UNION_OP_SHAPE));
+    ASSERT_NE(smoothUnionOpShape, nullptr);
+    smoothUnionOpShape->Setter<SDFSmoothUnionOpShapeShapeXRenderTag>(
+        RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE));
+    auto smoothUnionOpNode = std::make_shared<RSUnionRenderNode>(id, context);
+    smoothUnionOpNode->UpdateUberTreeType(smoothUnionOpShape);
+    EXPECT_EQ(smoothUnionOpNode->uberType_, UberType::OTHER);
+    EXPECT_EQ(smoothUnionOpNode->uberLeafCount_, 1);
+}
+
+/**
+ * @tc.name: UpdateUberTreeType_RecursionGuardExceeded
+ * @tc.desc: test UpdateUberTreeType marks OTHER when the recursion depth exceeds the guard limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, UpdateUberTreeType_RecursionGuardExceeded, TestSize.Level1)
+{
+    std::shared_ptr<RSNGRenderShapeBase> shape = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    ASSERT_NE(shape, nullptr);
+    for (int32_t depth = 0; depth < RSShapeRecursionGuard::MAX_DEPTH + 2; ++depth) {
+        auto transformShape = std::static_pointer_cast<RSNGRenderSDFTransformShape>(
+            RSNGRenderShapeBase::Create(RSNGEffectType::SDF_TRANSFORM_SHAPE));
+        ASSERT_NE(transformShape, nullptr);
+        transformShape->Setter<SDFTransformShapeShapeRenderTag>(shape);
+        shape = transformShape;
+    }
+
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
+    unionNode->UpdateUberTreeType(shape);
+
+    EXPECT_EQ(unionNode->uberType_, UberType::OTHER);
+}
+
+/**
+ * @tc.name: WrapWithUberShapeIfApplicable_RejectsIneligibleTrees
+ * @tc.desc: test WrapWithUberShapeIfApplicable keeps the cascade for every ineligible tree branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, WrapWithUberShapeIfApplicable_RejectsIneligibleTrees, TestSize.Level1)
+{
+    auto root = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    ASSERT_NE(root, nullptr);
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
+    unionNode->uberType_ = UberType::BASIC_SHAPE;
+    unionNode->uberLeafCount_ = Drawing::BASIC_SHAPE_LEAF_MIN;
+
+    // A null root can never be wrapped.
+    EXPECT_EQ(unionNode->WrapWithUberShapeIfApplicable(nullptr), nullptr);
+
+    // A non-uberable classification keeps the cascaded root.
+    unionNode->uberType_ = UberType::OTHER;
+    EXPECT_EQ(unionNode->WrapWithUberShapeIfApplicable(root), root);
+
+    // Gravity pull mode keeps the cascaded root.
+    unionNode->uberType_ = UberType::BASIC_SHAPE;
+    unionNode->unionMode_ = 1;
+    EXPECT_EQ(unionNode->WrapWithUberShapeIfApplicable(root), root);
+
+    // Leaf counts outside the spec range keep the cascaded root.
+    unionNode->unionMode_ = 0;
+    unionNode->uberLeafCount_ = Drawing::BASIC_SHAPE_LEAF_MIN - 1;
+    EXPECT_EQ(unionNode->WrapWithUberShapeIfApplicable(root), root);
+    unionNode->uberLeafCount_ = Drawing::BASIC_SHAPE_LEAF_MAX + 1;
+    EXPECT_EQ(unionNode->WrapWithUberShapeIfApplicable(root), root);
+    unionNode->uberType_ = UberType::PIXELMAP;
+    unionNode->uberLeafCount_ = Drawing::PIXELMAP_UBER_LEAF_MIN - 1;
+    EXPECT_EQ(unionNode->WrapWithUberShapeIfApplicable(root), root);
+    unionNode->uberLeafCount_ = Drawing::PIXELMAP_UBER_LEAF_MAX + 1;
+    EXPECT_EQ(unionNode->WrapWithUberShapeIfApplicable(root), root);
+}
+
+/**
+ * @tc.name: WrapWithUberShapeIfApplicable_WrapsBasicShapeTree
+ * @tc.desc: test WrapWithUberShapeIfApplicable wraps a basic shape tree with BASIC_SHAPE_UBER
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, WrapWithUberShapeIfApplicable_WrapsBasicShapeTree, TestSize.Level1)
+{
+    auto root = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    ASSERT_NE(root, nullptr);
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
+    unionNode->uberType_ = UberType::BASIC_SHAPE;
+    unionNode->uberLeafCount_ = Drawing::BASIC_SHAPE_LEAF_MIN;
+
+    auto wrapped = unionNode->WrapWithUberShapeIfApplicable(root);
+    ASSERT_NE(wrapped, nullptr);
+    ASSERT_EQ(wrapped->GetType(), RSNGEffectType::SDF_UBER_SHAPE);
+    auto uberShape = std::static_pointer_cast<RSNGRenderSDFUberShape>(wrapped);
+    EXPECT_EQ(uberShape->Getter<SDFUberShapeUberTypeRenderTag>()->Get(),
+        static_cast<int>(Drawing::GESDFUberType::BASIC_SHAPE_UBER));
+    EXPECT_EQ(uberShape->Getter<SDFUberShapeShapeRenderTag>()->Get(), root);
+}
+
+/**
+ * @tc.name: WrapWithUberShapeIfApplicable_WrapsPixelmapTree
+ * @tc.desc: test WrapWithUberShapeIfApplicable wraps a pixelmap tree with PIXELMAP_ATLAS_UBER
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, WrapWithUberShapeIfApplicable_WrapsPixelmapTree, TestSize.Level1)
+{
+    auto root = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_UNION_OP_SHAPE);
+    ASSERT_NE(root, nullptr);
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, context);
+    unionNode->uberType_ = UberType::PIXELMAP;
+    unionNode->uberLeafCount_ = Drawing::PIXELMAP_UBER_LEAF_MIN;
+
+    auto wrapped = unionNode->WrapWithUberShapeIfApplicable(root);
+    ASSERT_NE(wrapped, nullptr);
+    ASSERT_EQ(wrapped->GetType(), RSNGEffectType::SDF_UBER_SHAPE);
+    auto uberShape = std::static_pointer_cast<RSNGRenderSDFUberShape>(wrapped);
+    EXPECT_EQ(uberShape->Getter<SDFUberShapeUberTypeRenderTag>()->Get(),
+        static_cast<int>(Drawing::GESDFUberType::PIXELMAP_ATLAS_UBER));
+    EXPECT_EQ(uberShape->Getter<SDFUberShapeShapeRenderTag>()->Get(), root);
+}
+
+/**
+ * @tc.name: ProcessSDFShape_WrapsHomogeneousBasicTree
+ * @tc.desc: test ProcessSDFShape classifies leaves and wraps a homogeneous basic shape tree
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionRenderNodeTest, ProcessSDFShape_WrapsHomogeneousBasicTree, TestSize.Level1)
+{
+    auto sContext = std::make_shared<RSContext>();
+    auto unionNode = std::make_shared<RSUnionRenderNode>(id, sContext);
+    EXPECT_NE(unionNode->GetContext().lock(), nullptr);
+    unionNode->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+    constexpr int leafCount = Drawing::BASIC_SHAPE_LEAF_MIN;
+    for (int index = 0; index < leafCount; ++index) {
+        auto childId = static_cast<NodeId>(id + 1 + index);
+        auto child = std::make_shared<RSRenderNode>(childId, sContext);
+        sContext->nodeMap.RegisterRenderNode(child);
+        EXPECT_NE(sContext->GetNodeMap().GetRenderNode<RSRenderNode>(childId), nullptr);
+        unionNode->unionChildren_.emplace(childId);
+        child->renderProperties_.boundsGeo_ = CreateRSObjAbsGeometry();
+        child->parent_ = unionNode;
+        child->renderProperties_.renderSDFShape_ = RSNGRenderShapeBase::Create(RSNGEffectType::SDF_RRECT_SHAPE);
+    }
+    unionNode->renderProperties_.SetUnionSpacing(0.f);
+    unionNode->renderProperties_.SetSDFUnionMode(0);
+    std::unique_ptr<RSRenderParams> stagingRenderParams = std::make_unique<RSRenderParams>(id);
+    ASSERT_NE(stagingRenderParams, nullptr);
+    unionNode->stagingRenderParams_ = std::move(stagingRenderParams);
+
+    RSDirtyRegionManager dirtyManager;
+    unionNode->ProcessSDFShape(dirtyManager);
+
+    EXPECT_EQ(unionNode->uberType_, UberType::BASIC_SHAPE);
+    EXPECT_EQ(unionNode->uberLeafCount_, leafCount);
+    ASSERT_NE(unionNode->renderProperties_.renderSDFShape_, nullptr);
+    EXPECT_EQ(unionNode->renderProperties_.renderSDFShape_->GetType(), RSNGEffectType::SDF_UBER_SHAPE);
 }
 } // namespace Rosen
 } // namespace OHOS

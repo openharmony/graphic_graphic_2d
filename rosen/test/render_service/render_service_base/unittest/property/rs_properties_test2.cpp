@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_particle_animation.h"
 #include "animation/rs_particle_noise_field.h"
 #include "animation/rs_particle_ripple_field.h"
@@ -795,31 +796,6 @@ HWTEST_F(PropertiesTest, SetDynamicLightUpDegreeTest, TestSize.Level1)
     properties.SetDynamicLightUpDegree(lightUpDegree);
     EXPECT_EQ(properties.filterNeedUpdate_, true);
     EXPECT_EQ(properties.GetDynamicLightUpDegree(), lightUpDegree.value());
-}
-
-/**
- * @tc.name: SetNGetDynamicDimDegreeTest
- * @tc.desc: test
- * @tc.type: FUNC
- * @tc.require: issueI9W24N
- */
-HWTEST_F(PropertiesTest, SetNGetDynamicDimDegreeTest, TestSize.Level1)
-{
-    RSProperties properties;
-    std::optional<float> dimDegree(0.99f);
-    properties.SetDynamicDimDegree(dimDegree);
-    ASSERT_TRUE(properties.GetDynamicDimDegree().has_value());
-    EXPECT_EQ(properties.GetDynamicDimDegree().value(), dimDegree.value());
-    EXPECT_TRUE(properties.IsDynamicDimValid());
-    dimDegree = 1.f;
-    properties.SetDynamicDimDegree(dimDegree);
-    ASSERT_TRUE(properties.GetDynamicDimDegree().has_value());
-    EXPECT_EQ(properties.GetDynamicDimDegree().value(), dimDegree.value());
-    EXPECT_FALSE(properties.IsDynamicDimValid());
-
-    std::optional<float> degree;
-    properties.SetDynamicDimDegree(degree);
-    EXPECT_TRUE(!degree.has_value());
 }
 
 /**
@@ -2154,6 +2130,39 @@ HWTEST_F(PropertiesTest, SetParticleRippleFieldsWithAnimation001, TestSize.Level
     renderNode->GetMutableRenderProperties().backref_ = renderNode;
     auto rippleFields = std::make_shared<ParticleRippleFields>();
     renderNode->GetMutableRenderProperties().SetParticleRippleFields(rippleFields);
+    EXPECT_EQ(renderNode->GetRenderProperties().GetParticleRippleFields(), rippleFields);
+}
+
+/**
+ * @tc.name: SetParticleRippleFieldsWithCurveAnimation001
+ * @tc.desc: Verify SetParticleRippleFields ignores a registered curve animation
+ * @tc.type: FUNC
+ * @tc.require: issueI9KXXE
+ */
+HWTEST_F(PropertiesTest, SetParticleRippleFieldsWithCurveAnimation001, TestSize.Level1)
+{
+    constexpr AnimationId animId = 6;
+    constexpr PropertyId propId = 6;
+    constexpr NodeId nodeId = 6;
+    auto renderNode = std::make_shared<RSCanvasRenderNode>(nodeId);
+    renderNode->GetMutableRenderProperties().backref_ = renderNode;
+    auto nullAnimationRippleFields = std::make_shared<ParticleRippleFields>();
+    EXPECT_NO_FATAL_FAILURE(
+        renderNode->GetMutableRenderProperties().SetParticleRippleFields(nullAnimationRippleFields));
+    EXPECT_EQ(renderNode->GetRenderProperties().GetParticleRippleFields(), nullAnimationRippleFields);
+
+    auto originValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto startValue = std::make_shared<RSRenderAnimatableProperty<float>>(0.0f);
+    auto endValue = std::make_shared<RSRenderAnimatableProperty<float>>(1.0f);
+    auto curveAnimation =
+        std::make_shared<RSRenderCurveAnimation>(animId, propId, originValue, startValue, endValue);
+    ASSERT_TRUE(renderNode->AddAnimation(curveAnimation));
+    auto animationManager = renderNode->GetAnimationManager();
+    ASSERT_NE(animationManager, nullptr);
+    animationManager->RegisterParticleAnimation(propId, animId);
+
+    auto rippleFields = std::make_shared<ParticleRippleFields>();
+    EXPECT_NO_FATAL_FAILURE(renderNode->GetMutableRenderProperties().SetParticleRippleFields(rippleFields));
     EXPECT_EQ(renderNode->GetRenderProperties().GetParticleRippleFields(), rippleFields);
 }
 

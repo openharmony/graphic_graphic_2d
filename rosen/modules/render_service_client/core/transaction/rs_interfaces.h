@@ -861,6 +861,14 @@ public:
     int32_t SetScreenCorrection(ScreenId id, ScreenRotation screenRotation);
 
     /**
+     * @brief Set post processing shader of a physical screen.
+     * @param id Screen id, must be a physical screen.
+     * @param param Opaque post processing shader config, stored into screen property as is.
+     * @return 0 means success, others failed.
+     */
+    int32_t SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param);
+
+    /**
      * @brief Get screen's gamut map mode.
      * @param id Id of the screen.
      * @param mode Gamut map mode to set for the screen.

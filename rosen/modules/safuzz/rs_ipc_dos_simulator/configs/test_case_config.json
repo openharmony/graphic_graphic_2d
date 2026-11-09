@@ -3287,6 +3287,14 @@
     "connectionType": 1
   },
   {
+    "testCaseDesc": "SET_POST_PROCESSING_SHADER_TEST_001",
+    "interfaceName": "SET_POST_PROCESSING_SHADER",
+    "inputParams": "WriteUint64;WriteUInt8Vector",
+    "writeInterfaceToken": true,
+    "messageOption": "TF_SYNC",
+    "connectionType": 1
+  },
+  {
     "testCaseDesc": "ADD_VIRTUAL_SCREEN_SURFACE_TEST_001",
     "interfaceName": "ADD_VIRTUAL_SCREEN_SURFACE",
     "inputParams": "WriteUint64;WriteUint32;WriteSurfaceSptr;WriteInt32;WriteInt32;WriteInt32;WriteInt32",

@@ -34,6 +34,8 @@
 #include "common/rs_common_tools.h"
 #include "common/rs_obj_abs_geometry.h"
 #include "common/rs_vector4.h"
+#include "draw/color.h"
+#include "drawable/rs_effect_drawable_utils.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_mask_base.h"
@@ -69,6 +71,88 @@ namespace Rosen {
 namespace {
 const Vector4f Vector4fZero { 0.f, 0.f, 0.f, 0.f };
 const auto EMPTY_RECT = RectF();
+
+template<auto Setter, class T>
+void SetPointLightRenderTag(RSEffectProperties& prop, T value)
+{
+    auto shader = DrawableV2::RSEffectDrawableUtils::FindShader(prop.GetCoverageNGShader(),
+        RSNGEffectType::POINT_LIGHT);
+    if (shader == nullptr) {
+        auto rsNGShader = std::make_shared<RSNGRenderPointLight>();
+        std::invoke(Setter, rsNGShader, value, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
+        prop.SetCoverageNGShader(rsNGShader);
+        return;
+    }
+    auto rsNGShader = std::static_pointer_cast<RSNGRenderPointLight>(shader);
+    std::invoke(Setter, rsNGShader, value, PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
+}
+
+template<auto Func, class ShaderTag>
+void SetLightPoint(RSProperties& prop, const RSNGRenderPointLight& shader)
+{
+    auto value = shader.Getter<ShaderTag>();
+    if (value) {
+        std::invoke(Func, prop, value->Get());
+    }
+}
+
+template<>
+void SetLightPoint<&RSProperties::NoticeLightColor, PointLightLightColorRenderTag>(RSProperties& prop,
+    const RSNGRenderPointLight& shader)
+{
+    auto value = shader.Getter<PointLightLightColorRenderTag>();
+    if (value) {
+        auto vec4 = value->Get();
+        Color color{vec4.x_, vec4.y_, vec4.z_, vec4.w_};
+        prop.NoticeLightColor(color);
+    }
+}
+
+template<>
+void SetLightPoint<&RSProperties::SetLightColor, PointLightLightColorRenderTag>(RSProperties& prop,
+    const RSNGRenderPointLight& shader)
+{
+    auto value = shader.Getter<PointLightLightColorRenderTag>();
+    if (value) {
+        auto vec4 = value->Get();
+        Color color{vec4.x_, vec4.y_, vec4.z_, vec4.w_};
+        prop.SetLightColor(color);
+    }
+}
+
+void NoticePointLight(RSProperties& prop, const std::shared_ptr<RSNGRenderShaderBase>& shader)
+{
+    auto pointLightShader = DrawableV2::RSEffectDrawableUtils::FindShader(shader, RSNGEffectType::POINT_LIGHT);
+    if (pointLightShader == nullptr) {
+        return;
+    }
+    RS_LOGD_IF(DEBUG_PIPELINE, "NoticePointLight drawLight");
+    auto rsNGShader = std::static_pointer_cast<RSNGRenderPointLight>(pointLightShader);
+    SetLightPoint<&RSProperties::NoticeLightIntensity, PointLightLightIntensityRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::NoticeLightPosition, PointLightLightPositionRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::NoticeIlluminatedBorderWidth, PointLightIlluminatedBorderWidthRenderTag>(prop,
+        *rsNGShader);
+    SetLightPoint<&RSProperties::NoticeIlluminatedType, PointLightIlluminatedTypeRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::NoticeBloom, PointLightBloomRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::NoticeLightColor, PointLightLightColorRenderTag>(prop, *rsNGShader);
+}
+
+void NoticeCoverage(RSProperties& prop, const std::shared_ptr<RSNGRenderShaderBase>& shader)
+{
+    auto pointLightShader = DrawableV2::RSEffectDrawableUtils::FindShader(shader, RSNGEffectType::POINT_LIGHT);
+    if (pointLightShader == nullptr) {
+        return;
+    }
+    RS_LOGD_IF(DEBUG_PIPELINE, "NoticeCoverage drawLight");
+    auto rsNGShader = std::static_pointer_cast<RSNGRenderPointLight>(pointLightShader);
+    SetLightPoint<&RSProperties::SetLightIntensity, PointLightLightIntensityRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::SetLightPosition, PointLightLightPositionRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::SetIlluminatedBorderWidth, PointLightIlluminatedBorderWidthRenderTag>(prop,
+        *rsNGShader);
+    SetLightPoint<&RSProperties::SetIlluminatedType, PointLightIlluminatedTypeRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::SetBloom, PointLightBloomRenderTag>(prop, *rsNGShader);
+    SetLightPoint<&RSProperties::SetLightColor, PointLightLightColorRenderTag>(prop, *rsNGShader);
+}
 } // namespace
 
 #ifdef SUBTREE_PARALLEL_ENABLE
@@ -1480,7 +1564,7 @@ void RSProperties::SetParticleRippleFields(const std::shared_ptr<ParticleRippleF
             return;
         }
         auto animation = animationManager->GetParticleAnimation();
-        if (animation == nullptr) {
+        if (animation == nullptr || animation->GetType() != RSRenderAnimationType::PARTICLE_ANIMATION) {
             return;
         }
         auto particleAnimation = std::static_pointer_cast<RSRenderParticleAnimation>(animation);
@@ -2040,17 +2124,6 @@ void RSProperties::SetGreyCoef(const std::optional<Vector2f>& greyCoef)
     contentDirty_ = true;
 }
 
-void RSProperties::SetDynamicDimDegree(const std::optional<float>& DimDegree)
-{
-    GetEffectProperties().SetDynamicDimDegree(DimDegree);
-    if (DimDegree.has_value()) {
-        isDrawn_ = true;
-    }
-    filterNeedUpdate_ = true;
-    SetDirty();
-    contentDirty_ = true;
-}
-
 void RSProperties::SetDepthImage(const std::shared_ptr<RSImage>& depthImage)
 {
     auto renderNode = backref_.lock();
@@ -2322,19 +2395,9 @@ float RSProperties::GetDynamicLightUpDegree() const
     return GetEffectProperties().GetDynamicLightUpDegree();
 }
 
-const std::optional<float>& RSProperties::GetDynamicDimDegree() const
-{
-    return GetEffectProperties().GetDynamicDimDegree();
-}
-
 const std::optional<Vector2f>& RSProperties::GetGreyCoef() const
 {
     return GetEffectProperties().GetGreyCoef();
-}
-
-bool RSProperties::IsDynamicDimValid() const
-{
-    return GetEffectProperties().IsDynamicDimValid();
 }
 
 const std::shared_ptr<MotionBlurParam>& RSProperties::GetMotionBlurPara() const
@@ -2571,6 +2634,21 @@ void RSProperties::SetClipRRect(RRect clipRRect)
     }
     SetDirty();
     geoDirty_ = true;  // [planning] all clip ops should be checked
+}
+
+void RSProperties::SetClipShape(const RRect& clipShape)
+{
+    clipShape_ = std::make_shared<RRect>(clipShape);
+    isDrawn_ = true;
+    SetDirty();
+    geoDirty_ = true;
+}
+ 
+void RSProperties::ResetClipShape()
+{
+    clipShape_ = nullptr;
+    SetDirty();
+    geoDirty_ = true;
 }
 
 void RSProperties::SetClipBounds(const std::shared_ptr<RSPath>& path)
@@ -2899,6 +2977,20 @@ std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetCompositingNGFilter() con
     return GetEffectProperties().GetCompositingNGFilter();
 }
 
+void RSProperties::SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter)
+{
+    GetEffectProperties().SetColorNGFilter(renderFilter);
+    isDrawn_ = true;
+    filterNeedUpdate_ = true;
+    SetDirty();
+    contentDirty_ = true;
+}
+
+const std::shared_ptr<RSNGRenderFilterBase>& RSProperties::GetColorNGFilter() const
+{
+    return GetEffectProperties().GetColorNGFilter();
+}
+
 void RSProperties::SetHDRUIBrightness(float hdrUIBrightness)
 {
     if (auto node = RSBaseRenderNode::ReinterpretCast<RSCanvasRenderNode>(backref_.lock())) {
@@ -3040,27 +3132,6 @@ void RSProperties::SetCanvasNodeHDRBrightnessFactor(float factor)
 float RSProperties::GetCanvasNodeHDRBrightnessFactor() const
 {
     return canvasNodeHDRBrightnessFactor_;
-}
-
-void RSProperties::SetLightUpEffect(float lightUpEffectDegree)
-{
-    GetEffectProperties().SetLightUpEffect(lightUpEffectDegree);
-    if (IsLightUpEffectValid()) {
-        isDrawn_ = true;
-    }
-    filterNeedUpdate_ = true;
-    SetDirty();
-    contentDirty_ = true;
-}
-
-float RSProperties::GetLightUpEffect() const
-{
-    return GetEffectProperties().GetLightUpEffect();
-}
-
-bool RSProperties::IsLightUpEffectValid() const
-{
-    return GetEffectProperties().IsLightUpEffectValid();
 }
 
 // filter property
@@ -3508,7 +3579,8 @@ void RSProperties::StatBackgroundFilter()
 {
     ServerXXFilterCascadeParams params;
     params.functionType = ServerFilterFunctionType::BACKGROUND_FILTER;
-    if (GetAiInvert().has_value() || GetSystemBarEffect()) {
+    if ((GetColorNGFilter() != nullptr && GetColorNGFilter()->ContainsType(RSNGEffectType::BINARIZATION)) ||
+        GetSystemBarEffect()) {
         params.paramCounts[static_cast<size_t>(ServerXXFilterCascadeType::AIBAR)]++;
     }
     if (GetEffectProperties().IsBackgroundMaterialFilterValid()) {
@@ -3841,7 +3913,7 @@ const std::optional<float>& RSProperties::GetGrayScale() const
     return GetEffectProperties().GetGrayScale();
 }
 
-void RSProperties::SetLightIntensity(float lightIntensity)
+void RSProperties::NoticeLightIntensity(float lightIntensity)
 {
     if (!GetEffectProperties().SetLightIntensity(lightIntensity)) {
         return;
@@ -3863,28 +3935,28 @@ void RSProperties::SetLightIntensity(float lightIntensity)
     }
 }
 
-void RSProperties::SetLightColor(Color lightColor)
+void RSProperties::NoticeLightColor(Color lightColor)
 {
     GetEffectProperties().SetLightColor(lightColor);
     SetDirty();
     contentDirty_ = true;
 }
 
-void RSProperties::SetLightPosition(const Vector4f& lightPosition)
+void RSProperties::NoticeLightPosition(const Vector4f& lightPosition)
 {
     GetEffectProperties().SetLightPosition(lightPosition);
     SetDirty();
     contentDirty_ = true;
 }
 
-void RSProperties::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
+void RSProperties::NoticeIlluminatedBorderWidth(float illuminatedBorderWidth)
 {
     GetEffectProperties().SetIlluminatedBorderWidth(illuminatedBorderWidth);
     SetDirty();
     contentDirty_ = true;
 }
 
-void RSProperties::SetIlluminatedType(int illuminatedType)
+void RSProperties::NoticeIlluminatedType(int illuminatedType)
 {
     GetEffectProperties().SetIlluminatedType(illuminatedType);
     auto curIlluminateType = IlluminatedType(illuminatedType);
@@ -3909,7 +3981,7 @@ void RSProperties::SetIlluminatedType(int illuminatedType)
     }
 }
 
-void RSProperties::SetBloom(float bloomIntensity)
+void RSProperties::NoticeBloom(float bloomIntensity)
 {
     GetEffectProperties().SetBloom(bloomIntensity);
     isDrawn_ = true;
@@ -3917,9 +3989,53 @@ void RSProperties::SetBloom(float bloomIntensity)
     contentDirty_ = true;
 }
 
+void RSProperties::SetLightIntensity(float lightIntensity)
+{
+    SetPointLightRenderTag<&RSNGRenderPointLight::Setter<PointLightLightIntensityRenderTag>, float>(
+        GetEffectProperties(), lightIntensity);
+    NoticeLightIntensity(lightIntensity);
+}
+
+void RSProperties::SetLightColor(Color lightColor)
+{
+    SetPointLightRenderTag<&RSNGRenderPointLight::Setter<PointLightLightColorRenderTag>, Vector4f>(
+        GetEffectProperties(), Vector4f(static_cast<float>(lightColor.GetRed()),
+        static_cast<float>(lightColor.GetGreen()), static_cast<float>(lightColor.GetBlue()),
+        static_cast<float>(lightColor.GetAlpha())));
+    NoticeLightColor(lightColor);
+}
+
+void RSProperties::SetLightPosition(const Vector4f& lightPosition)
+{
+    SetPointLightRenderTag<&RSNGRenderPointLight::Setter<PointLightLightPositionRenderTag>, Vector4f>(
+        GetEffectProperties(), lightPosition);
+    NoticeLightPosition(lightPosition);
+}
+
+void RSProperties::SetIlluminatedBorderWidth(float illuminatedBorderWidth)
+{
+    SetPointLightRenderTag<&RSNGRenderPointLight::Setter<PointLightIlluminatedBorderWidthRenderTag>, float>(
+        GetEffectProperties(), illuminatedBorderWidth);
+    NoticeIlluminatedBorderWidth(illuminatedBorderWidth);
+}
+
+void RSProperties::SetIlluminatedType(int illuminatedType)
+{
+    SetPointLightRenderTag<&RSNGRenderPointLight::Setter<PointLightIlluminatedTypeRenderTag>, int>(
+        GetEffectProperties(), illuminatedType);
+    NoticeIlluminatedType(illuminatedType);
+}
+
+void RSProperties::SetBloom(float bloomIntensity)
+{
+    SetPointLightRenderTag<&RSNGRenderPointLight::Setter<PointLightBloomRenderTag>, int>(
+        GetEffectProperties(), bloomIntensity);
+    NoticeBloom(bloomIntensity);
+}
+
 void RSProperties::SetCoverageNGShader(const std::shared_ptr<RSNGRenderShaderBase>& coverageShader)
 {
-    GetEffectProperties().SetCoverageNGShader(coverageShader);
+    NoticeCoverage(*this, coverageShader);
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;
@@ -3955,6 +4071,7 @@ std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetCoverageNGShader() const
 
 void RSProperties::SetOverlayNGShader(const std::shared_ptr<RSNGRenderShaderBase>& overlayShader)
 {
+    NoticePointLight(*this, overlayShader);
     GetEffectProperties().SetOverlayNGShader(overlayShader);
     isDrawn_ = true;
     SetDirty();
@@ -4029,21 +4146,6 @@ void RSProperties::SetInvert(const std::optional<float>& invert)
 const std::optional<float>& RSProperties::GetInvert() const
 {
     return GetEffectProperties().GetInvert();
-}
-
-
-void RSProperties::SetAiInvert(const std::optional<Vector4f>& aiInvert)
-{
-    GetEffectProperties().SetAiInvert(aiInvert);
-    colorFilterNeedUpdate_ = true;
-    SetDirty();
-    contentDirty_ = true;
-    isDrawn_ = true;
-}
-
-const std::optional<Vector4f>& RSProperties::GetAiInvert() const
-{
-    return GetEffectProperties().GetAiInvert();
 }
 
 void RSProperties::SetSystemBarEffect(bool systemBarEffect)
@@ -4316,11 +4418,10 @@ std::string RSProperties::Dump() const
     // LightUpEffect
     ret = memset_s(buffer, UINT8_MAX, 0, UINT8_MAX);
     if (ret != EOK) {
-        return "Failed to memset_s for LightUpEffect, ret=" + std::to_string(ret);
+        return "Failed to memset_s for ColorNGFilter, ret=" + std::to_string(ret);
     }
-    if (!ROSEN_EQ(GetLightUpEffect(), 1.f) &&
-        sprintf_s(buffer, UINT8_MAX, ", LightUpEffect[%.1f]", GetLightUpEffect()) != -1) {
-        dumpInfo.append(buffer);
+    if (GetColorNGFilter() != nullptr) {
+        dumpInfo.append(", ColorNGFilter");
     }
 
     // ForegroundColor
@@ -4751,19 +4852,20 @@ void RSProperties::UpdateFilter()
     // If new effects are added, it is necessary to assess whether they can partial render,
     // and update NeedDisabledPartialRender.
     needFilter_ = GetBackgroundFilter() != nullptr || GetCompositingFilter() != nullptr || GetUseEffect() ||
-                  HasHarmonium() || IsLightUpEffectValid() || IsDynamicLightUpValid() || GetGreyCoef().has_value() ||
-                  GetLinearGradientBlurPara() != nullptr || IsDynamicDimValid() ||
+                  HasHarmonium() || GetColorNGFilter() != nullptr || IsDynamicLightUpValid() ||
+                  GetGreyCoef().has_value() || GetLinearGradientBlurPara() != nullptr ||
                   GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
                   GetForegroundFilter() != nullptr || IsFgBlenderEffectValid() || IsBgBrightnessValid() ||
                   GetForegroundFilterCache() != nullptr || IsWaterRippleValid() || GetNeedDrawBehindWindow() ||
                   GetMask() || GetColorFilter() != nullptr || localMagnificationCap_ || !GetPixelStretch().IsZero() ||
                   GetMaterialFilter() != nullptr || HasSpatialGlassEffect();
 
-    needHwcFilter_ = GetBackgroundFilter() != nullptr || GetCompositingFilter() != nullptr || IsLightUpEffectValid() ||
-                     IsDynamicLightUpValid() || GetLinearGradientBlurPara() != nullptr ||
-                     IsDynamicDimValid() || IsFgBlenderEffectValid() || IsBgBrightnessValid() || IsWaterRippleValid() ||
-                     GetNeedDrawBehindWindow() || GetColorFilter() != nullptr || localMagnificationCap_ ||
-                     !GetPixelStretch().IsZero() || GetMaterialFilter() != nullptr || IsSDFDistortShape();
+    needHwcFilter_ = GetBackgroundFilter() != nullptr || GetCompositingFilter() != nullptr ||
+                     GetColorNGFilter() != nullptr || IsDynamicLightUpValid() ||
+                     GetLinearGradientBlurPara() != nullptr || IsFgBlenderEffectValid() || IsBgBrightnessValid() ||
+                     IsWaterRippleValid() || GetNeedDrawBehindWindow() || GetColorFilter() != nullptr ||
+                     localMagnificationCap_ || !GetPixelStretch().IsZero() || GetMaterialFilter() != nullptr ||
+                     IsSDFDistortShape();
 #ifdef SUBTREE_PARALLEL_ENABLE
     // needForceSubmit_ is used to determine whether the subtree needs to read/scale pixels
     needForceSubmit_ = IsFilterNeedForceSubmit(GetCompositingFilter()) ||
@@ -4783,9 +4885,9 @@ bool RSProperties::DisableHWCForFilter() const
     }
     // The difference compared to needFilter_ is no need to disable hwc when foregroundFilter is HDR_UI_BRIGHTNESS
     return GetBackgroundFilter() != nullptr || GetCompositingFilter() != nullptr || GetUseEffect() ||
-        IsLightUpEffectValid() || IsDynamicLightUpValid() || GetGreyCoef().has_value() ||
+        GetColorNGFilter() != nullptr || IsDynamicLightUpValid() || GetGreyCoef().has_value() ||
         GetLinearGradientBlurPara() != nullptr ||
-        IsDynamicDimValid() || GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
+        GetShadowColorStrategy() != SHADOW_COLOR_STRATEGY::COLOR_STRATEGY_NONE ||
         (GetForegroundFilter() != nullptr && GetForegroundFilter()->GetFilterType() != RSFilter::HDR_UI_BRIGHTNESS) ||
         IsFgBlenderEffectValid() || IsBgBrightnessValid() ||
         (GetForegroundFilterCache() != nullptr &&
@@ -4900,6 +5002,7 @@ void RSProperties::ResetBorder(bool isOutline)
 
 void RSProperties::SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
 {
+    NoticePointLight(*this, renderShader);
     GetEffectProperties().SetBackgroundNGShader(renderShader);
     isDrawn_ = true;
     SetDirty();
@@ -4931,6 +5034,7 @@ std::shared_ptr<RSNGRenderShaderBase> RSProperties::GetBackgroundNGShader() cons
 
 void RSProperties::SetForegroundShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
 {
+    NoticePointLight(*this, renderShader);
     GetEffectProperties().SetForegroundShader(renderShader);
     isDrawn_ = true;
     SetDirty();
@@ -4989,6 +5093,7 @@ std::shared_ptr<RSNGRenderFilterBase> RSProperties::GetMaterialNGFilter() const
 
 void RSProperties::SetMaterialShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader)
 {
+    NoticePointLight(*this, renderShader);
     GetEffectProperties().SetMaterialShader(renderShader);
     isDrawn_ = true;
     SetDirty();

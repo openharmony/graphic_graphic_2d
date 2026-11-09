@@ -604,6 +604,28 @@ HWTEST_F(RSMemoryTrackTest, AddPictureRecordWithPixelMapTest, testing::ext::Test
 }
 
 /**
+ * @tc.name: AddPictureRecordWithUniqueIdTest
+ * @tc.desc: Test AddPictureRecord forwards the uniqueId tag to the fd tracker
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSMemoryTrackTest, AddPictureRecordWithUniqueIdTest, testing::ext::TestSize.Level1)
+{
+    const void* addr = reinterpret_cast<void*>(0x5000);
+    MemoryInfo info;
+    info.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info.pid = 11002;
+    info.allocType = OHOS::Media::AllocatorType::SHARE_MEM_ALLOC;
+    constexpr uint64_t uniqueId = (static_cast<uint64_t>(11002) << 32) | 58; // pid << 32 | id, same as RSImage
+    MemoryTrack& test1 = MemoryTrack::Instance();
+    test1.AddPictureRecord(addr, info, uniqueId);
+    EXPECT_TRUE(test1.memPicRecord_.count(addr));
+    EXPECT_EQ(test1.pixelMapFdTracker_.addrTracker_[11002][addr], uniqueId);
+    test1.RemovePictureRecord(addr);
+    EXPECT_TRUE(test1.pixelMapFdTracker_.addrTracker_.find(11002) == test1.pixelMapFdTracker_.addrTracker_.end());
+}
+
+/**
  * @tc.name: AddPictureRecordWithSkImageTest
  * @tc.desc: Test AddPictureRecord with MEM_SKIMAGE type does not trigger fd tracking.
  * @tc.type: FUNC
@@ -1407,4 +1429,156 @@ HWTEST_F(RSMemoryTrackTest, MemoryInfoFieldAlignmentTest001, testing::ext::TestS
     EXPECT_EQ(info.uid, 0u);
     EXPECT_EQ(info.type, MEMORY_TYPE::MEM_SKIMAGE);
 }
+
+/**
+ * @tc.name: MemoryNodeOfPidDrawableMemSizeTest
+ * @tc.desc: Test GetMemSize and SetMemSize of MemoryNodeOfPid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMemoryTrackTest, MemoryNodeOfPidDrawableMemSizeTest, testing::ext::TestSize.Level1)
+{
+    size_t size = 1024;
+    NodeId id = 1;
+    MemoryNodeOfPid node(size, id);
+    EXPECT_EQ(node.GetMemSize(), size);
+    node.SetMemSize(256);
+    EXPECT_EQ(node.GetMemSize(), static_cast<size_t>(256));
+}
+
+/**
+ * @tc.name: RegisterNodeMemPidZeroTest
+ * @tc.desc: Test RegisterNodeMem with pid=0 (early return).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMemoryTrackTest, RegisterNodeMemPidZeroTest, testing::ext::TestSize.Level1)
+{
+    pid_t pid = 0;
+    size_t size = 100;
+    MemoryTrack::Instance().RegisterNodeMem(pid, size, MEMORY_TYPE::MEM_RENDER_NODE);
+    EXPECT_EQ(MemoryTrack::Instance().nodeMemOfPid_.find(pid),
+        MemoryTrack::Instance().nodeMemOfPid_.end());
+}
+
+/**
+ * @tc.name: UnRegisterNodeMemPidNotFoundTest
+ * @tc.desc: Test UnRegisterNodeMem when pid is not in nodeMemOfPid_ map.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMemoryTrackTest, UnRegisterNodeMemPidNotFoundTest, testing::ext::TestSize.Level1)
+{
+    pid_t pid = -100;
+    size_t size = 100;
+    MemoryTrack::Instance().UnRegisterNodeMem(pid, size, MEMORY_TYPE::MEM_RENDER_NODE);
+    EXPECT_EQ(MemoryTrack::Instance().nodeMemOfPid_.find(pid),
+        MemoryTrack::Instance().nodeMemOfPid_.end());
+}
+
+/**
+ * @tc.name: RemoveNodeOfPidFromMapTest001
+ * @tc.desc: Test RemoveNodeOfPidFromMap with non-existent pid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMemoryTrackTest, RemoveNodeOfPidFromMapTest001, testing::ext::TestSize.Level1)
+{
+    pid_t pid = -200;
+    size_t size = 100;
+    NodeId id = 9999;
+    MemoryTrack::Instance().RemoveNodeOfPidFromMap(pid, size, id);
+    EXPECT_EQ(MemoryTrack::Instance().memNodeOfPidMap_.find(pid),
+        MemoryTrack::Instance().memNodeOfPidMap_.end());
+}
+
+/**
+ * @tc.name: RemoveNodeOfPidFromMapTest002
+ * @tc.desc: Test RemoveNodeOfPidFromMap with existing pid but non-existent node.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMemoryTrackTest, RemoveNodeOfPidFromMapTest002, testing::ext::TestSize.Level1)
+{
+    pid_t pid = -201;
+    NodeId id1 = 8001;
+    NodeId id2 = 8002;
+    MemoryInfo info1 = {1024, pid, id1, MEMORY_TYPE::MEM_RENDER_NODE};
+    MemoryTrack::Instance().AddNodeRecord(id1, info1);
+    MemoryTrack::Instance().RemoveNodeOfPidFromMap(pid, 2048, id2);
+    EXPECT_TRUE(MemoryTrack::Instance().memNodeOfPidMap_.find(pid) !=
+        MemoryTrack::Instance().memNodeOfPidMap_.end());
+    MemoryTrack::Instance().RemoveNodeRecord(id1);
+}
+
+/**
+ * @tc.name: CountRSMemoryEmptyVectorTest
+ * @tc.desc: Test CountRSMemory when pid has empty vector in memNodeOfPidMap_.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMemoryTrackTest, CountRSMemoryEmptyVectorTest, testing::ext::TestSize.Level1)
+{
+    pid_t pid = -300;
+    MemoryTrack::Instance().memNodeOfPidMap_[pid] = {};
+    MemoryGraphic result = MemoryTrack::Instance().CountRSMemory(pid);
+    EXPECT_EQ(result.GetCpuMemorySize(), 0);
+    EXPECT_EQ(MemoryTrack::Instance().memNodeOfPidMap_.find(pid),
+        MemoryTrack::Instance().memNodeOfPidMap_.end());
+}
+
+/**
+ * @tc.name: UpdatePictureInfoNotFoundTest
+ * @tc.desc: Test UpdatePictureInfo when address is not in memPicRecord_.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMemoryTrackTest, UpdatePictureInfoNotFoundTest, testing::ext::TestSize.Level1)
+{
+    const void* addr = reinterpret_cast<void*>(0xD000);
+    NodeId nodeId = 1;
+    pid_t pid = -1;
+    EXPECT_FALSE(MemoryTrack::Instance().memPicRecord_.count(addr));
+    MemoryTrack::Instance().UpdatePictureInfo(addr, nodeId, pid);
+    EXPECT_FALSE(MemoryTrack::Instance().memPicRecord_.count(addr));
+}
+
+/**
+ * @tc.name: DumpMemoryPicStatisticsWithNullNodeTest
+ * @tc.desc: Test DumpMemoryPicStatistics when func returns isNodeNull=true for MEM_PIXELMAP.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMemoryTrackTest, DumpMemoryPicStatisticsWithNullNodeTest, testing::ext::TestSize.Level1)
+{
+    const void* addr = reinterpret_cast<void*>(0xE000);
+    MemoryInfo info;
+    info.size = 2048;
+    info.pid = 16001;
+    info.nid = 6001;
+    info.type = MEMORY_TYPE::MEM_PIXELMAP;
+    info.allocType = OHOS::Media::AllocatorType::HEAP_ALLOC;
+    MemoryTrack::Instance().AddPictureRecord(addr, info);
+
+    DfxString log;
+    bool isLite = false;
+    std::function<std::tuple<uint64_t, std::string, RectI, bool>(uint64_t)> func =
+        [](uint64_t) {
+            return std::make_tuple(0ULL, "", RectI(), true);
+        };
+    MemoryTrack::Instance().DumpMemoryPicStatistics(log, func, isLite);
+    std::string str = log.GetString();
+    EXPECT_NE(str, "");
+
+    MemoryTrack::Instance().RemovePictureRecord(addr);
+}
+
+#ifdef RS_MEMORY_INFO_MANAGER
+/**
+ * @tc.name: GlobalRootNodeStatusChangeFlagTest
+ * @tc.desc: Test SetGlobalRootNodeStatusChangeFlag and GetGlobalRootNodeStatusChangeFlag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSMemoryTrackTest, GlobalRootNodeStatusChangeFlagTest, testing::ext::TestSize.Level1)
+{
+    MemoryTrack::Instance().SetGlobalRootNodeStatusChangeFlag(true);
+    bool flag = MemoryTrack::Instance().GetGlobalRootNodeStatusChangeFlag();
+    EXPECT_TRUE(flag);
+    MemoryTrack::Instance().SetGlobalRootNodeStatusChangeFlag(false);
+    flag = MemoryTrack::Instance().GetGlobalRootNodeStatusChangeFlag();
+    EXPECT_FALSE(flag);
+}
+#endif
 } // namespace OHOS::Rosen

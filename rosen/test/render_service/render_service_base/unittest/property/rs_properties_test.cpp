@@ -21,6 +21,7 @@
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "property/rs_point_light_manager.h"
+#include "common/rs_rect.h"
 #include "render/rs_drawing_filter.h"
 
 using namespace testing;
@@ -1858,22 +1859,6 @@ HWTEST_F(RSPropertiesTest, SetGreyCoef001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetNGetDynamicDimDegree001
- * @tc.desc: test
- * @tc.type:FUNC
- * @tc.require:
- */
-HWTEST_F(RSPropertiesTest, SetNGetDynamicDimDegree001, TestSize.Level1)
-{
-    RSProperties properties;
-    std::optional<float> dimDegree(0.9f);
-    properties.SetDynamicDimDegree(dimDegree);
-    ASSERT_TRUE(properties.GetDynamicDimDegree().has_value());
-    EXPECT_EQ(properties.GetDynamicDimDegree().value(), dimDegree.value());
-    EXPECT_TRUE(properties.IsDynamicDimValid());
-}
-
-/**
  * @tc.name: GetFilter001
  * @tc.desc: test results of GetFilter
  * @tc.type:FUNC
@@ -2104,6 +2089,21 @@ HWTEST_F(RSPropertiesTest, SetClipRRect001, TestSize.Level1)
     EXPECT_EQ(properties.geoDirty_, true);
     EXPECT_EQ(properties.GetClipRRect(), clipRRect);
     EXPECT_TRUE(properties.GetClipToRRect());
+}
+
+/**
+ * @tc.name: SetClipRRectEmptyTest
+ * @tc.desc: test GetClipToRRect returns false when rect is empty
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSPropertiesTest, SetClipRRectEmptyTest, TestSize.Level1)
+{
+    RSProperties properties;
+    // empty rect (0x0) — GetClipToRRect returns false (IsEmpty check)
+    RRect emptyRRect(RectT<float>(0.0f, 0.0f, 0.0f, 0.0f), 0.0f, 0.0f);
+    properties.SetClipRRect(emptyRRect);
+    EXPECT_FALSE(properties.GetClipToRRect());
 }
 
 /**
@@ -2789,11 +2789,6 @@ HWTEST_F(RSPropertiesTest, GenerateBackgroundFilter001, TestSize.Level1)
     properties.GenerateBackgroundFilter();
     EXPECT_TRUE(properties.GetEffectProperties().IsBackgroundBlurSaturationValid());
 
-    Vector4f aiInvert = { 1.f, 1.f, 1.f, 1.f };
-    properties.GetEffectProperties().GetFilterEffect().aiInvert_ = aiInvert;
-    properties.GenerateBackgroundFilter();
-    EXPECT_EQ(properties.GetEffectProperties().GetFilterEffect().aiInvert_.has_value(), true);
-
     properties.GetEffectProperties().GetFilterEffect().systemBarEffect_ = true;
     properties.GenerateBackgroundFilter();
     EXPECT_TRUE(properties.GetEffectProperties().GetFilterEffect().systemBarEffect_);
@@ -3145,8 +3140,9 @@ HWTEST_F(RSPropertiesTest, SetNGetAttractionFraction003, TestSize.Level1)
 HWTEST_F(RSPropertiesTest, SetLightUpEffect001, TestSize.Level1)
 {
     RSProperties properties;
-    properties.SetLightUpEffect(1.0f);
-    EXPECT_NE(properties.isDrawn_, true);
+    auto filter = RSNGRenderFilterBase::Create(RSNGEffectType::LIGHT_UP_EFFECT);
+    properties.SetColorNGFilter(filter);
+    EXPECT_EQ(properties.isDrawn_, true);
 }
 
 /**
@@ -3421,8 +3417,7 @@ HWTEST_F(RSPropertiesTest, GenerateColorFilter001, TestSize.Level1)
     properties.SetSaturate(saturate);
     std::optional<float> sepia = std::optional<float>(1.f);
     properties.SetSepia(sepia);
-    std::optional<float> aiInvert = std::optional<float>(1.f);
-    properties.SetAiInvert(aiInvert);
+    properties.SetColorNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION));
     std::optional<float> hueRotate = std::optional<float>(1.f);
     properties.SetHueRotate(hueRotate);
     Color color(255, 0, 0);
@@ -3797,7 +3792,7 @@ HWTEST_F(RSPropertiesTest, StatBackground_Variants, TestSize.Level1)
     RSProperties props;
     props.backref_ = node;
     props.hasReportedServerXXFilterCascade_.reset();
-    props.SetAiInvert(Vector4f(0.1f, 0.1f, 0.1f, 0.1f));
+    props.SetColorNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION));
     props.SetAlwaysSnapshot(true);
     props.SetBackgroundNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BLUR));
     props.SetSystemBarEffect(true);
@@ -3987,30 +3982,25 @@ HWTEST_F(RSPropertiesTest, SetCoverageNGShader001, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetCoverageNGShader002
- * @tc.desc: test results of SetCoverageNGShader with multiple shader types
+ * @tc.name: SetPointLight
+ * @tc.desc: test results of SetPointLight with diffrent set function
  * @tc.type:FUNC
  * @tc.require: issueNumber
  */
-HWTEST_F(RSPropertiesTest, SetCoverageNGShader002, TestSize.Level1)
+HWTEST_F(RSPropertiesTest, SetPointLight001, TestSize.Level1)
 {
     RSProperties properties;
-    
-    auto coverageShader = RSNGRenderShaderBase::Create(RSNGEffectType::BORDER_LIGHT);
-    properties.SetCoverageNGShader(coverageShader);
-    EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
-    
-    coverageShader = RSNGRenderShaderBase::Create(RSNGEffectType::HARMONIUM_EFFECT);
-    properties.SetCoverageNGShader(coverageShader);
-    EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
-    
-    coverageShader = RSNGRenderShaderBase::Create(RSNGEffectType::AURORA_NOISE);
-    properties.SetCoverageNGShader(coverageShader);
-    EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
-    
-    coverageShader = RSNGRenderShaderBase::Create(RSNGEffectType::FROSTED_GLASS_EFFECT);
-    properties.SetCoverageNGShader(coverageShader);
-    EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
+    auto shader = std::make_shared<RSNGRenderPointLight>();
+    properties.SetOverlayNGShader(shader);
+    EXPECT_NE(properties.GetOverlayNGShader(), nullptr);
+    properties.SetBackgroundNGShader(shader);
+    EXPECT_NE(properties.GetBackgroundNGShader(), nullptr);
+    properties.SetForegroundShader(shader);
+    EXPECT_NE(properties.GetForegroundShader(), nullptr);
+    properties.SetMaterialShader(shader);
+    EXPECT_NE(properties.GetMaterialShader(), nullptr);
+    properties.SetCoverageNGShader(shader);
+    EXPECT_NE(properties.GetCoverageNGShader(), nullptr);
 }
 
 /**
@@ -5002,6 +4992,115 @@ HWTEST_F(RSPropertiesTest, SetPixelStretchPercentNullopt001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetClipShape001
+ * @tc.desc: test results of SetClipShape with normal values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetClipShape001, TestSize.Level1)
+{
+    RSProperties properties;
+    Vector4f radius(10.0f, 20.0f, 30.0f, 40.0f);
+    RRect shape(RectT<float>(0.0f, 0.0f, 100.0f, 200.0f), radius);
+    properties.SetClipShape(shape);
+    EXPECT_EQ(properties.geoDirty_, true);
+    EXPECT_EQ(properties.isDirty_, true);
+    EXPECT_EQ(properties.isDrawn_, true);
+    ASSERT_TRUE(properties.GetClipToShape());
+    EXPECT_EQ(properties.GetClipShape()->rect_.GetWidth(), 100.0f);
+    EXPECT_EQ(properties.GetClipShape()->rect_.GetHeight(), 200.0f);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[0][0], radius.x_);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[1][0], radius.y_);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[2][0], radius.z_);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[3][0], radius.w_);
+}
+ 
+/**
+ * @tc.name: SetClipShape002
+ * @tc.desc: test SetClipShape overwrites previous value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, SetClipShape002, TestSize.Level1)
+{
+    RSProperties properties;
+    RRect shape1(RectT<float>(0.0f, 0.0f, 100.0f, 200.0f), Vector4f(10.0f, 20.0f, 30.0f, 40.0f));
+    properties.SetClipShape(shape1);
+    ASSERT_TRUE(properties.GetClipToShape());
+ 
+    RRect shape2(RectT<float>(0.0f, 0.0f, 300.0f, 400.0f), Vector4f(50.0f, 60.0f, 70.0f, 80.0f));
+    properties.SetClipShape(shape2);
+    ASSERT_TRUE(properties.GetClipToShape());
+    EXPECT_EQ(properties.GetClipShape()->rect_.GetWidth(), 300.0f);
+    EXPECT_EQ(properties.GetClipShape()->rect_.GetHeight(), 400.0f);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[0][0], 50.0f);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[1][0], 60.0f);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[2][0], 70.0f);
+    EXPECT_FLOAT_EQ(properties.GetClipShape()->radius_[3][0], 80.0f);
+}
+ 
+/**
+ * @tc.name: GetClipShape001
+ * @tc.desc: test GetClipShape returns nullptr when not set
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, GetClipShape001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_EQ(properties.GetClipShape(), nullptr);
+    EXPECT_FALSE(properties.GetClipToShape());
+}
+ 
+/**
+ * @tc.name: ResetClipShape001
+ * @tc.desc: test ResetClipShape clears clipShape_ to nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, ResetClipShape001, TestSize.Level1)
+{
+    RSProperties properties;
+    RRect shape(RectT<float>(0.0f, 0.0f, 100.0f, 200.0f), Vector4f(10.0f, 20.0f, 30.0f, 40.0f));
+    properties.SetClipShape(shape);
+    ASSERT_TRUE(properties.GetClipToShape());
+ 
+    properties.ResetClipShape();
+    EXPECT_FALSE(properties.GetClipToShape());
+    EXPECT_EQ(properties.GetClipShape(), nullptr);
+    EXPECT_EQ(properties.geoDirty_, true);
+    EXPECT_EQ(properties.isDirty_, true);
+}
+
+/**
+ * @tc.name: ResetClipShape002
+ * @tc.desc: test ResetClipShape when clipShape_ is already nullptr
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, ResetClipShape002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.ResetClipShape();
+    EXPECT_FALSE(properties.GetClipToShape());
+    EXPECT_EQ(properties.GetClipShape(), nullptr);
+}
+
+/**
+ * @tc.name: GetClipToShape001
+ * @tc.desc: test GetClipToShape returns false after reset even with non-zero shape values
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPropertiesTest, GetClipToShape001, TestSize.Level1)
+{
+    RSProperties properties;
+    EXPECT_FALSE(properties.GetClipToShape());
+
+    RRect shape(RectT<float>(0.0f, 0.0f, 0.0f, 0.0f), Vector4f(0.0f));
+    properties.SetClipShape(shape);
+    // clipShape_ is set (non-null), so GetClipToShape returns true
+    EXPECT_TRUE(properties.GetClipToShape());
+
+    properties.ResetClipShape();
+    EXPECT_FALSE(properties.GetClipToShape());
+}
+
+/**
  * @tc.name: SetShadowClipType001
  * @tc.desc: test results of SetShadowClipType with BOUNDS_SHAPE
  * @tc.type: FUNC
@@ -5023,7 +5122,7 @@ HWTEST_F(RSPropertiesTest, GetShadowClipType001, TestSize.Level1)
     RSProperties properties;
     EXPECT_EQ(properties.GetShadowClipType(), static_cast<int>(ShadowClipType::DEFAULT_SHAPE));
 }
- 
+
 /**
  * @tc.name: SetShadowClipTypeContentDirty001
  * @tc.desc: SetShadowClipType sets contentDirty_ to true
@@ -5051,6 +5150,34 @@ HWTEST_F(RSPropertiesTest, DumpShadowClipType001, TestSize.Level1)
     properties.SetShadowClipType(static_cast<int>(ShadowClipType::BOUNDS_SHAPE));
     dumpInfo = properties.Dump();
     EXPECT_TRUE(dumpInfo.find("ShadowClipType[1]") != std::string::npos);
+}
+
+
+/**
+ * @tc.name: DumpColorNGFilter001
+ * @tc.desc:  Dump output excludes ColorNGFilter when not set
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, DumpColorNGFilter001, TestSize.Level1)
+{
+    RSProperties properties;
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ColorNGFilter") == std::string::npos);
+}
+
+/**
+ * @tc.name: DumpColorNGFilter002
+ * @tc.desc:  Dump output excludes ColorNGFilter when not set
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSPropertiesTest, DumpColorNGFilter002, TestSize.Level1)
+{
+    RSProperties properties;
+    properties.SetColorNGFilter(RSNGRenderFilterBase::Create(RSNGEffectType::BINARIZATION));
+    std::string dumpInfo = properties.Dump();
+    EXPECT_TRUE(dumpInfo.find("ColorNGFilter") != std::string::npos);
 }
 } // namespace Rosen
 } // namespace OHOS

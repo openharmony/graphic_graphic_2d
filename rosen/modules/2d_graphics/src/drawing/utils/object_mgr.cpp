@@ -15,6 +15,10 @@
 
 #include "utils/object_mgr.h"
 
+#ifdef USE_M133_SKIA
+#include "include/core/SkGraphics.h"
+#endif
+
 namespace OHOS {
 namespace Rosen {
 namespace Drawing {
@@ -70,6 +74,11 @@ bool TypefaceMgr::Remove(void* key)
     std::unique_lock lock(mutex_);
     auto iter = typeface_.find(key);
     if (iter != typeface_.end()) {
+#ifdef USE_M133_SKIA
+        if (iter->second != nullptr) {
+            SkGraphics::RemoveCacheByUniqueId(iter->second->GetUniqueID());
+        }
+#endif
         typeface_.erase(iter);
         return true;
     } else {

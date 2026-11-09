@@ -871,10 +871,9 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, SplitDrawCmdListTest, TestSize.Level1)
 HWTEST_F(RSCanvasDrawingRenderNodeTest, InitClientRenderEnableTest, TestSize.Level1)
 {
     RSCanvasDrawingRenderNode::InitClientRenderEnable(false);
-    EXPECT_FALSE(RSCanvasDrawingRenderNode::IsHybridEnabled());
+    EXPECT_FALSE(RSCanvasDrawingRenderNode::hybridEnabled_);
     RSCanvasDrawingRenderNode::InitClientRenderEnable(true);
-    EXPECT_EQ(
-        RSCanvasDrawingRenderNode::IsHybridEnabled(), RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM());
+    EXPECT_EQ(RSCanvasDrawingRenderNode::hybridEnabled_, RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM());
 }
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE

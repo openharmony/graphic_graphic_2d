@@ -166,6 +166,9 @@ public:
     // type blacklist
     void SetTypeBlackList(const std::unordered_set<uint8_t>& typeBlackList);
 
+    // post processing shader
+    void SetPostProcessingShader(const std::vector<uint8_t>& param);
+
     // whitelist
     void SetWhiteList(const std::unordered_set<NodeId>& whiteList);
     std::unordered_set<NodeId> GetWhiteList() const;

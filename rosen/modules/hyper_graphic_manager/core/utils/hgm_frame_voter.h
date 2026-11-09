@@ -37,8 +37,7 @@ public:
     const std::vector<std::string>& GetVoters() const { return voters_; }
     bool GetVoterGamesEffective() const { return voterGamesEffective_.load(); }
 
-    bool IsDragScene() const { return isDragScene_; }
-    void SetDragScene(bool isDragScene) { isDragScene_ = isDragScene; }
+    void SetDisableTouchHighFrame(bool isDisableTouchHighFrame);
     void SetSkipVirtualDisplay(bool isSkipVirtualDisplay);
     bool IsSkipVirtualDisplayChanged() const { return isSkipVirtualDisplay_ != prevSkipVirtualDisplay_; }
     void SetIsTouchUpLTPOFirstPeriod(bool isTouchUpLTPOFirstPeriod)
@@ -79,7 +78,8 @@ private:
         return false;
     }
 
-    bool isDragScene_ = false;
+    bool isDisableTouchHighFrame_ = false;
+    bool isUpdateTouchFramePolicy_ = false;
     bool isTouchUpLTPOFirstPeriod_ = false;
     bool isTouchUpLTPOFirstDynamicMode_ = false;
     bool isSkipVirtualDisplay_ = false;

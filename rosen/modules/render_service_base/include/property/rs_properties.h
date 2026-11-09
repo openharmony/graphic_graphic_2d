@@ -26,6 +26,7 @@
 #include "common/rs_macros.h"
 #include "common/rs_matrix3.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "common/rs_rect.h"
 #include "common/rs_vector4.h"
 #include "property/rs_effect_properties.h"
 #include "property/rs_properties_def.h"
@@ -385,6 +386,16 @@ public:
     {
         return clipRRect_ && !clipRRect_->rect_.IsEmpty();
     }
+    void SetClipShape(const RRect& clipShape);
+    void ResetClipShape();
+    const std::shared_ptr<RRect>& GetClipShape() const
+    {
+        return clipShape_;
+    }
+    bool GetClipToShape() const
+    {
+        return clipShape_ != nullptr;
+    }
     void SetClipBounds(const std::shared_ptr<RSPath>& path);
     const std::shared_ptr<RSPath>& GetClipBounds() const
     {
@@ -502,6 +513,8 @@ public:
     // compositing filter
     void SetCompositingNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
     std::shared_ptr<RSNGRenderFilterBase> GetCompositingNGFilter() const;
+    void SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& renderFilter);
+    const std::shared_ptr<RSNGRenderFilterBase>& GetColorNGFilter() const;
 
     const std::shared_ptr<RSFilter>& GetCompositingFilter() const
     {
@@ -644,19 +657,8 @@ public:
     void SetHueRotate(const std::optional<float>& hueRotate);
     const std::optional<float>& GetHueRotate() const;
 
-    void SetAiInvert(const std::optional<Vector4f>& aiInvert);
-    const std::optional<Vector4f>& GetAiInvert() const;
-
     void SetColorBlend(const std::optional<Color>& colorBlend);
     const std::optional<Color>& GetColorBlend() const;
-
-    void SetLightUpEffect(float lightUpEffectDegree);
-    float GetLightUpEffect() const;
-    bool IsLightUpEffectValid() const;
-
-    void SetDynamicDimDegree(const std::optional<float>& DimDegree);
-    const std::optional<float>& GetDynamicDimDegree() const;
-    bool IsDynamicDimValid() const;
 
     // Pixel Stretch
     void SetPixelStretch(const std::optional<Vector4f>& stretchSize);
@@ -737,6 +739,13 @@ public:
         const auto& illuminatedPtr = GetIlluminated();
         return illuminatedPtr ? illuminatedPtr->GetBloomIntensity() : 0.f;
     }
+
+    void NoticeLightIntensity(float lightIntensity);
+    void NoticeLightColor(Color lightColor);
+    void NoticeLightPosition(const Vector4f& lightPosition);
+    void NoticeIlluminatedBorderWidth(float illuminatedBorderWidth);
+    void NoticeIlluminatedType(int illuminatedType);
+    void NoticeBloom(float bloomIntensity);
 
     void SetBackgroundNGShader(const std::shared_ptr<RSNGRenderShaderBase>& renderShader);
     std::shared_ptr<RSNGRenderShaderBase> GetBackgroundNGShader() const;
@@ -1005,6 +1014,7 @@ private:
     bool hasGlassEffect_ = false;
     bool alphaOffscreen_ = false;
     std::unique_ptr<RRect> clipRRect_;
+    std::shared_ptr<RRect> clipShape_ = nullptr;
     bool alphaNeedApply_ = false;
     bool localMagnificationCap_ = false;
     float hdrBrightnessFactor_ = 1.0f; // for displayNode

@@ -251,7 +251,6 @@ public:
             case RSPropertyType::SHADOW_COLOR_STRATEGY: return "ShadowColorStrategy";
             case RSPropertyType::MASK: return "Mask";
             case RSPropertyType::SPHERIZE: return "Spherize";
-            case RSPropertyType::LIGHT_UP_EFFECT_DEGREE: return "LightUpEffectDegree";
             case RSPropertyType::PIXEL_STRETCH_SIZE: return "PixelStretchSize";
             case RSPropertyType::PIXEL_STRETCH_PERCENT: return "PixelStretchPercent";
             case RSPropertyType::PIXEL_STRETCH_TILE_MODE: return "PixelStretchTileMode";
@@ -266,7 +265,6 @@ public:
             case RSPropertyType::SATURATE: return "Saturate";
             case RSPropertyType::SEPIA: return "Sepia";
             case RSPropertyType::INVERT: return "Invert";
-            case RSPropertyType::AIINVERT: return "Aiinvert";
             case RSPropertyType::SYSTEMBAREFFECT: return "Systembareffect";
             case RSPropertyType::WATER_RIPPLE_PROGRESS: return "WaterRippleProgress";
             case RSPropertyType::WATER_RIPPLE_PARAMS: return "WaterRippleParams";
@@ -301,7 +299,6 @@ public:
             case RSPropertyType::FLY_OUT_DEGREE: return "FlyOutDegree";
             case RSPropertyType::FLY_OUT_PARAMS: return "FlyOutParams";
             case RSPropertyType::DISTORTION_K: return "DistortionK";
-            case RSPropertyType::DYNAMIC_DIM_DEGREE: return "DynamicDimDegree";
             case RSPropertyType::BACKGROUND_BLUR_RADIUS: return "BackgroundBlurRadius";
             case RSPropertyType::BACKGROUND_BLUR_SATURATION: return "BackgroundBlurSaturation";
             case RSPropertyType::BACKGROUND_BLUR_BRIGHTNESS: return "BackgroundBlurBrightness";
@@ -343,6 +340,7 @@ public:
             case RSPropertyType::BEHIND_WINDOW_FILTER_MASK_COLOR: return "BehindWindowFilterMaskColor";
             case RSPropertyType::FOREGROUND_SHADER: return "ForegroundShader";
             case RSPropertyType::COMPOSITING_NG_FILTER: return "CompositingNGFilter";
+            case RSPropertyType::COLOR_NG_FILTER: return "ColorNGFilter";
             case RSPropertyType::USE_UNION: return "UseUnion";
             case RSPropertyType::UNION_SPACING: return "UnionSpacing";
             case RSPropertyType::SDF_UNION_MODE: return "SDFUnionMode";
@@ -372,6 +370,7 @@ public:
             case RSPropertyType::SPATIAL_EFFECT_MODE: return "SpatialEffectMode";
             case RSPropertyType::MATERIAL_SHADER: return "MaterialShader";
             case RSPropertyType::OVERLAY_NG_SHADER: return "OverlayNGShader";
+            case RSPropertyType::CLIP_SHAPE: return "ClipShape";
             default: return "Unknown";
         }
         return "Unknown";

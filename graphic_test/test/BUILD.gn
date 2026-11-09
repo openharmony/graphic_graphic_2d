@@ -23,6 +23,7 @@ hardware_manager_sources = []
 open_capability_sources = [
     "open_capability/pixmap/create_pixel_map_from_surface_test.cpp",
     "open_capability/pixmap/pixelmap_display_test.cpp",
+    "open_capability/pixmap/pixelmap_draw_api_test.cpp",
 ]
 rs_display_effect_sources = [
   "rs_display_effect/animation/anim_callback_animation_test.cpp",
@@ -132,6 +133,7 @@ rs_display_effect_sources = [
   "rs_display_effect/property_display/geom_bounds_test.cpp",
   "rs_display_effect/property_display/geom_cameradistance_test.cpp",
   "rs_display_effect/property_display/geom_clip_radius_test.cpp",
+  "rs_display_effect/property_display/geom_clip_shape_test.cpp",
   "rs_display_effect/property_display/geom_clip_test.cpp",
   "rs_display_effect/property_display/geom_cornerradius_test.cpp",
   "rs_display_effect/property_display/geom_frame_position_test.cpp",
@@ -194,11 +196,13 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_shader_test/ng_shader_distort_chroma_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_ai_bar_glow_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_ai_bar_rect_halo_test.cpp",
+  "rs_effect_feature/ng_shader_test/ng_shader_cosmos_ring_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_color_gradient_effect_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_frosted_glass_effect_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_spatial_point_light_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_spatial_glass_effect_test.cpp",
   "rs_effect_feature/ng_shader_test/ng_shader_border_sdf_test.cpp",
+  "rs_effect_feature/ng_shader_test/ng_shader_cosmos_ring_shadow_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_substracted_rect_test.cpp",
   "rs_effect_feature/ng_effect_test/ng_hdrdarken_blender_test.cpp",
   "rs_effect_feature/ng_filter_test/ng_filter_content_light_test.cpp",
@@ -227,6 +231,7 @@ rs_effect_feature_sources = [
   "rs_effect_feature/ng_shape_test/ng_sdf_sub_op_shape_test.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_rrect_test.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_triangle_test.cpp",
+  "rs_effect_feature/ng_shape_test/ng_sdf_uber_test.cpp",
   "rs_effect_feature/ng_shape_test/ng_sdf_test_utils.cpp",
   "rs_effect_feature/ui_filter_test/ui_filter_test.cpp",
   "rs_effect_feature/ui_filter_test/ui_filter_test_data_manager.cpp",

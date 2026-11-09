@@ -423,16 +423,6 @@ HWTEST_F(RSShowingPropertiesFreezerTest, GetDegreeTest, TestSize.Level1)
     auto result1 = canvasNode->GetShowingProperties().GetSpherizeDegree();
     ASSERT_TRUE(result1.has_value());
     EXPECT_FLOAT_EQ(result1.value(), SHOWING_FLOAT_NUM);
-
-    canvasNode->SetLightUpEffectDegree(SHOWING_FLOAT_NUM);
-    auto result2 = canvasNode->GetShowingProperties().GetLightUpEffectDegree();
-    ASSERT_TRUE(result2.has_value());
-    EXPECT_FLOAT_EQ(result2.value(), SHOWING_FLOAT_NUM);
-
-    canvasNode->SetDynamicDimDegree(SHOWING_FLOAT_NUM);
-    auto result3 = canvasNode->GetShowingProperties().GetDynamicDimDegree();
-    ASSERT_TRUE(result3.has_value());
-    EXPECT_FLOAT_EQ(result3.value(), SHOWING_FLOAT_NUM);
     GTEST_LOG_(INFO) << "RSShowingPropertiesFreezerTest GetDegreeTest end";
 }
 

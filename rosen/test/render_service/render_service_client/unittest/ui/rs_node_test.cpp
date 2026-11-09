@@ -29,11 +29,13 @@
 #include "animation/rs_implicit_animation_param.h"
 #include "animation/rs_implicit_animator.h"
 #include "animation/rs_transition.h"
+#include "common/rs_rect.h"
 #include "common/rs_vector4.h"
 #include "modifier_ng/appearance/rs_background_filter_modifier.h"
 #include "modifier_ng/appearance/rs_color_picker_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
 #include "modifier_ng/custom/rs_content_style_modifier.h"
+#include "modifier_ng/geometry/rs_bounds_clip_modifier.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
@@ -4656,7 +4658,7 @@ HWTEST_F(RSNodeTest, SetandGetLightUpEffectDegree001, TestSize.Level1)
     auto rsNode = RSCanvasNode::Create();
     float lightUpEffectDegree = 1.0f;
     rsNode->SetLightUpEffectDegree(lightUpEffectDegree);
-    EXPECT_TRUE(ROSEN_EQ(rsNode->GetStagingProperties().GetLightUpEffectDegree(), lightUpEffectDegree));
+    EXPECT_FLOAT_EQ(rsNode->GetStagingProperties().GetLightUpEffectDegree(), lightUpEffectDegree);
 }
 
 /**
@@ -9487,4 +9489,93 @@ HWTEST_F(RSNodeTest, FlushCachedModifiersRecursively_EmptyModifiersNoCrash001, T
     EXPECT_TRUE(root->modifiersNG_.empty());
     EXPECT_TRUE(child->modifiersNG_.empty());
 }
+
+/**
+ * @tc.name: SetClipShape001
+ * @tc.desc: test results of SetClipShape with a valid RRect
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSNodeTest, SetClipShape001, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    ASSERT_NE(rsNode, nullptr);
+    constexpr float CLIP_WIDTH = 100.0f;
+    constexpr float CLIP_HEIGHT = 200.0f;
+    Vector4f radius(10.0f, 20.0f, 30.0f, 40.0f); // for test
+    RRect shape(RectT<float>(0.0f, 0.0f, CLIP_WIDTH, CLIP_HEIGHT), radius);
+    rsNode->SetClipShape(shape);
+
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
+    ASSERT_NE(modifier, nullptr);
+    auto clipShapeModifier = std::static_pointer_cast<ModifierNG::RSBoundsClipModifier>(modifier);
+    RRect gotShape = clipShapeModifier->GetClipShape();
+    EXPECT_FLOAT_EQ(gotShape.rect_.GetWidth(), CLIP_WIDTH);
+    EXPECT_FLOAT_EQ(gotShape.rect_.GetHeight(), CLIP_HEIGHT);
+    EXPECT_FLOAT_EQ(gotShape.radius_[0][0], radius.x_);
+    EXPECT_FLOAT_EQ(gotShape.radius_[1][0], radius.y_);
+    EXPECT_FLOAT_EQ(gotShape.radius_[2][0], radius.z_);
+    EXPECT_FLOAT_EQ(gotShape.radius_[3][0], radius.w_);
+}
+
+/**
+ * @tc.name: SetClipShape002
+ * @tc.desc: test results of SetClipShape with zero width/height RRect
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSNodeTest, SetClipShape002, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    ASSERT_NE(rsNode, nullptr);
+    Vector4f zeroRadius(0.0f, 0.0f, 0.0f, 0.0f); // for test
+    RRect shape(RectT<float>(0.0f, 0.0f, 0.0f, 0.0f), zeroRadius);
+    rsNode->SetClipShape(shape);
+
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
+    ASSERT_NE(modifier, nullptr);
+    auto clipShapeModifier = std::static_pointer_cast<ModifierNG::RSBoundsClipModifier>(modifier);
+    RRect gotShape = clipShapeModifier->GetClipShape();
+    EXPECT_FLOAT_EQ(gotShape.rect_.GetWidth(), 0.0f);
+    EXPECT_FLOAT_EQ(gotShape.rect_.GetHeight(), 0.0f);
+    EXPECT_FLOAT_EQ(gotShape.radius_[0][0], zeroRadius.x_);
+    EXPECT_FLOAT_EQ(gotShape.radius_[1][0], zeroRadius.y_);
+    EXPECT_FLOAT_EQ(gotShape.radius_[2][0], zeroRadius.z_);
+    EXPECT_FLOAT_EQ(gotShape.radius_[3][0], zeroRadius.w_);
+}
+
+/**
+ * @tc.name: SetClipShape003
+ * @tc.desc: test results of SetClipShape with consecutive different values
+ * @tc.type: FUNC
+ * @tc.require: SR20260808951364
+ */
+HWTEST_F(RSNodeTest, SetClipShape003, TestSize.Level1)
+{
+    auto rsNode = CreateCanvasNode();
+    ASSERT_NE(rsNode, nullptr);
+    constexpr float FIRST_WIDTH = 50.0f;
+    constexpr float FIRST_HEIGHT = 60.0f;
+    constexpr float SECOND_WIDTH = 150.0f;
+    constexpr float SECOND_HEIGHT = 250.0f;
+    Vector4f firstRadius(1.0f, 2.0f, 3.0f, 4.0f); // for test
+    Vector4f secondRadius(5.0f, 6.0f, 7.0f, 8.0f); // for test
+    RRect firstShape(RectT<float>(0.0f, 0.0f, FIRST_WIDTH, FIRST_HEIGHT), firstRadius);
+    rsNode->SetClipShape(firstShape);
+    RRect secondShape(RectT<float>(0.0f, 0.0f, SECOND_WIDTH, SECOND_HEIGHT), secondRadius);
+    rsNode->SetClipShape(secondShape);
+
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::CLIP_TO_BOUNDS);
+    ASSERT_NE(modifier, nullptr);
+    auto clipShapeModifier = std::static_pointer_cast<ModifierNG::RSBoundsClipModifier>(modifier);
+    RRect gotShape = clipShapeModifier->GetClipShape();
+    // Second set should overwrite first
+    EXPECT_FLOAT_EQ(gotShape.rect_.GetWidth(), SECOND_WIDTH);
+    EXPECT_FLOAT_EQ(gotShape.rect_.GetHeight(), SECOND_HEIGHT);
+    EXPECT_FLOAT_EQ(gotShape.radius_[0][0], secondRadius.x_);
+    EXPECT_FLOAT_EQ(gotShape.radius_[1][0], secondRadius.y_);
+    EXPECT_FLOAT_EQ(gotShape.radius_[2][0], secondRadius.z_);
+    EXPECT_FLOAT_EQ(gotShape.radius_[3][0], secondRadius.w_);
+}
+
 } // namespace OHOS::Rosen

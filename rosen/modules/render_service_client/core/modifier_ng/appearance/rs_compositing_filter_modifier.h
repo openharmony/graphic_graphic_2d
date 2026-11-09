@@ -30,9 +30,6 @@ public:
         return Type;
     };
 
-    void SetAiInvert(const std::optional<Vector4f>& aiInvert);
-    std::optional<Vector4f> GetAiInvert() const;
-
     void SetGrayScale(std::optional<float> grayScale);
     std::optional<float> GetGrayScale() const;
     void SetBrightness(std::optional<float> brightness);
@@ -49,13 +46,6 @@ public:
     std::optional<float> GetHueRotate() const;
     void SetColorBlend(const std::optional<Color> colorBlend);
     std::optional<Color> GetColorBlend() const;
-
-    void SetLightUpEffectDegree(float lightUpEffectDegree);
-    float GetLightUpEffectDegree() const;
-
-    void SetDynamicDimDegree(std::optional<float> dimDegree);
-    std::optional<float> GetDynamicDimDegree() const;
-
     std::shared_ptr<RSFilter> GetFilter() const;
     void SetLinearGradientBlurPara(const std::shared_ptr<RSLinearGradientBlurPara>& para);
     std::shared_ptr<RSLinearGradientBlurPara> GetLinearGradientBlurPara() const;
@@ -77,6 +67,8 @@ public:
     bool GetFgBlurDisableSystemAdaptation() const;
     void SetNGFilterBase(std::shared_ptr<RSNGFilterBase> filter);
     std::shared_ptr<RSNGFilterBase> GetNGFilterBase() const;
+    void SetColorNGFilter(std::shared_ptr<RSNGFilterBase> filter);
+    std::shared_ptr<RSNGFilterBase> GetColorNGFilter() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_APPEARANCE_RS_COMPOSITING_FILTER_MODIFIER_H

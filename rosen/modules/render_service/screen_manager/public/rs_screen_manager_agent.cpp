@@ -367,6 +367,15 @@ int32_t RSScreenManagerAgent::SetVirtualScreenTypeBlackList(ScreenId id, const s
     return screenManager_->SetVirtualScreenTypeBlackList(id, typeBlackList);
 }
 
+int32_t RSScreenManagerAgent::SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param)
+{
+    if (!screenManager_) {
+        RS_LOGW("%{public}s screenManager_ is nullptr", __func__);
+        return StatusCode::SCREEN_NOT_FOUND;
+    }
+    return screenManager_->SetPostProcessingShader(id, param);
+}
+
 int32_t RSScreenManagerAgent::AddVirtualScreenBlackList(ScreenId id, const std::vector<NodeId>& blackList)
 {
     if (blackList.size() > MAX_SPECIAL_LAYER_NUM) {

@@ -69,6 +69,9 @@ struct FilterEffectParams {
 
     std::unique_ptr<RSCompositingBlurPara> compositingBlurPara_ = nullptr;
     bool ctBlurDisableSystemAdaptation = true;
+
+    std::shared_ptr<RSNGRenderFilterBase> colorNGRenderFilter_ = nullptr;
+
     std::shared_ptr<RSLinearGradientBlurPara> linearGradientBlurPara_ = nullptr;
 
     // foreground filter
@@ -100,11 +103,7 @@ struct FilterEffectParams {
     std::optional<float> sepia_;
     std::optional<float> invert_;
     std::optional<float> hueRotate_;
-    std::optional<Vector4f> aiInvert_;
     std::optional<Color> colorBlend_;
-
-    float lightUpEffectDegree_ = 1.0f;
-    std::optional<float> dynamicDimDegree_;
 
     // pixel stretch
     std::unique_ptr<RSPixelStretchPara> pixelStretchPara_ = nullptr;
@@ -394,6 +393,10 @@ public:
     void SetCompositingBlurRadiusY(float radiusY);
     float GetCompositingBlurRadiusY() const;
     bool IsCompositingBlurRadiusYValid() const;
+
+    void SetColorNGFilter(const std::shared_ptr<RSNGRenderFilterBase>& filter);
+    const std::shared_ptr<RSNGRenderFilterBase>& GetColorNGFilter() const;
+
     bool IsForegroundMaterialFilterValid() const;
 
     // ctBlurDisableSystemAdaptation
@@ -519,23 +522,9 @@ public:
     void SetHueRotate(const std::optional<float>& hueRotate);
     const std::optional<float>& GetHueRotate() const;
 
-    // aiInvert_
-    void SetAiInvert(const std::optional<Vector4f>& aiInvert);
-    const std::optional<Vector4f>& GetAiInvert() const;
-
     // colorBlend_
     void SetColorBlend(const std::optional<Color>& colorBlend);
     const std::optional<Color>& GetColorBlend() const;
-
-    // lightUpEffectDegree_
-    void SetLightUpEffect(float lightUpEffectDegree);
-    float GetLightUpEffect() const;
-    bool IsLightUpEffectValid() const;
-
-    // dynamicDimDegree_
-    void SetDynamicDimDegree(const std::optional<float>& dimDegree);
-    const std::optional<float>& GetDynamicDimDegree() const;
-    bool IsDynamicDimValid() const;
 
     // pixelStretchPara_
     void SetPixelStretch(const std::optional<Vector4f>& stretchSize);

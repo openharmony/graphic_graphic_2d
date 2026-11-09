@@ -109,6 +109,7 @@ HWTEST_F(RSScreenPropertyTest, MarshallingTest002, TestSize.Level1)
     ADD_PROP(ScreenPropertyType::SCREEN_SWITCH_STATUS, false);
     ADD_PROP(ScreenPropertyType::SCREEN_FRAME_GRAVITY, static_cast<int32_t>(Gravity::DEFAULT));
     ADD_PROP(ScreenPropertyType::SKIP_COLOR_SPACE_CONVERSION, true);
+    ADD_PROP(ScreenPropertyType::POST_PROCESSING_SHADER, (std::vector<uint8_t>{ 1, 2, 3 }));
 
 #undef ADD_PROP
 
@@ -184,6 +185,25 @@ HWTEST_F(RSScreenPropertyTest, IsMainScreenTest003, TestSize.Level1)
 
     bool isMainScreen = property.IsMainScreen();
     ASSERT_FALSE(isMainScreen);
+}
+
+/**
+ * @tc.name: GetPostProcessingShader_001
+ * @tc.desc: Test GetPostProcessingShader returns empty when not set, and the set value otherwise
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenPropertyTest, GetPostProcessingShader_001, TestSize.Level1)
+{
+    RSScreenProperty property;
+    EXPECT_TRUE(property.GetPostProcessingShader().empty());
+
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    using T = PropertyTypeMapper<ScreenPropertyType::POST_PROCESSING_SHADER>::value_type;
+    auto prop = sptr<ScreenProperty<T>>::MakeSptr(T(param));
+    property.Set(ScreenPropertyType::POST_PROCESSING_SHADER, prop);
+
+    EXPECT_EQ(property.GetPostProcessingShader(), param);
 }
 
 /**

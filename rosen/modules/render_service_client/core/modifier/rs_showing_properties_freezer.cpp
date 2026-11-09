@@ -270,17 +270,5 @@ std::optional<Vector2f> RSShowingPropertiesFreezer::GetAttractionDstPointValue()
     return GetPropertyImplNG<Vector2f, ModifierNG::RSModifierType::FOREGROUND_FILTER,
         ModifierNG::RSPropertyType::ATTRACTION_DSTPOINT>();
 }
-
-std::optional<float> RSShowingPropertiesFreezer::GetLightUpEffectDegree() const
-{
-    return GetPropertyImplNG<float, ModifierNG::RSModifierType::COMPOSITING_FILTER,
-        ModifierNG::RSPropertyType::LIGHT_UP_EFFECT_DEGREE>();
-}
-
-std::optional<float> RSShowingPropertiesFreezer::GetDynamicDimDegree() const
-{
-    return GetPropertyImplNG<float, ModifierNG::RSModifierType::COMPOSITING_FILTER,
-        ModifierNG::RSPropertyType::DYNAMIC_DIM_DEGREE>();
-}
 } // namespace Rosen
 } // namespace OHOS

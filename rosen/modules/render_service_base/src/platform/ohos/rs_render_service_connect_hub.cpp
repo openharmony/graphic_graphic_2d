@@ -35,8 +35,6 @@ namespace OHOS {
 namespace Rosen {
 std::once_flag RSRenderServiceConnectHub::flag_;
 sptr<RSRenderServiceConnectHub> RSRenderServiceConnectHub::instance_ = nullptr;
-OnConnectCallback RSRenderServiceConnectHub::onConnectCallback_ = nullptr;
-std::mutex RSRenderServiceConnectHub::onConnectCallbackMutex_;
 constexpr int32_t TOKEN_STRONG_REF_COUNT = 1;
 constexpr int32_t WAIT_TIME_FOR_DEC_STRONG_REF = 50;
 
@@ -60,26 +58,6 @@ void RSRenderServiceConnectHub::Destroy()
 RSRenderServiceConnectHub::RSRenderServiceConnectHub()
 {
 }
-void RSRenderServiceConnectHub::SetOnConnectCallback(OnConnectCallback cb)
-{
-    {
-        std::lock_guard<std::mutex> lock(onConnectCallbackMutex_);
-        onConnectCallback_ = cb;
-    }
-    // if already connected, call the callback immediately
-    auto connHub = instance_;
-    if (connHub && connHub->renderConn_) {
-        OnConnectCallback callback;
-        {
-            std::lock_guard<std::mutex> lock(onConnectCallbackMutex_);
-            callback = onConnectCallback_;
-        }
-        if (callback) {
-            callback(connHub->renderConn_);
-        }
-    }
-}
-
 RSRenderServiceConnectHub::~RSRenderServiceConnectHub() noexcept
 {
     std::lock_guard<std::mutex> lock(mutex_);
@@ -353,15 +331,6 @@ bool RSRenderServiceConnectHub::Connect()
     renderService_ = renderService;
     conn_ = conn;
     renderConn_ = renderConn;
-
-    OnConnectCallback callback;
-    {
-        std::lock_guard<std::mutex> lock(onConnectCallbackMutex_);
-        callback = onConnectCallback_;
-    }
-    if (callback) {
-        callback(renderConn_);
-    }
 
     return true;
 }

@@ -14,6 +14,7 @@
  */
 
 #include "rs_graphic_test_img.h"
+#include "ui_effect/property/include/rs_ui_shader_base.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -34,6 +35,14 @@ public:
     }
 };
 
+std::shared_ptr<Rosen::RSCanvasNode> SetUpNodeColor(uint32_t colorValue, const Rosen::Vector4f bounds)
+{
+    auto testNode1 = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
+    testNode1->SetBounds(bounds);
+    testNode1->SetBackgroundColor(colorValue);
+    return testNode1;
+}
+
 GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, LightIntensity_Test_1)
 {
     float intensityList[] = { 0, 1, 10, 100 };
@@ -46,128 +55,127 @@ GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, LightIntensity_Test_1)
         if (i % 3 == 1) {
             testNode->SetLightIntensity(intensityList[i / 3]);
             testNode->SetLightColor(0xffffffff);
-            testNode->SetIlluminatedType(1);
-            testNode->SetLightColor(0xffffffff);
-            testNode->SetLightPosition(200, 200, 0);
-            testNode->SetIlluminatedBorderWidth(5);
+            testNode->SetLightPosition(200, 200, 200);
         }
+        testNode->SetIlluminatedType(1);
+        testNode->SetIlluminatedBorderWidth(5);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
-GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, LightColor_Test_1)
+GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, LightIntensity_Test_SetCoverageNGShader)
 {
-    uint32_t colorList[] = { 0xffffffff, 0xff000000, 0xffff0000, 0xff00ff00, 0xff0000ff, 0x7dffffff };
-    for (int i = 0; i < 18; i++) {
-        int x = (i % 3) * 420;
-        int y = (i / 3) * 420;
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x + 10, y + 10, 400, 400 });
-        testNode->SetClipRRect({ 0, 0, 400, 400 }, { 200, 200, 200, 200 });
-        testNode->SetClipToBounds(true);
-        if (i % 3 == 1) {
-            testNode->SetLightIntensity(1);
-            testNode->SetLightColor(colorList[i / 3]);
-            testNode->SetIlluminatedType(1);
-            testNode->SetLightColor(0xffffffff);
-            testNode->SetLightPosition(200, 200, 0);
-            testNode->SetIlluminatedBorderWidth(5);
-        }
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
-    }
-}
-
-GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, IlluminatedType_Test_1)
-{
-    uint32_t typeList[] = { -1, 0, 1, 2, 3, 4, 5 };
-    for (int i = 0; i < 21; i++) {
-        int x = (i % 3) * 420;
-        int y = (i / 3) * 380;
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x + 30, y + 10, 360, 360 });
-        testNode->SetClipRRect({ 0, 0, 360, 360 }, { 180, 180, 180, 180 });
-        testNode->SetClipToBounds(true);
-        if (i % 3 == 1) {
-            testNode->SetLightIntensity(1);
-            testNode->SetLightColor(0xffffffff);
-            testNode->SetIlluminatedType(typeList[i / 3]);
-            testNode->SetLightColor(0xffffffff);
-            testNode->SetLightPosition(200, 200, 0);
-            testNode->SetIlluminatedBorderWidth(5);
-            if (i / 3 >= 5)
-                testNode->SetBloom(1);
-        }
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
-    }
-}
-
-GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, LightPosition_Test_1)
-{
-    float positionList[] = { 0, 200, 400 };
-    float zList[] = { 0, 0.5, 1 };
-    for (int i = 0; i < 9; i++) {
-        int x = (i % 3) * 420;
-        int y = (i / 3) * 420;
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x + 10, y + 10, 400, 400 });
-        testNode->SetClipRRect({ 0, 0, 400, 400 }, { 200, 200, 200, 200 });
-        testNode->SetClipToBounds(true);
-        if (i % 3 == 1) {
-            testNode->SetLightIntensity(1);
-            testNode->SetLightColor(0xffffffff);
-            testNode->SetIlluminatedType(1);
-            testNode->SetLightColor(0xffffffff);
-            testNode->SetLightPosition(positionList[i / 3], positionList[i / 3], zList[i / 3]);
-            testNode->SetIlluminatedBorderWidth(5);
-        }
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
-    }
-}
-
-GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, IlluminatedBorderWidth_Test_1)
-{
-    float widthList[] = { 0, 5, 10 };
-    for (int i = 0; i < 9; i++) {
-        int x = (i % 3) * 420;
-        int y = (i / 3) * 420;
-        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x + 10, y + 10, 400, 400 });
-        testNode->SetClipRRect({ 0, 0, 400, 400 }, { 200, 200, 200, 200 });
-        testNode->SetClipToBounds(true);
-        if (i % 3 == 1) {
-            testNode->SetLightIntensity(1);
-            testNode->SetLightColor(0xffffffff);
-            testNode->SetIlluminatedType(1);
-            testNode->SetLightColor(0xffffffff);
-            testNode->SetLightPosition(200, 200, 0);
-            testNode->SetIlluminatedBorderWidth(widthList[i / 3]);
-        }
-        GetRootNode()->AddChild(testNode);
-        RegisterNode(testNode);
-    }
-}
-
-GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, Fg_Light_Bloom_Test_1)
-{
-    float bloomList[] = { 0, 0.5, 1, 10 };
+    float intensityList[] = { 0, 1, 10, 100 };
     for (int i = 0; i < 12; i++) {
         int x = (i % 3) * 420;
         int y = (i / 3) * 420;
         auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x + 10, y + 10, 400, 400 });
         testNode->SetClipRRect({ 0, 0, 400, 400 }, { 200, 200, 200, 200 });
         testNode->SetClipToBounds(true);
+        auto pointLightShader = std::make_shared<RSNGPointLight>();
         if (i % 3 == 1) {
-            testNode->SetLightIntensity(1);
-            testNode->SetLightColor(0xffffffff);
-            testNode->SetIlluminatedType(4);
-            testNode->SetLightColor(0xffffffff);
-            testNode->SetLightPosition(200, 200, 0);
-            testNode->SetIlluminatedBorderWidth(5);
-            testNode->SetBloom(bloomList[i / 3]);
+            pointLightShader->Setter<PointLightLightColorTag>(Vector4f(255.0f, 255.0f, 255.0f, 255.0f));
+            pointLightShader->Setter<PointLightLightIntensityTag>(intensityList[i / 3]);
+            pointLightShader->Setter<PointLightLightPositionTag>(Vector4f(200, 200, 300, 0.0f));
         }
+        pointLightShader->Setter<PointLightIlluminatedBorderWidthTag>(100.0f);
+        pointLightShader->Setter<PointLightIlluminatedTypeTag>(intensityList[i / 3]);
+        testNode->SetCoverageNGShader(pointLightShader);
         GetRootNode()->AddChild(testNode);
         RegisterNode(testNode);
     }
 }
 
+GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, LightIntensity_Test_SetBackgroundNGShader)
+{
+    float intensityList[] = { 0, 1, 10, 100 };
+    for (int i = 0; i < 12; i++) {
+        int x = (i % 3) * 420;
+        int y = (i / 3) * 420;
+        auto testNode = SetUpNodeColor(0xffffffff, { x + 10, y + 10, 400, 400 });
+        testNode->SetClipRRect({ 0, 0, 400, 400 }, { 200, 200, 200, 200 });
+        testNode->SetClipToBounds(true);
+        auto pointLightShader = std::make_shared<RSNGPointLight>();
+        if (i % 3 == 1) {
+            pointLightShader->Setter<PointLightLightColorTag>(Vector4f(255.0f, 0.0f, 255.0f, 255.0f));
+            pointLightShader->Setter<PointLightLightIntensityTag>(intensityList[i / 3]);
+            pointLightShader->Setter<PointLightLightPositionTag>(Vector4f(200, 200, 300, 0.0f));
+        }
+        pointLightShader->Setter<PointLightIlluminatedBorderWidthTag>(100.0f);
+        pointLightShader->Setter<PointLightIlluminatedTypeTag>(intensityList[i / 3]);
+        testNode->SetBackgroundNGShader(pointLightShader);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, LightIntensity_Test_SetOverlayNGShader)
+{
+    float intensityList[] = { 0, 1, 10, 100 };
+    for (int i = 0; i < 12; i++) {
+        int x = (i % 3) * 420;
+        int y = (i / 3) * 420;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x + 10, y + 10, 400, 400 });
+        testNode->SetClipRRect({ 0, 0, 400, 400 }, { 200, 200, 200, 200 });
+        testNode->SetClipToBounds(true);
+        auto pointLightShader = std::make_shared<RSNGPointLight>();
+        if (i % 3 == 1) {
+            pointLightShader->Setter<PointLightLightColorTag>(Vector4f(255.0f, 0.0f, 0.0f, 255.0f));
+            pointLightShader->Setter<PointLightLightIntensityTag>(intensityList[i / 3]);
+            pointLightShader->Setter<PointLightLightPositionTag>(Vector4f(200, 200, 300, 0.0f));
+        }
+        pointLightShader->Setter<PointLightIlluminatedBorderWidthTag>(100.0f);
+        pointLightShader->Setter<PointLightIlluminatedTypeTag>(intensityList[i / 3]);
+        testNode->SetOverlayNGShader(pointLightShader);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, LightIntensity_Test_SetForegroundShader)
+{
+    float intensityList[] = { 0, 1, 10, 100 };
+    for (int i = 0; i < 12; i++) {
+        int x = (i % 3) * 420;
+        int y = (i / 3) * 420;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x + 10, y + 10, 400, 400 });
+        testNode->SetClipRRect({ 0, 0, 400, 400 }, { 200, 200, 200, 200 });
+        testNode->SetClipToBounds(true);
+        auto pointLightShader = std::make_shared<RSNGPointLight>();
+        if (i % 3 == 1) {
+            pointLightShader->Setter<PointLightLightColorTag>(Vector4f(0.0f, 255.0f, 0.0f, 255.0f));
+            pointLightShader->Setter<PointLightLightIntensityTag>(intensityList[i / 3]);
+            pointLightShader->Setter<PointLightLightPositionTag>(Vector4f(200, 200, 300, 0.0f));
+        }
+        pointLightShader->Setter<PointLightIlluminatedBorderWidthTag>(100.0f);
+        pointLightShader->Setter<PointLightIlluminatedTypeTag>(intensityList[i / 3]);
+        testNode->SetForegroundShader(pointLightShader);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
+
+GRAPHIC_TEST(ForegroundTest02, CONTENT_DISPLAY_TEST, LightIntensity_Test_SetMaterialShader)
+{
+    float intensityList[] = { 0, 1, 10, 100 };
+    for (int i = 0; i < 12; i++) {
+        int x = (i % 3) * 420;
+        int y = (i / 3) * 420;
+        auto testNode = SetUpNodeBgImage("/data/local/tmp/fg_test.jpg", { x + 10, y + 10, 400, 400 });
+        testNode->SetClipRRect({ 0, 0, 400, 400 }, { 200, 200, 200, 200 });
+        testNode->SetClipToBounds(true);
+        auto pointLightShader = std::make_shared<RSNGPointLight>();
+        if (i % 3 == 1) {
+            pointLightShader->Setter<PointLightLightColorTag>(Vector4f(0.0f, 0.0f, 255.0f, 255.0f));
+            pointLightShader->Setter<PointLightLightIntensityTag>(intensityList[i / 3]);
+            pointLightShader->Setter<PointLightLightPositionTag>(Vector4f(200, 200, 300, 0.0f));
+        }
+        pointLightShader->Setter<PointLightIlluminatedBorderWidthTag>(100.0f);
+        pointLightShader->Setter<PointLightIlluminatedTypeTag>(intensityList[i / 3]);
+        testNode->SetMaterialShader(pointLightShader);
+        GetRootNode()->AddChild(testNode);
+        RegisterNode(testNode);
+    }
+}
 } // namespace OHOS::Rosen

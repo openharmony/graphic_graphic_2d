@@ -1040,7 +1040,7 @@ void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
     }
 
     ClearSurfaceWatermark(pid);
-    ClearInheritedProperties(pid);
+    ClearPersistentProperties(pid);
 
     if (SelfDrawingNodeMonitor::GetInstance().IsListeningEnabled()) {
             auto &monitor = SelfDrawingNodeMonitor::GetInstance();
@@ -5731,7 +5731,7 @@ void RSMainThread::ClearSurfaceWatermark(pid_t pid)
     RequestNextVSync();
 }
 
-void RSMainThread::ClearInheritedProperties(pid_t pid)
+void RSMainThread::ClearPersistentProperties(pid_t pid)
 {
     if (context_) {
         context_->GetMutablePersistentPropertyManager().ClearByPid(pid);

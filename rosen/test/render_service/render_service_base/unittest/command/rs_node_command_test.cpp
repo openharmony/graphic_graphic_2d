@@ -16,6 +16,7 @@
 #include "gtest/gtest.h"
 #include "include/command/rs_canvas_node_command.h"
 #include "include/command/rs_node_command.h"
+#include "common/rs_atlas_info.h"
 #include "include/command/rs_surface_node_command.h"
 #include "include/pipeline/rs_surface_render_node.h"
 #include "modifier/rs_render_property.h"
@@ -967,5 +968,98 @@ HWTEST_F(RSNodeCommandTest, SetTakeSurfaceForUIFlag002, TestSize.Level1)
     auto cmdFlag = context.GetSyncCaptureHelper().GetCaptureCmdsExecutedFlag(nodeId);
     EXPECT_EQ(cmdFlag.first, true);
     EXPECT_NE(cmdFlag.second, 0u);
+}
+
+/**
+ * @tc.name: UpdateAtlasFrameIndexNodeNotFound001
+ * @tc.desc: Verify UpdateAtlasFrameIndex returns early when node is not found.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UpdateAtlasFrameIndexNodeNotFound001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 9999; // non-existent node
+    PropertyId propertyId = 100;
+    RSNodeCommandHelper::UpdateAtlasFrameIndex(context, nodeId, 5.0f, propertyId,
+        PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
+    // No crash; nothing to verify beyond reaching here.
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name: UpdateAtlasFrameIndexPropertyNotFound001
+ * @tc.desc: Verify UpdateAtlasFrameIndex returns early when property is not registered on node.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UpdateAtlasFrameIndexPropertyNotFound001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    PropertyId propertyId = 200; // no property registered with this id
+    RSNodeCommandHelper::UpdateAtlasFrameIndex(context, nodeId, 5.0f, propertyId,
+        PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    EXPECT_EQ(node->GetProperty(propertyId), nullptr);
+}
+
+/**
+ * @tc.name: UpdateAtlasFrameIndexTypeMismatch001
+ * @tc.desc: Verify UpdateAtlasFrameIndex returns early when property type is not AtlasInfo.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UpdateAtlasFrameIndexTypeMismatch001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    auto floatProperty = std::make_shared<RSRenderProperty<float>>(10.0f, 0);
+    PropertyId propertyId = floatProperty->GetId();
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    node->RegisterProperty(floatProperty);
+    ASSERT_NE(node->GetProperty(propertyId), nullptr);
+    RSNodeCommandHelper::UpdateAtlasFrameIndex(context, nodeId, 5.0f, propertyId,
+        PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
+    // Property value unchanged (CastToPropertyOf<AtlasInfo> returned nullptr).
+    auto retrieved = node->GetProperty(propertyId);
+    auto typedProp = retrieved->CastToPropertyOf<float>(__func__);
+    ASSERT_NE(typedProp, nullptr);
+    EXPECT_FLOAT_EQ(typedProp->Get(), 10.0f);
+}
+
+/**
+ * @tc.name: UpdateAtlasFrameIndexSuccess001
+ * @tc.desc: Verify UpdateAtlasFrameIndex updates frameIndex when property is AtlasInfo.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeCommandTest, UpdateAtlasFrameIndexSuccess001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId nodeId = 1;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    AtlasInfo info;
+    info.mode = 1;
+    info.rows = 2;
+    info.cols = 3;
+    info.totalFrame = 6;
+    info.frameIndex = 0.0f;
+    PropertyId propertyId = 100;
+    auto atlasProperty = std::make_shared<RSRenderProperty<AtlasInfo>>(info, propertyId);
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    node->RegisterProperty(atlasProperty);
+    const float targetFrameIndex = 4.0f;
+    RSNodeCommandHelper::UpdateAtlasFrameIndex(context, nodeId, targetFrameIndex, propertyId,
+        PropertyUpdateType::UPDATE_TYPE_OVERWRITE);
+    auto retrieved = node->GetProperty(propertyId);
+    ASSERT_NE(retrieved, nullptr);
+    auto typedProp = retrieved->CastToPropertyOf<AtlasInfo>(__func__);
+    ASSERT_NE(typedProp, nullptr);
+    EXPECT_FLOAT_EQ(typedProp->Get().frameIndex, targetFrameIndex);
+    // Context fields unchanged.
+    EXPECT_EQ(typedProp->Get().mode, 1);
+    EXPECT_EQ(typedProp->Get().totalFrame, 6);
 }
 } // namespace OHOS::Rosen

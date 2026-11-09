@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_CLIP_MODIFIER_H
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_CLIP_MODIFIER_H
 
+#include "common/rs_rect.h"
 #include "modifier_ng/rs_modifier_ng.h"
 #include "render/rs_path.h"
 
@@ -47,6 +48,8 @@ public:
     RSCornerApplyType GetCornerApplyType() const;
     void SetSDFShape(const std::shared_ptr<RSNGShapeBase>& shape);
     std::shared_ptr<RSNGShapeBase> GetSDFShape() const;
+    void SetClipShape(const RRect& shape);
+    RRect GetClipShape() const;
 };
 } // namespace OHOS::Rosen::ModifierNG
 #endif // RENDER_SERVICE_CLIENT_CORE_MODIFIER_NG_GEOMETRY_RS_BOUNDS_CLIP_MODIFIER_H

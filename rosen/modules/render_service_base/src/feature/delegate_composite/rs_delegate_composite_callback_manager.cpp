@@ -787,6 +787,38 @@ void RsDelegateCompositeCallbackManager::CleanDelegateCompositeCommandInner(Node
     }
     std::swap(queue, unmatchedQueue);
 }
+
+void RsDelegateCompositeCallbackManager::UpdateHardWareForcedDisabledStateForDelegateMode(
+    std::shared_ptr<RSSurfaceRenderNode> hwcNodePtr)
+{
+    bool check = hwcNodePtr && hwcNodePtr->GetDelegateMode() &&
+        hwcNodePtr->IsDelegateChild() && !hwcNodePtr->IsHardwareForcedDisabled();
+    if (!check) {
+        return;
+    }
+
+    auto parentNode = hwcNodePtr->GetParent().lock(); // parentNode should be delegate_container
+    if (!parentNode) {
+        return;
+    }
+    auto childList = parentNode->GetChildrenList();
+    RS_OPTIONAL_TRACE_FMT("UpdateHardWareForcedDisabledStateForDelegateMode: name:%s id:%" PRIu64 ", childListSize=%u",
+        hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId(), static_cast<uint32_t>(childList.size()));
+    for (const auto& child : childList) {
+        auto childPtr = child.lock();
+        if (!childPtr) {
+            continue;
+        }
+        auto surfaceChild = childPtr->ReinterpretCastTo<RSSurfaceRenderNode>();
+        if (surfaceChild != nullptr && surfaceChild->GetDelegateMode() &&
+            !surfaceChild->IsDelegateChild() && surfaceChild->IsHardwareForcedDisabled()) {
+            RS_OPTIONAL_TRACE_NAME_FMT("debug: name:%s id:%" PRIu64
+                " is disabled by other delegateModeNode(id:%" PRIu64 ")",
+                hwcNodePtr->GetName().c_str(), hwcNodePtr->GetId(), surfaceChild->GetId());
+            hwcNodePtr->SetHardwareForcedDisabledState(true);
+        }
+    }
+}
 } // namespace Rosen
 } // namespace OHOS
 #endif

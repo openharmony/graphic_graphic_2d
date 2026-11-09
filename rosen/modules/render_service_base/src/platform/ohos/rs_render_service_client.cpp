@@ -1106,6 +1106,16 @@ int32_t RSRenderServiceClient::SetScreenCorrection(ScreenId id, ScreenRotation s
     return clientToService->SetScreenCorrection(id, screenRotation);
 }
 
+int32_t RSRenderServiceClient::SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGE("RSRenderServiceClient::SetPostProcessingShader: clientToService is nullptr");
+        return RENDER_SERVICE_NULL;
+    }
+    return clientToService->SetPostProcessingShader(id, param);
+}
+
 bool RSRenderServiceClient::SetVirtualMirrorScreenCanvasRotation(ScreenId id, bool canvasRotation)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();

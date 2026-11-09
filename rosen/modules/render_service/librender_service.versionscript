@@ -268,5 +268,5 @@
         _ZN4ffrt21exec_function_wrapperIRKNSt3__h8functionIFvvEEEEEvPv;
         _ZN4ffrt24destroy_function_wrapperINSt3__h8functionIFvvEEEEEvPv;
         _ZN4ffrt24destroy_function_wrapperIRKNSt3__h8functionIFvvEEEEEvPv;
-
+        _ZNSt3__h6__itoa7__tableIvE10__pow10_32E;
 };

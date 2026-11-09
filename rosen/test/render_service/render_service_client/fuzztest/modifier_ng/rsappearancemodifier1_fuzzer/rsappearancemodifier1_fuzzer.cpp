@@ -26,6 +26,7 @@
 #include "modifier_ng/appearance/rs_dynamic_light_up_modifier.h"
 #include "modifier_ng/appearance/rs_foreground_filter_modifier.h"
 #include "modifier_ng/appearance/rs_hdr_brightness_modifier.h"
+#include "ui_effect/property/include/rs_ui_filter_base.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -152,10 +153,6 @@ void DoBorderModifier(FuzzedDataProvider& fdp)
 void DoCompositingFilterModifier(FuzzedDataProvider& fdp)
 {
     auto modifier = std::make_shared<ModifierNG::RSCompositingFilterModifier>();
-    Vector4f aiInvert{fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>(),
-        fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>()};
-    modifier->SetAiInvert(aiInvert);
-    modifier->GetAiInvert();
     float randomFloat = fdp.ConsumeFloatingPoint<float>();
     modifier->SetGrayScale(randomFloat);
     modifier->GetGrayScale();
@@ -175,10 +172,10 @@ void DoCompositingFilterModifier(FuzzedDataProvider& fdp)
         fdp.ConsumeIntegral<uint32_t>(), fdp.ConsumeIntegral<uint32_t>()};
     modifier->SetColorBlend(color);
     modifier->GetColorBlend();
-    modifier->SetLightUpEffectDegree(randomFloat);
-    modifier->GetLightUpEffectDegree();
-    modifier->SetDynamicDimDegree(randomFloat);
-    modifier->GetDynamicDimDegree();
+    auto binarizationFilter = RSNGFilterHelper::CreateNGBinarizationFilter(
+        randomFloat, randomFloat, randomFloat, randomFloat);
+    modifier->SetColorNGFilter(binarizationFilter);
+    modifier->GetColorNGFilter();
     float blurRadius = fdp.ConsumeFloatingPoint<float>();
     std::vector<std::pair<float, float>> fractionStops = {
         {fdp.ConsumeFloatingPoint<float>(), fdp.ConsumeFloatingPoint<float>()}};

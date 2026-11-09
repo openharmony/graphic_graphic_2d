@@ -105,6 +105,7 @@ public:
             case RSNGEffectType::SDF_PIXELMAP_SHAPE: return "SDFPixelmapShape";
             case RSNGEffectType::SDF_TRANSFORM_SHAPE: return "SDFTransformShape";
             case RSNGEffectType::SDF_EMPTY_SHAPE: return "SDFEmptyShape";
+            case RSNGEffectType::SDF_UBER_SHAPE: return "SdfUber";
             case RSNGEffectType::SDF_DISTORT_OP_SHAPE: return "SDFDistortOpShape";
             case RSNGEffectType::SDF_SUB_OP_SHAPE: return "SDFSubOpShape";
             case RSNGEffectType::SDF_SMOOTH_SUB_OP_SHAPE: return "SDFSmoothSubOpShape";
@@ -138,6 +139,12 @@ public:
             case RSNGEffectType::GLASS_EFFECT: return "GlassEffect";
             case RSNGEffectType::ATLAS_FRAME_MASK: return "AtlasFrameMask";
             case RSNGEffectType::DISTORT_LIGHT: return "DistortLight";
+            case RSNGEffectType::POINT_LIGHT: return "PointLight";
+            case RSNGEffectType::COSMOS_RING: return "CosmosRing";
+            case RSNGEffectType::COSMOS_RING_SHADOW: return "CosmosRingShadow";
+            case RSNGEffectType::BINARIZATION: return "Binarization";
+            case RSNGEffectType::LIGHT_UP_EFFECT: return "LightUpEffect";
+            case RSNGEffectType::DYNAMIC_DIM: return "DynamicDim";
             default: return "UNKNOWN";
         }
     }
@@ -270,6 +277,11 @@ public:
             current = current->nextEffect_.get();
         }
         return false;
+    }
+
+    std::shared_ptr<Derived> GetNext() const
+    {
+        return nextEffect_;
     }
 
 protected:

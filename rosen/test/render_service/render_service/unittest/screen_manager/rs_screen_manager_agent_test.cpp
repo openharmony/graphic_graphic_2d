@@ -584,6 +584,41 @@ HWTEST_F(RSScreenManagerAgentTest, SetVirtualScreenTypeBlackList001, TestSize.Le
 }
 
 /*
+ * @tc.name: SetPostProcessingShader_001
+ * @tc.desc: Test SetPostProcessingShader
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, SetPostProcessingShader_001, TestSize.Level1)
+{
+    auto cSurface = IConsumerSurface::Create();
+    EXPECT_NE(cSurface, nullptr);
+
+    auto producer = cSurface->GetProducer();
+    auto pSurface = Surface::CreateSurfaceAsProducer(producer);
+    EXPECT_NE(pSurface, nullptr);
+    uint32_t defaultWidth = 720;
+    uint32_t defaultHeight = 1280;
+    ScreenId screenId = GenerateScreenId();
+    GetGlobalPreprocessor();
+    ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
+    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+        "virtual", defaultWidth, defaultHeight, pSurface, screenId, -1);
+    EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
+
+    std::vector<uint8_t> param = { 1, 2, 3 };
+    int32_t result = screenManagerAgent_->SetPostProcessingShader(virtualScreenId, param);
+    EXPECT_EQ(result, StatusCode::VIRTUAL_SCREEN);
+    screenManagerAgent_->RemoveVirtualScreen(virtualScreenId);
+
+    auto screenManager = screenManagerAgent_->screenManager_;
+    screenManagerAgent_->screenManager_ = nullptr;
+    EXPECT_EQ(screenManagerAgent_->SetPostProcessingShader(virtualScreenId, param),
+        StatusCode::SCREEN_NOT_FOUND);
+    screenManagerAgent_->screenManager_ = screenManager;
+}
+
+/*
  * @tc.name: AddVirtualScreenBlackList001
  * @tc.desc: Test AddVirtualScreenBlackList
  * @tc.type: FUNC

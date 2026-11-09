@@ -15,6 +15,10 @@
 
 #include "modifier/rs_property.h"
 
+#include <mutex>
+#include <unordered_map>
+
+#include "common/rs_atlas_info.h"
 #include "sandbox_utils.h"
 #include "ui_effect/property/include/rs_ui_filter_base.h"
 #include "ui_effect/property/include/rs_ui_mask_base.h"
@@ -52,6 +56,10 @@ PropertyId GeneratePropertyId()
 
     return ((PropertyId)pid_ << PID_SHIFT) | currentId;
 }
+
+// Process-wide cache for AtlasInfo lightweight IPC, guarded by mutex for cross-thread safety.
+std::unordered_map<PropertyId, AtlasInfo> g_lastSentAtlas;
+std::mutex g_lastSentAtlasMutex;
 } // namespace
 
 // explicit instantiation
@@ -713,10 +721,27 @@ void RSProperty<DepthLightPara>::UpdateToRender(const DepthLightPara& value, Pro
     UPDATE_TO_RENDER(RSUpdatePropertyDepthLightPara, value, type);
 }
 
+// Lightweight IPC: when context fields are unchanged, send only frameIndex.
 template<>
 void RSProperty<AtlasInfo>::UpdateToRender(const AtlasInfo& value, PropertyUpdateType type) const
 {
+    std::lock_guard<std::mutex> lock(g_lastSentAtlasMutex);
+    auto it = g_lastSentAtlas.find(id_);
+    if (it != g_lastSentAtlas.end() && it->second.HasSameContext(value)) {
+        UPDATE_TO_RENDER(RSUpdateAtlasFrameIndex, value.frameIndex, type);
+        it->second.frameIndex = value.frameIndex;
+        return;
+    }
+    g_lastSentAtlas[id_] = value;
     UPDATE_TO_RENDER(RSUpdatePropertyAtlasInfo, value, type);
+}
+
+// Erase this property's cache entry; global map ensures cleanup works on any thread.
+template<>
+RSProperty<AtlasInfo>::~RSProperty()
+{
+    std::lock_guard<std::mutex> lock(g_lastSentAtlasMutex);
+    g_lastSentAtlas.erase(id_);
 }
 
 template<>

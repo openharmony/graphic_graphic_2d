@@ -84,3 +84,11 @@ DECLARE_SHAPE(SDFPixelmapShape, SDF_PIXELMAP_SHAPE,
 );
 
 DECLARE_SHAPE(SDFEmptyShape, SDF_EMPTY_SHAPE);
+
+// Uber flag shape: built by RSUnionRenderNode::ProcessSDFShape when all leaves
+// are uniform-circular RRects or PixelMaps; GE collapses the wrapped tree into
+// a single uber shader at render time (see ge_sdf_uber_shader_shape.h).
+DECLARE_SHAPE(SDFUberShape, SDF_UBER_SHAPE,
+    ADD_PROPERTY_TAG(SDFUberShape, UberType),
+    ADD_PROPERTY_TAG(SDFUberShape, Shape)
+);

@@ -910,7 +910,7 @@ HWTEST_F(RSTunnelLayerHelperTest, TryCommitPendingBuffer_NullComposerManager_Rel
     ASSERT_TRUE(context.IsProducerReady());
 
     context.producer->SetQueueSize(TEST_QUEUE_SIZE);
-    TunnelLayerState state;
+    TunnelLayerState state = { { TUNNEL_TYPE_NONE, 0 }, 0, TUNNEL_PROP_INVALID };
     ASSERT_TRUE(SetTunnelInfoForConsumer(context.consumer, state));
     auto& tunnelRuntime = *context.node->GetTunnelRuntimeState();
     tunnelRuntime.SetLayerInfo(state.tunnelLayerId, state.property);

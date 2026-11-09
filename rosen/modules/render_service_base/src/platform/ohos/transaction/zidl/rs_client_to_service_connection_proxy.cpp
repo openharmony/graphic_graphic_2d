@@ -2656,6 +2656,38 @@ int32_t RSClientToServiceConnectionProxy::SetScreenCorrection(ScreenId id, Scree
     return result;
 }
 
+int32_t RSClientToServiceConnectionProxy::SetPostProcessingShader(ScreenId id, const std::vector<uint8_t>& param)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetPostProcessingShader: WriteInterfaceToken GetDescriptor err.");
+        return RS_CONNECTION_ERROR;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint64(id)) {
+        ROSEN_LOGE("SetPostProcessingShader: WriteUint64 id err.");
+        return WRITE_PARCEL_ERR;
+    }
+    if (!data.WriteUInt8Vector(param)) {
+        ROSEN_LOGE("SetPostProcessingShader: WriteUInt8Vector param err.");
+        return WRITE_PARCEL_ERR;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_POST_PROCESSING_SHADER);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("SetPostProcessingShader: Send Request err.");
+        return RS_CONNECTION_ERROR;
+    }
+    int32_t result{0};
+    if (!reply.ReadInt32(result)) {
+        ROSEN_LOGE("RSClientToServiceConnectionProxy::SetPostProcessingShader Read result failed");
+        return READ_PARCEL_ERR;
+    }
+    return result;
+}
+
 int32_t RSClientToServiceConnectionProxy::SetAsMainScreen(ScreenId screenId, bool isMainScreen)
 {
     MessageParcel data;

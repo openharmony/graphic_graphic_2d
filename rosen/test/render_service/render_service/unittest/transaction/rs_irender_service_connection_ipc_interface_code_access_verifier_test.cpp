@@ -59,6 +59,9 @@ HWTEST_F(RSIRenderServiceConnectionIpcInterfaceCodeAccessVerifierTest, IsInterfa
     code = static_cast<CodeUnderlyingType>(
         RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::GET_UNI_RENDER_ENABLED);
     ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
+    code = static_cast<CodeUnderlyingType>(
+        RSIClientToServiceConnectionInterfaceCodeAccessVerifier::CodeEnumType::SET_POST_PROCESSING_SHADER);
+    ASSERT_EQ(verifier->IsInterfaceCodeAccessible(code), true);
 }
 
 /**

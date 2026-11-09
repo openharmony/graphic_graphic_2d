@@ -61,7 +61,6 @@
 #include "modifier_ng/geometry/rs_frame_modifier.h"
 #include "modifier_ng/geometry/rs_transform_modifier.h"
 #include "modifier_ng/rs_modifier_ng.h"
-#include "modifier_render_thread/rs_modifiers_draw_thread.h"
 #include "render/rs_filter.h"
 #include "render/rs_material_filter.h"
 #include "render/rs_shadow.h"
@@ -1524,6 +1523,27 @@ HWTEST_F(RSNodeTest2, ReSortChildrenByZIndexTest, TestSize.Level1)
     auto transaction = uiContext->GetRSTransaction();
     ASSERT_NE(transaction, nullptr);
     ASSERT_FALSE(transaction->IsEmpty());
+}
+
+/**
+ * @tc.name: SetCoverageNGShader001
+ * @tc.desc: test results of SetCoverageNGShader001
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSNodeTest2, SetCoverageNGShader001, TestSize.Level1)
+{
+    auto rsNode = RSCanvasNode::Create();
+    rsNode->SetCoverageNGShader(nullptr);
+    ASSERT_EQ(rsNode->GetModifierByType(ModifierNG::RSModifierType::COVERAGE_NG_SHADER), nullptr);
+
+    auto shader = std::make_shared<RSNGPointLight>();
+    rsNode->SetBorderSDFShader(shader);
+    ASSERT_NE(rsNode->GetModifierByType(ModifierNG::RSModifierType::COVERAGE_NG_SHADER), nullptr);
+
+    rsNode->SetBorderSDFShader(nullptr);
+    auto modifier = rsNode->GetModifierByType(ModifierNG::RSModifierType::COVERAGE_NG_SHADER);
+    ASSERT_NE(modifier, nullptr);
+    ASSERT_EQ(modifier->properties_.find(ModifierNG::RSPropertyType::COVERAGE_NG_SHADER), modifier->properties_.end());
 }
 
 /**

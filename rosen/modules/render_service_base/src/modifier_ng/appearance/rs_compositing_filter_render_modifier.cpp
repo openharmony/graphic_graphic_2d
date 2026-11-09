@@ -18,8 +18,6 @@
 namespace OHOS::Rosen::ModifierNG {
 const RSCompositingFilterRenderModifier::LegacyPropertyApplierMap
     RSCompositingFilterRenderModifier::LegacyPropertyApplierMap_ = {
-        { RSPropertyType::AIINVERT, RSRenderModifier::PropertyApplyHelperAdd<Vector4f, &RSProperties::SetAiInvert,
-                                        &RSProperties::GetAiInvert> },
         { RSPropertyType::GRAY_SCALE,
             RSRenderModifier::PropertyApplyHelperAdd<float, &RSProperties::SetGrayScale, &RSProperties::GetGrayScale> },
         { RSPropertyType::BRIGHTNESS, RSRenderModifier::PropertyApplyHelperAdd<float, &RSProperties::SetBrightness,
@@ -36,10 +34,6 @@ const RSCompositingFilterRenderModifier::LegacyPropertyApplierMap
             RSRenderModifier::PropertyApplyHelperAdd<float, &RSProperties::SetHueRotate, &RSProperties::GetHueRotate> },
         { RSPropertyType::COLOR_BLEND, RSRenderModifier::PropertyApplyHelperAdd<Color, &RSProperties::SetColorBlend,
                                            &RSProperties::GetColorBlend> },
-        { RSPropertyType::LIGHT_UP_EFFECT_DEGREE,
-            RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetLightUpEffect> },
-        { RSPropertyType::DYNAMIC_DIM_DEGREE,
-            RSRenderModifier::PropertyApplyHelper<float, &RSProperties::SetDynamicDimDegree> },
         { RSPropertyType::LINEAR_GRADIENT_BLUR_PARA,
             RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSLinearGradientBlurPara>,
                 &RSProperties::SetLinearGradientBlurPara> },
@@ -66,11 +60,13 @@ const RSCompositingFilterRenderModifier::LegacyPropertyApplierMap
         { RSPropertyType::COMPOSITING_NG_FILTER,
             RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderFilterBase>,
                 &RSProperties::SetCompositingNGFilter> },
+        { RSPropertyType::COLOR_NG_FILTER,
+            RSRenderModifier::PropertyApplyHelper<std::shared_ptr<RSNGRenderFilterBase>,
+                &RSProperties::SetColorNGFilter> },
     };
 
 void RSCompositingFilterRenderModifier::ResetProperties(RSProperties& properties)
 {
-    properties.SetAiInvert(std::nullopt);
     properties.SetGrayScale(std::nullopt);
     properties.SetBrightness(std::nullopt);
     properties.SetContrast(std::nullopt);
@@ -79,8 +75,6 @@ void RSCompositingFilterRenderModifier::ResetProperties(RSProperties& properties
     properties.SetInvert(std::nullopt);
     properties.SetHueRotate(std::nullopt);
     properties.SetColorBlend(std::nullopt);
-    properties.SetLightUpEffect(1.f);
-    properties.SetDynamicDimDegree(std::nullopt);
     properties.SetLinearGradientBlurPara(nullptr);
     properties.SetCompositingBlurRadius(0.f);
     properties.SetCompositingBlurSaturation(1.f);
@@ -91,5 +85,6 @@ void RSCompositingFilterRenderModifier::ResetProperties(RSProperties& properties
     properties.SetCompositingBlurRadiusY(0.f);
     properties.SetCtBlurDisableSystemAdaptation(true);
     properties.SetCompositingNGFilter(nullptr);
+    properties.SetColorNGFilter(nullptr);
 }
 } // namespace OHOS::Rosen::ModifierNG

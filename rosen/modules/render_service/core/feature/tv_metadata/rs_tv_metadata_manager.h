@@ -16,6 +16,7 @@
 #ifndef RS_TV_METADATA_MANAGER_H
 #define RS_TV_METADATA_MANAGER_H
 
+#include <atomic>
 #include <shared_mutex>
 #include "metadata_helper.h"
 #include "platform/ohos/rs_surface_ohos.h"
@@ -69,7 +70,7 @@ private:
     TvPQMetadata cachedMetadata_{};
     mutable std::mutex mutex_;
     static inline uint16_t videoRate_{0};
-    static inline uint32_t videoDimType_{0};
+    static inline std::atomic<uint32_t> videoDimType_{0};
 };
 } // namespace OHOS::Rosen
 #endif // RS_TV_METADATA_MANAGER_H
