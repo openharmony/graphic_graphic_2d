@@ -43,7 +43,6 @@ public:
         TAG_WINDOW_SURFACE_CACHE,
         TAG_UNTAGGED,
         TAG_CAPTURE,
-        TAG_COLOR_PICKER_SNAPSHOT,
     };
     enum SOURCETYPE : uint32_t {
         SOURCE_OTHER,
