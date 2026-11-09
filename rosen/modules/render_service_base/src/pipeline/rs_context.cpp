@@ -151,12 +151,7 @@ bool RSContext::IsSceneBoardToken(pid_t pid, uint64_t token) const
     if (pidIt == uiRenderDirectors_.end()) {
         return false;
     }
-    auto tokenIt = pidIt->second.find(token);
-    if (tokenIt != pidIt->second.end()) {
-        return tokenIt->second->IsSceneBoard();
-    }
-    // Process-level fallback: SceneBoard is a process identity — an instance not explicitly
-    // marked still counts when any instance of the same pid is marked.
+    // Process identity: any marked instance of this pid counts; mirror flags stay untouched.
     for (const auto& [_, director] : pidIt->second) {
         if (director->IsSceneBoard()) {
             return true;
