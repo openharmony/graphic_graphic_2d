@@ -18,6 +18,7 @@
 #include "limit_number.h"
 #include "rs_screen.h"
 #include "mock_hdi_device.h"
+#include "mock_rs_luminance_control.h"
 #include "multiscreen_param.h"
 #include "ipc_callbacks/screen_supported_hdr_formats_callback_stub.h"
 
@@ -52,6 +53,51 @@ public:
 private:
     std::function<void(ScreenId, std::vector<ScreenHDRFormat>& specialHdrFormats)> cb_;
 };
+
+class ScopedRSLuminanceControlInterface {
+public:
+    explicit ScopedRSLuminanceControlInterface(
+        RSLuminanceControlInterface* mockInterface)
+        : luminanceControl_(RSLuminanceControl::Get()),
+          originalInterface_(luminanceControl_.rSLuminanceControlInterface_)
+    {
+        luminanceControl_.rSLuminanceControlInterface_ = mockInterface;
+    }
+ 
+    ~ScopedRSLuminanceControlInterface()
+    {
+        luminanceControl_.rSLuminanceControlInterface_ = originalInterface_;
+    }
+ 
+    ScopedRSLuminanceControlInterface(const ScopedRSLuminanceControlInterface&) = delete;
+    ScopedRSLuminanceControlInterface& operator=(const ScopedRSLuminanceControlInterface&) = delete;
+ 
+private:
+    RSLuminanceControl& luminanceControl_;
+    RSLuminanceControlInterface* originalInterface_;
+};
+
+const std::vector<ScreenHDRFormat>& GetImageHDRFormatsForTest()
+{
+    static const std::vector<ScreenHDRFormat> imageHdrFormats = {
+        ScreenHDRFormat::IMAGE_HDR_VIVID_DUAL,
+        ScreenHDRFormat::IMAGE_HDR_VIVID_SINGLE,
+        ScreenHDRFormat::IMAGE_HDR_ISO_DUAL,
+        ScreenHDRFormat::IMAGE_HDR_ISO_SINGLE
+    };
+    return imageHdrFormats;
+}
+ 
+void ExpectImageHDRFormats(
+    const std::vector<ScreenHDRFormat>& supportedFormats, bool expected)
+{
+    const size_t expectedCount = expected ? 1U : 0U;
+ 
+    for (const auto& format : GetImageHDRFormatsForTest()) {
+        const size_t count = static_cast<size_t>(std::count(supportedFormats.begin(), supportedFormats.end(), format));
+        EXPECT_EQ(count, expectedCount);
+    }
+}
 
 void RSScreenTest::SetUpTestCase()
 {
@@ -3399,6 +3445,90 @@ HWTEST_F(RSScreenTest, PhysicalScreenInit_HDIFailure_001, TestSize.Level1)
     // Test GetHDRCapabilityInfos failure
     EXPECT_CALL(*hdiDeviceMock_, GetScreenSupportedModes).WillRepeatedly(testing::Return(-1));
     rsScreen->PhysicalScreenInit();
+}
+
+/**
+ * @tc.name: PhysicalScreenInit_ImageHdrEnable
+ * @tc.desc: Test IMAGE_HDR formats are added when IsHdrPicEnable returns true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenTest, PhysicalScreenInit_ImageHdrEnable, TestSize.Level1)
+{
+    const ScreenId id = mockScreenId_;
+    Mock::RSLuminanceControlInterfaceMock luminanceMock;
+    EXPECT_CALL(luminanceMock, IsHdrPicEnable(id))
+        .Times(1)
+        .WillOnce(Return(true));
+    ScopedRSLuminanceControlInterface luminanceGuard(&luminanceMock);
+    auto rsScreen = std::make_shared<RSScreen>(id);
+    ASSERT_NE(rsScreen, nullptr);
+ 
+    ExpectImageHDRFormats(rsScreen->supportedPhysicalHDRFormats_, true);
+}
+ 
+/**
+ * @tc.name: PhysicalScreenInit_ImageHdrDisable
+ * @tc.desc: Test IMAGE_HDR formats are not added when IsHdrPicEnable returns false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenTest, PhysicalScreenInit_ImageHdrDisable, TestSize.Level1)
+{
+    const ScreenId id = mockScreenId_;
+    Mock::RSLuminanceControlInterfaceMock luminanceMock;
+    EXPECT_CALL(luminanceMock, IsHdrPicEnable(id))
+        .Times(1)
+        .WillOnce(Return(false));
+    ScopedRSLuminanceControlInterface luminanceGuard(&luminanceMock);
+    auto rsScreen = std::make_shared<RSScreen>(id);
+    ASSERT_NE(rsScreen, nullptr);
+ 
+    ExpectImageHDRFormats(rsScreen->supportedPhysicalHDRFormats_, false);
+}
+ 
+/**
+ * @tc.name: PhysicalScreenInit_ImageHdrDuplicate
+ * @tc.desc: Test IMAGE_HDR formats are not duplicated during repeated initialization
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenTest, PhysicalScreenInit_ImageHdrDuplicate, TestSize.Level1)
+{
+    const ScreenId id = mockScreenId_;
+    Mock::RSLuminanceControlInterfaceMock luminanceMock;
+    EXPECT_CALL(luminanceMock, IsHdrPicEnable(id))
+        .Times(2)
+        .WillRepeatedly(Return(true));
+    ScopedRSLuminanceControlInterface luminanceGuard(&luminanceMock);
+    auto rsScreen = std::make_shared<RSScreen>(id);
+    ASSERT_NE(rsScreen, nullptr);
+ 
+    ExpectImageHDRFormats(rsScreen->supportedPhysicalHDRFormats_, true);
+ 
+    rsScreen->supportedPhysicalHDRFormats_.emplace_back(
+        ScreenHDRFormat::VIDEO_HDR10);
+    rsScreen->PhysicalScreenInit();
+    ExpectImageHDRFormats(rsScreen->supportedPhysicalHDRFormats_, true);
+ 
+    EXPECT_NE(
+        std::find(
+            rsScreen->supportedPhysicalHDRFormats_.begin(),
+            rsScreen->supportedPhysicalHDRFormats_.end(),
+            ScreenHDRFormat::VIDEO_HDR10),
+        rsScreen->supportedPhysicalHDRFormats_.end());
+}
+ 
+/**
+ * @tc.name: PhysicalScreenInit_ImageHdrNullInterface
+ * @tc.desc: Test IMAGE_HDR formats are not added when luminance interface is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScreenTest, PhysicalScreenInit_ImageHdrNullInterface, TestSize.Level1)
+{
+    const ScreenId id = mockScreenId_;
+    ScopedRSLuminanceControlInterface luminanceGuard(nullptr);
+    auto rsScreen = std::make_shared<RSScreen>(id);
+    ASSERT_NE(rsScreen, nullptr);
+ 
+    ExpectImageHDRFormats(rsScreen->supportedPhysicalHDRFormats_, false);
 }
 
 /*

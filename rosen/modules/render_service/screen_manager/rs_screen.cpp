@@ -19,6 +19,7 @@
 #include <cinttypes>
 
 #include "common/rs_background_thread.h"
+#include "display_engine/rs_luminance_control.h"
 #include "graphic_feature_param_manager.h"
 #include "hgm_core.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -162,11 +163,27 @@ void RSScreen::PhysicalScreenInit() noexcept
     if (hdiScreen_->GetHDRCapabilityInfos(hdrCapability_) < 0) {
         RS_LOGE("%{public}s: RSScreen(id %{public}" PRIu64 ") failed to GetHDRCapabilityInfos.", __func__, id);
     }
+    const bool isHdrPicEnable = RSLuminanceControl::Get().IsHdrPicEnable(id);
+    RS_LOGI("%{public}s: screenId=%{public}" PRIu64 ", IsHdrPicEnable=%{public}d", __func__, id, isHdrPicEnable);
     {
         std::lock_guard<std::mutex> lock(supportedPhysicalHDRFormatsMutex_);
         std::transform(hdrCapability_.formats.begin(), hdrCapability_.formats.end(),
                        back_inserter(supportedPhysicalHDRFormats_),
                        [](GraphicHDRFormat item) -> ScreenHDRFormat { return HDI_HDR_FORMAT_TO_RS_MAP[item]; });
+        if (isHdrPicEnable) {
+            const std::vector<ScreenHDRFormat> imageHdrFormats = {
+                IMAGE_HDR_VIVID_DUAL,
+                IMAGE_HDR_VIVID_SINGLE,
+                IMAGE_HDR_ISO_DUAL,
+                IMAGE_HDR_ISO_SINGLE
+            };
+            for (const auto& format : imageHdrFormats) {
+                if (std::find(supportedPhysicalHDRFormats_.begin(), supportedPhysicalHDRFormats_.end(),
+                    format) == supportedPhysicalHDRFormats_.end()) {
+                    supportedPhysicalHDRFormats_.emplace_back(format);
+                }
+            }
+        }
     }
     auto status = GraphicDispPowerStatus::GRAPHIC_POWER_STATUS_ON;
     if (MultiScreenParam::IsRsSetScreenPowerStatus() || id == 0) {
