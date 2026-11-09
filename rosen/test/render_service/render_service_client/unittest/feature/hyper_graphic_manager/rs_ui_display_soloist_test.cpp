@@ -227,6 +227,7 @@ HWTEST_F(RSUIDisplaySoloistTest, IsCommonDivisor, TestSize.Level1)
     RSDisplaySoloistManager& soloistManager = RSDisplaySoloistManager::GetInstance();
     std::shared_ptr<SoloistId> soloistIdObj = OHOS::Rosen::SoloistId::Create();
     int32_t soloistId = soloistIdObj->GetId();
+    soloistManager.Stop(soloistId);
 
     EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 60), false);
     EXPECT_EQ(soloistManager.GetIdToSoloistMap()[soloistId]->IsCommonDivisor(0, 120), false);
