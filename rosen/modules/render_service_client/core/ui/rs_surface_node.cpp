@@ -750,7 +750,8 @@ bool RSSurfaceNode::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config
             surface = rsRenderInterface->CreateNodeAndSurface(config, unobscured);
         } else {
             surface = rsUIContext->GetRSRenderInterface()->CreateNodeAndSurface(config, unobscured,
-                rsUIContext->IsSceneBoard());
+                rsUIContext->IsSceneBoard() ||
+                    RSUIContextManager::Instance().HasSceneBoardInstance());
         }
         if (GetNodeState() == RSNodeState::ACTIVE) {
             surface_ = surface;

@@ -26,6 +26,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_ui_context.h"
+#include "ui/rs_ui_context_manager.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -78,7 +79,7 @@ bool RSDisplayNode::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConf
         return false;
     }
     return rsUIContext->GetRSRenderInterface()->CreateDisplayNode(displayNodeConfig, nodeId,
-        rsUIContext->IsSceneBoard());
+        rsUIContext->IsSceneBoard() || RSUIContextManager::Instance().HasSceneBoardInstance());
 }
 
 // LCOV_EXCL_START

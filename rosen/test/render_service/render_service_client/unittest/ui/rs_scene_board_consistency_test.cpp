@@ -113,13 +113,14 @@ HWTEST_F(RSSceneBoardConsistencyTest, CreateConsistency001, TestSize.Level1)
     EXPECT_EQ(nodeA->GetUIContextToken(), contextA->GetToken());
     EXPECT_TRUE(nodeA->IsSceneBoard());
 
-    // Node created under the unmarked instance B: registered but not marked.
+    // Node created under the unmarked instance B (same process): process-level fallback
+    // marks it too — SceneBoard is a process identity.
     NodeId idB = MakeClientNodeId(2);
     RSCanvasNodeCommandHelper::Create(serverContext, idB, false, contextB->GetToken());
     auto nodeB = serverContext.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(idB);
     ASSERT_NE(nodeB, nullptr);
     EXPECT_EQ(nodeB->GetUIContextToken(), contextB->GetToken());
-    EXPECT_FALSE(nodeB->IsSceneBoard());
+    EXPECT_TRUE(nodeB->IsSceneBoard());
 
     // Context-less legacy path (token 0): instance registered as neither.
     NodeId idLegacy = MakeClientNodeId(3);
@@ -128,6 +129,33 @@ HWTEST_F(RSSceneBoardConsistencyTest, CreateConsistency001, TestSize.Level1)
     ASSERT_NE(nodeLegacy, nullptr);
     EXPECT_EQ(nodeLegacy->GetUIContextToken(), CLIENT_NULL_TOKEN);
     EXPECT_FALSE(nodeLegacy->IsSceneBoard());
+}
+
+/**
+ * @tc.name: ProcessFallbackConsistency001
+ * @tc.desc: Client process-level fallback: an unmarked context of a marked process reports
+ *           isSceneBoard=true for the sync-IPC value (HasSceneBoardInstance), matching the
+ *           server's process-level query.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSceneBoardConsistencyTest, ProcessFallbackConsistency001, TestSize.Level1)
+{
+    OHOS::sptr<OHOS::IRemoteObject> remote;
+    auto contextA = RSUIContextManager::MutableInstance().CreateRSUIContext(remote);
+    auto contextB = RSUIContextManager::MutableInstance().CreateRSUIContext(remote);
+    ASSERT_NE(contextA, nullptr);
+    ASSERT_NE(contextB, nullptr);
+
+    // Before any mark: no process-level flag and the unmarked context is not SCB.
+    EXPECT_FALSE(RSUIContextManager::Instance().HasSceneBoardInstance());
+    EXPECT_FALSE(contextB->IsSceneBoard());
+
+    auto directorA = MarkClientInstance(contextA);
+    ASSERT_NE(directorA, nullptr);
+
+    // After marking A: process-level fallback becomes true even though B itself is unmarked.
+    EXPECT_TRUE(RSUIContextManager::Instance().HasSceneBoardInstance());
+    EXPECT_FALSE(contextB->IsSceneBoard());
 }
 
 /**

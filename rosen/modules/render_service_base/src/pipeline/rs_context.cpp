@@ -152,10 +152,17 @@ bool RSContext::IsSceneBoardToken(pid_t pid, uint64_t token) const
         return false;
     }
     auto tokenIt = pidIt->second.find(token);
-    if (tokenIt == pidIt->second.end()) {
-        return false;
+    if (tokenIt != pidIt->second.end()) {
+        return tokenIt->second->IsSceneBoard();
     }
-    return tokenIt->second->IsSceneBoard();
+    // Process-level fallback: SceneBoard is a process identity — an instance not explicitly
+    // marked still counts when any instance of the same pid is marked.
+    for (const auto& [_, director] : pidIt->second) {
+        if (director->IsSceneBoard()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void RSContext::SetClearMoment(ClearMemoryMoment moment)

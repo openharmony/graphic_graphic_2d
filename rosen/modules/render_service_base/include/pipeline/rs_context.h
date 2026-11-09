@@ -295,7 +295,8 @@ public:
     void DestroyUIRenderDirector(pid_t pid, uint64_t token);
     void DestoryUIRenderDirectorByPid(pid_t pid);
     // Whether the (pid, token) instance is marked as SceneBoard; pid guards against
-    // cross-process token collisions.
+    // cross-process token collisions. Process-level fallback: a token miss still returns
+    // true when any instance of the same pid is marked (SceneBoard is a process identity).
     bool IsSceneBoardToken(pid_t pid, uint64_t token) const;
 
     std::unordered_map<std::string, pid_t> GetUIFrameworkDirtyNodeNameMap();

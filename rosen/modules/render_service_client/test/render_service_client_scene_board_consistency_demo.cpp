@@ -153,13 +153,18 @@ int main()
         << "  hdc shell \"hidumper -s 10 -a \\\"render_service dumpNodeTree\\\"\"" << std::endl;
     std::cout << "Fields to compare for each node id printed above:" << std::endl
         << "  server 'RSUIContextToken: [ <token> ]'  <->  client 'UIContext[<token>]'" << std::endl
-        << "  server 'isSceneBoard: 1/0'              <->  birth identity of the creating context"
-        << std::endl;
+        << "  server 'isSceneBoard: 1/0'              <->  process identity: every node of a" << std::endl
+        << "  marked process is 1 (instance B is unmarked but falls back to the pid)" << std::endl;
     std::cout << "Expected after migration:" << std::endl
         << "  canvasA: server isSceneBoard stays 1 (birth identity, not retroactive)," << std::endl
         << "           server RSUIContextToken becomes contextB's token (owner follows migration)"
         << std::endl
         << "           while client contextIsSceneBoard prints false (current-context view)."
         << std::endl;
+    std::cout << "Expected for nodes of the unmarked instance B (process fallback):" << std::endl
+        << "  server isSceneBoard: 1 (same pid as the marked instance A) while client" << std::endl
+        << "  contextIsSceneBoard prints false — the instance flag and the node mark diverge"
+        << std::endl
+        << "  by design (process identity vs instance declaration)." << std::endl;
     return 0;
 }
