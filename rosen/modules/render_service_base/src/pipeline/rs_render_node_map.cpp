@@ -51,15 +51,18 @@ void RSRenderNodeMap::ObtainLauncherNodeId(const std::shared_ptr<RSSurfaceRender
     if (surfaceNode == nullptr) {
         return;
     }
+    auto pid = ExtractPid(surfaceNode->GetId());
     if (surfaceNode->GetSurfaceWindowType() == SurfaceWindowType::SCB_DESKTOP) {
         entryViewNodeId_ = surfaceNode->GetId();
-        RSRenderNodeGC::Instance().SetScbPid(ExtractPid(entryViewNodeId_));
+        RSRenderNodeGC::Instance().SetScbPid(pid);
     }
     if (surfaceNode->GetSurfaceWindowType() == SurfaceWindowType::SCB_WALLPAPER) {
         wallpaperViewNodeId_ = surfaceNode->GetId();
+        RSRenderNodeGC::Instance().SetScbPid(pid);
     }
     if (surfaceNode->GetSurfaceWindowType() == SurfaceWindowType::SCB_NEGATIVE_SCREEN) {
         negativeScreenNodeId_ = surfaceNode->GetId();
+        RSRenderNodeGC::Instance().SetScbPid(pid);
     }
 }
 

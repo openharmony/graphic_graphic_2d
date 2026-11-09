@@ -40,6 +40,7 @@
 #include "platform/ohos/backend/rs_surface_frame_ohos_raster.h"
 #include "platform/ohos/backend/rs_surface_ohos_gl.h"
 #include "platform/ohos/backend/rs_surface_ohos_raster.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 #include "surface_buffer_impl.h"
 
 using namespace testing;
@@ -55,6 +56,22 @@ constexpr NodeId DEFAULT_ID = 0xFFFF;
 constexpr int32_t DEFAULT_BUFFER_AGE = 10;
 #endif
 const HDI::Display::Graphic::Common::V1_0::BufferHandleMetaRegion DEFAULT_META_REGION {0, 0, 100, 100};
+}
+static ScreenId MakeVirtualScreen(const sptr<RSScreenManager>& sm, const std::string& name,
+    uint32_t width, uint32_t height, sptr<Surface> surface = nullptr,
+    ScreenId associatedScreenId = INVALID_SCREEN_ID, int32_t flags = 0,
+    std::vector<NodeId> whiteList = {})
+{
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = surface;
+    option.associatedScreenId = associatedScreenId;
+    option.flags = flags;
+    option.whiteList = std::move(whiteList);
+    int32_t errCode = StatusCode::SUCCESS;
+    return sm->CreateVirtualScreen(option, errCode);
 }
 BufferRequestConfig requestConfig = {
     .width = 0x100,
@@ -456,7 +473,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, UniScale, TestSize.Level2)
 {
     auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
     ASSERT_NE(surface, nullptr);
-    auto screenId = screenManager_->CreateVirtualScreen("virtual_screen", 10, 10, surface, 0UL, 0, {});
+    auto screenId = MakeVirtualScreen(screenManager_, "virtual_screen", 10, 10, surface, 0UL, 0, {});
 
     NodeId mainNodeId = 1;
     NodeId virtualNodeId = 2;
@@ -875,7 +892,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, CanvasClipRegionForUniscaleMode, TestS
 {
     auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
     ASSERT_NE(surface, nullptr);
-    auto screenId = screenManager_->CreateVirtualScreen("virtual_screen", 10, 10, surface, 0UL, 0, {});
+    auto screenId = MakeVirtualScreen(screenManager_, "virtual_screen", 10, 10, surface, 0UL, 0, {});
 
     NodeId mainNodeId = 1;
     NodeId virtualNodeId = 2;
@@ -956,7 +973,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, ScaleMirrorIfNeedTest001, TestSize.Lev
 #ifdef RS_ENABLE_VK
     auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
     ASSERT_NE(surface, nullptr);
-    auto screenId = screenManager_->CreateVirtualScreen("virtual_scVirtualScreenen", 10, 10, surface, 0UL, 0, {});
+    auto screenId = MakeVirtualScreen(screenManager_, "virtual_scVirtualScreenen", 10, 10, surface, 0UL, 0, {});
 
     NodeId mainNodeId = 1;
     NodeId virtualNodeId = 2;
@@ -1019,7 +1036,7 @@ HWTEST_F(RSUniRenderVirtualProcessorTest, FillTest001, TestSize.Level2)
 #ifdef RS_ENABLE_VK
     auto surface = Surface::CreateSurfaceAsConsumer("test_surface");
     ASSERT_NE(surface, nullptr);
-    auto screenId = screenManager_->CreateVirtualScreen("virtual_screen", 10, 10, surface, 0UL, 0, {});
+    auto screenId = MakeVirtualScreen(screenManager_, "virtual_screen", 10, 10, surface, 0UL, 0, {});
 
     NodeId mainNodeId = 1;
     NodeId virtualNodeId = 2;

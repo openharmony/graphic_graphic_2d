@@ -170,13 +170,15 @@ public:
         const char* perms[2];
         perms[0] = "ohos.permission.CAPTURE_SCREEN";
         perms[1] = "ohos.permission.MANAGE_DISPLAY_MANAGER";
+        const char* acls[1];
+        acls[0] = "ohos.permission.CAPTURE_SCREEN";
         NativeTokenInfoParams infoInstance = {
             .dcapsNum = 0,
             .permsNum = 2,
-            .aclsNum = 0,
+            .aclsNum = 1,
             .dcaps = NULL,
             .perms = perms,
-            .acls = NULL,
+            .acls = acls,
             .processName = "foundation",
             .aplStr = "system_basic",
         };

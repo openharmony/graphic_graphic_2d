@@ -63,6 +63,9 @@ const std::list<std::u16string> processDumpList = {
     u"buffer",
     u"frameStats",
     u"clearFrameStats",
+    u"scbpool",
+    u"allrendernodes",
+    u"scbnodes",
     u"allInfo",
 };
 

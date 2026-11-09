@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <cstdint>
+#include <map>   
 #include <memory>
 #include <mutex>
 #include <set>
@@ -1487,64 +1488,23 @@ void RSRenderNode::ChildrenListDump(std::string& out) const
 
 void RSRenderNode::DumpNodeType(RSRenderNodeType nodeType, std::string& out)
 {
-    switch (nodeType) {
-        case RSRenderNodeType::SCREEN_NODE: {
-            out += "SCREEN_NODE";
-            break;
-        }
-        case RSRenderNodeType::RS_NODE: {
-            out += "RS_NODE";
-            break;
-        }
-        case RSRenderNodeType::SURFACE_NODE: {
-            out += "SURFACE_NODE";
-            break;
-        }
-        case RSRenderNodeType::CANVAS_NODE: {
-            out += "CANVAS_NODE";
-            break;
-        }
-        case RSRenderNodeType::ROOT_NODE: {
-            out += "ROOT_NODE";
-            break;
-        }
-        case RSRenderNodeType::PROXY_NODE: {
-            out += "PROXY_NODE";
-            break;
-        }
-        case RSRenderNodeType::CANVAS_DRAWING_NODE: {
-            out += "CANVAS_DRAWING_NODE";
-            break;
-        }
-        case RSRenderNodeType::EFFECT_NODE: {
-            out += "EFFECT_NODE";
-            break;
-        }
-        case RSRenderNodeType::LOGICAL_DISPLAY_NODE: {
-            out += "LOGICAL_DISPLAY_NODE";
-            break;
-        }
-        case RSRenderNodeType::DEPTH_NODE: {
-            out += "DEPTH_NODE";
-            break;
-        }
-        case RSRenderNodeType::UNION_NODE: {
-            out += "UNION_NODE";
-            break;
-        }
-        case RSRenderNodeType::WINDOW_KEYFRAME_NODE: {
-            out += "WINDOW_KEYFRAME_NODE";
-            break;
-        }
-        case RSRenderNodeType::PROTECTIVE_SOLID_NODE: {
-            out += "PROTECTIVE_SOLID_NODE";
-            break;
-        }
-        default: {
-            out += "UNKNOWN_NODE";
-            break;
-        }
-    }
+    static const std::map<RSRenderNodeType, std::string> NODE_TYPE_NAMES = {
+        { RSRenderNodeType::SCREEN_NODE,           "SCREEN_NODE"           },
+        { RSRenderNodeType::RS_NODE,               "RS_NODE"               },
+        { RSRenderNodeType::SURFACE_NODE,          "SURFACE_NODE"          },
+        { RSRenderNodeType::CANVAS_NODE,           "CANVAS_NODE"           },
+        { RSRenderNodeType::ROOT_NODE,             "ROOT_NODE"             },
+        { RSRenderNodeType::PROXY_NODE,            "PROXY_NODE"            },
+        { RSRenderNodeType::CANVAS_DRAWING_NODE,   "CANVAS_DRAWING_NODE"   },
+        { RSRenderNodeType::EFFECT_NODE,           "EFFECT_NODE"           },
+        { RSRenderNodeType::LOGICAL_DISPLAY_NODE,  "LOGICAL_DISPLAY_NODE"  },
+        { RSRenderNodeType::DEPTH_NODE,            "DEPTH_NODE"            },
+        { RSRenderNodeType::UNION_NODE,            "UNION_NODE"            },
+        { RSRenderNodeType::WINDOW_KEYFRAME_NODE,  "WINDOW_KEYFRAME_NODE"  },
+        { RSRenderNodeType::PROTECTIVE_SOLID_NODE, "PROTECTIVE_SOLID_NODE" },
+    };
+    auto it = NODE_TYPE_NAMES.find(nodeType);
+    out += (it != NODE_TYPE_NAMES.end()) ? it->second : "UNKNOWN_NODE";
 }
 
 void RSRenderNode::DumpSubClassNode(std::string& out) const

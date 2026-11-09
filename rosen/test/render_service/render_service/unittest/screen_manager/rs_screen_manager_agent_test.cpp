@@ -21,6 +21,8 @@
 #include "public/rs_screen_manager_agent.h"
 #include "rs_screen_manager.h"
 #include "rs_screen.h"
+#include "screen_manager/rs_virtual_screen_option.h"
+#include "screen_manager/screen_types.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,6 +47,29 @@ public:
     {
         screenManagerAgent_->screenManager_->preprocessor_ = std::make_unique<RSScreenPreprocessor>(
             *screenManager_, *callbackMgr_, handler_, false);
+    }
+
+    // Wrap the new CreateVirtualScreen(option, errorCode&) signature so existing
+    // call sites keep the legacy (name, w, h, surface, assocId, flags[, whiteList])
+    // form. Pass a non-null errorCode to read back the validation result.
+    ScreenId MakeVirtualScreen(const std::string& name, uint32_t width, uint32_t height,
+        sptr<Surface> surface, ScreenId associatedScreenId, int32_t flags,
+        std::vector<NodeId> whiteList = {}, int32_t* errorCode = nullptr)
+    {
+        RSVirtualScreenOption option;
+        option.name = name;
+        option.width = width;
+        option.height = height;
+        option.surface = surface;
+        option.associatedScreenId = associatedScreenId;
+        option.flags = flags;
+        option.whiteList = std::move(whiteList);
+        int32_t err = StatusCode::SUCCESS;
+        ScreenId id = screenManagerAgent_->CreateVirtualScreen(option, err);
+        if (errorCode != nullptr) {
+            *errorCode = err;
+        }
+        return id;
     }
 
 private:
@@ -125,8 +150,8 @@ HWTEST_F(RSScreenManagerAgentTest, CleanVirtualScreens001, TestSize.Level1)
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
-        "virtual", defaultWidth, defaultHeight, psurface, screenId, 0, {});
+    ScreenId virtualScreenId = MakeVirtualScreen(
+        "virtual", defaultWidth, defaultHeight, psurface, screenId, 0);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     screenManagerAgent_->CleanVirtualScreens();
     std::vector<ScreenId> ids = screenManagerAgent_->GetAllScreenIds();
@@ -190,7 +215,7 @@ HWTEST_F(RSScreenManagerAgentTest, CreateVirtualScreen001, TestSize.Level1)
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -202,12 +227,12 @@ HWTEST_F(RSScreenManagerAgentTest, CreateVirtualScreen001, TestSize.Level1)
     EXPECT_TRUE(find(ids.begin(), ids.end(), virtualScreenId) == ids.end());
 
     std::vector<NodeId> whiteList(MAX_SPECIAL_LAYER_NUM + 1, 0);
-    screenManagerAgent_->CreateVirtualScreen(
+    MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1, whiteList);
     auto screenManager = screenManagerAgent_->screenManager_;
     screenManagerAgent_->screenManager_ = nullptr;
     screenManagerAgent_->GetAllScreenIds();
-    screenManagerAgent_->CreateVirtualScreen(
+    MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     screenManagerAgent_->RemoveVirtualScreen(virtualScreenId);
     screenManagerAgent_->screenManager_ = screenManager;
@@ -231,8 +256,8 @@ HWTEST_F(RSScreenManagerAgentTest, SetVirtualScreenSurface001, TestSize.Level1)
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
-        "virtual", defaultWidth, defaultHeight, psurface, screenId, 0, {});
+    ScreenId virtualScreenId = MakeVirtualScreen(
+        "virtual", defaultWidth, defaultHeight, psurface, screenId, 0);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     auto result = screenManagerAgent_->SetVirtualScreenSurface(virtualScreenId, psurface);
     ASSERT_EQ(result, 0);
@@ -345,8 +370,8 @@ HWTEST_F(RSScreenManagerAgentTest, GetScreenCapability001, TestSize.Level1)
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
-        "virtual", defaultWidth, defaultHeight, psurface, screenId, 0, {});
+    ScreenId virtualScreenId = MakeVirtualScreen(
+        "virtual", defaultWidth, defaultHeight, psurface, screenId, 0);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     RSScreenCapability screenCapability = screenManagerAgent_->GetScreenCapability(virtualScreenId);
     ASSERT_EQ(screenCapability.GetType(), DISP_INVALID);
@@ -478,7 +503,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetScreenBacklight001, TestSize.Level1)
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, pSurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     screenManager_->screenBacklight_[virtualScreenId] = 50;
@@ -528,7 +553,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetVirtualScreenBlackList001, TestSize.Level1
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, pSurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -565,7 +590,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetVirtualScreenTypeBlackList001, TestSize.Le
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, pSurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -602,7 +627,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetPostProcessingShader_001, TestSize.Level1)
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, pSurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -637,7 +662,7 @@ HWTEST_F(RSScreenManagerAgentTest, AddVirtualScreenBlackList001, TestSize.Level1
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, pSurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -679,7 +704,7 @@ HWTEST_F(RSScreenManagerAgentTest, AddVirtualScreenWhiteList001, TestSize.Level1
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, pSurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -884,7 +909,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetScreenSecurityMask001, TestSize.Level1)
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, pSurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -936,7 +961,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetCastScreenEnableSkipWindow001, TestSize.Le
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, pSurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -991,7 +1016,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetVirtualScreenResolution001, TestSize.Level
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -1085,7 +1110,7 @@ HWTEST_F(RSScreenManagerAgentTest, ResizeVirtualScreen001, TestSize.Level1)
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -1170,7 +1195,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetVirtualScreenHDRMode001, TestSize.Level1)
     uint32_t defaultHeight = 1280;
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -1374,7 +1399,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetVirtualMirrorScreenCanvasRotation001, Test
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     EXPECT_EQ(screenManagerAgent_->SetVirtualMirrorScreenCanvasRotation(virtualScreenId, true), true);
@@ -1405,7 +1430,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetVirtualScreenAutoRotation001, TestSize.Lev
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
@@ -1462,7 +1487,7 @@ HWTEST_F(RSScreenManagerAgentTest, GetPixelFormat001, TestSize.Level1)
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     GraphicPixelFormat pixelFormat = GRAPHIC_PIXEL_FMT_BGRA_8888;
@@ -1632,7 +1657,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetScreenActiveRect001, TestSize.Level1)
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     Rect activeRect {
@@ -1688,7 +1713,7 @@ HWTEST_F(RSScreenManagerAgentTest, SetVirtualScreenStatus001, TestSize.Level1)
     ScreenId screenId = GenerateScreenId();
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
+    ScreenId virtualScreenId = MakeVirtualScreen(
         "virtual", defaultWidth, defaultHeight, psurface, screenId, -1);
     EXPECT_NE(virtualScreenId, INVALID_SCREEN_ID);
     EXPECT_TRUE(screenManagerAgent_->SetVirtualScreenStatus(virtualScreenId, VirtualScreenStatus::VIRTUAL_SCREEN_PLAY));
@@ -1805,8 +1830,8 @@ HWTEST_F(RSScreenManagerAgentTest, AddVirtualScreenSurface001, TestSize.Level2)
 {
     GetGlobalPreprocessor();
     ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
-        "virtual_add_agent", 480, 320, nullptr, INVALID_SCREEN_ID, 0, {});
+    ScreenId virtualScreenId = MakeVirtualScreen(
+        "virtual_add_agent", 480, 320, nullptr, INVALID_SCREEN_ID, 0);
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     auto csurface = IConsumerSurface::Create("AddVirtualSurfaceAgent");
@@ -1846,8 +1871,8 @@ HWTEST_F(RSScreenManagerAgentTest, RemoveVirtualScreenSurface001, TestSize.Level
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
 
-    ScreenId virtualScreenId = screenManagerAgent_->CreateVirtualScreen(
-        "virtual_rm_agent", 480, 320, psurface, INVALID_SCREEN_ID, 0, {});
+    ScreenId virtualScreenId = MakeVirtualScreen(
+        "virtual_rm_agent", 480, 320, psurface, INVALID_SCREEN_ID, 0);
     ASSERT_NE(virtualScreenId, INVALID_SCREEN_ID);
 
     std::vector<sptr<Surface>> surfaces = {psurface};
@@ -1862,5 +1887,84 @@ HWTEST_F(RSScreenManagerAgentTest, RemoveVirtualScreenSurface001, TestSize.Level
     ret = screenManagerAgent_->RemoveVirtualScreenSurface(virtualScreenId, surfaces);
     EXPECT_EQ(ret, StatusCode::SCREEN_NOT_FOUND);
     screenManagerAgent_->screenManager_ = screenManager;
+}
+
+/*
+ * @tc.name: CreateVirtualScreen002
+ * @tc.desc: Test CreateVirtualScreen when screenManager_ is nullptr returns
+ *           INVALID_SCREEN_ID and errorCode SCREEN_NOT_FOUND
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, CreateVirtualScreen002, TestSize.Level1)
+{
+    RSVirtualScreenOption option;
+    option.name = "virtual_null";
+    option.width = 720;
+    option.height = 1280;
+    option.associatedScreenId = GenerateScreenId();
+    int32_t errorCode = StatusCode::SUCCESS;
+    auto screenManager = screenManagerAgent_->screenManager_;
+    screenManagerAgent_->screenManager_ = nullptr;
+    ScreenId id = screenManagerAgent_->CreateVirtualScreen(option, errorCode);
+    EXPECT_EQ(id, INVALID_SCREEN_ID);
+    EXPECT_EQ(errorCode, StatusCode::SCREEN_NOT_FOUND);
+    screenManagerAgent_->screenManager_ = screenManager;
+}
+
+/*
+ * @tc.name: CreateVirtualScreen003
+ * @tc.desc: Test CreateVirtualScreen rejects an oversized whiteList with
+ *           INVALID_SCREEN_ID and errorCode INVALID_ARGUMENTS
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, CreateVirtualScreen003, TestSize.Level1)
+{
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    RSVirtualScreenOption option;
+    option.name = "virtual_oversize";
+    option.width = 720;
+    option.height = 1280;
+    option.surface = psurface;
+    option.associatedScreenId = GenerateScreenId();
+    option.whiteList = std::vector<NodeId>(MAX_SPECIAL_LAYER_NUM + 1, 0);
+    int32_t errorCode = StatusCode::SUCCESS;
+    ScreenId id = screenManagerAgent_->CreateVirtualScreen(option, errorCode);
+    EXPECT_EQ(id, INVALID_SCREEN_ID);
+    EXPECT_EQ(errorCode, StatusCode::INVALID_ARGUMENTS);
+}
+
+/*
+ * @tc.name: CreateVirtualScreen004
+ * @tc.desc: Test CreateVirtualScreen succeeds with valid option and reports
+ *           errorCode SUCCESS
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenManagerAgentTest, CreateVirtualScreen004, TestSize.Level1)
+{
+    auto csurface = IConsumerSurface::Create();
+    ASSERT_NE(csurface, nullptr);
+    auto producer = csurface->GetProducer();
+    auto psurface = Surface::CreateSurfaceAsProducer(producer);
+    ASSERT_NE(psurface, nullptr);
+    GetGlobalPreprocessor();
+    ASSERT_NE(screenManagerAgent_->screenManager_->preprocessor_, nullptr);
+    RSVirtualScreenOption option;
+    option.name = "virtual_ok";
+    option.width = 720;
+    option.height = 1280;
+    option.surface = psurface;
+    option.associatedScreenId = GenerateScreenId();
+    int32_t errorCode = StatusCode::SCREEN_NOT_FOUND;
+    ScreenId id = screenManagerAgent_->CreateVirtualScreen(option, errorCode);
+    EXPECT_NE(id, INVALID_SCREEN_ID);
+    EXPECT_EQ(errorCode, StatusCode::SUCCESS);
+    screenManagerAgent_->RemoveVirtualScreen(id);
 }
 }

@@ -55,6 +55,7 @@
 #include "drawable/rs_screen_render_node_drawable.h"
 #include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_property.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 #include "string_utils.h"
 #include "v2_2/cm_color_space.h"
 #include "pipeline/rs_render_node_gc.h"
@@ -76,6 +77,22 @@ using namespace testing;
 using namespace testing::ext;
 #if defined(RS_ENABLE_UNI_RENDER)
 namespace OHOS::Rosen {
+static ScreenId MakeVirtualScreen(const sptr<RSScreenManager>& sm, const std::string& name,
+    uint32_t width, uint32_t height, sptr<Surface> surface = nullptr,
+    ScreenId associatedScreenId = INVALID_SCREEN_ID, int32_t flags = 0,
+    std::vector<NodeId> whiteList = {})
+{
+    RSVirtualScreenOption option;
+    option.name = name;
+    option.width = width;
+    option.height = height;
+    option.surface = surface;
+    option.associatedScreenId = associatedScreenId;
+    option.flags = flags;
+    option.whiteList = std::move(whiteList);
+    int32_t errCode = StatusCode::SUCCESS;
+    return sm->CreateVirtualScreen(option, errCode);
+}
 constexpr int32_t INVALID_VALUE = -1;
 constexpr int32_t SCREEN_PHYSICAL_HEIGHT = 10;
 constexpr int32_t SCREEN_PHYSICAL_WIDTH = 10;
@@ -262,7 +279,7 @@ void RSMainThreadTest::SetUpTestCase()
     auto producer = csurface->GetProducer();
     auto psurface = Surface::CreateSurfaceAsProducer(producer);
     ASSERT_NE(psurface, nullptr);
-    auto id = screenManager_->CreateVirtualScreen(name, width, height, psurface);
+    auto id = MakeVirtualScreen(screenManager_, name, width, height, psurface);
     ASSERT_NE(INVALID_SCREEN_ID, id);
     screenManager_->defaultScreenId_ = id;
     vsyncManager_ = sptr<RSVsyncManager>::MakeSptr();

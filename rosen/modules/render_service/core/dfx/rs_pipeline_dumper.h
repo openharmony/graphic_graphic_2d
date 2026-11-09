@@ -47,6 +47,7 @@ private:
     void DumpRSEvenParam(std::string& dumpString) const;
     void DumpRenderServiceTree(std::string& dumpString, bool forceDumpSingleFrame = true) const;
     void DumpJankStatsRs(std::string& dumpString) const;
+    void DumpAllRenderNodes(std::string& dumpString) const;
     void WindowHitchsDump(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
         const std::u16string& arg) const;
     void FPSDumpProcess(std::unordered_set<std::u16string>& argSets, std::string& dumpString,
@@ -74,7 +75,9 @@ private:
     void RegisterFpsFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
     void RegisterContextStatesFuncs(std::shared_ptr<RSPipelineDumpManager> rsDumpManager);
     void RegisterFrameStatsFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
-
+    void RegisterScbPoolFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
+    void RegisterAllRenderNodesFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager);
+    
     void ScheduleTask(std::function<void()> task) const;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
 };

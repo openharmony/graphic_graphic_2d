@@ -31,15 +31,15 @@ namespace Rosen {
 #define LOG_TAG "OHOS::RS"
 #define LOGI(fmt, ...) HILOG_INFO(LOG_CORE, fmt, ##__VA_ARGS__)
 #define LOGE(fmt, ...) HILOG_ERROR(LOG_CORE, fmt, ##__VA_ARGS__)
+
+std::once_flag RsFrameReport::initFlag_;
+bool RsFrameReport::inited = false;
 namespace {
 #if defined (RS_ENABLE_VK) && !defined(ROSEN_ARKUI_X)
 const std::string LIB_VULKAN_PATH = "/system/lib64/libvulkan.so";
 const uint32_t MAX_INITIALIZATION_COUNT = 3;
 #endif
 }
-
-std::once_flag RsFrameReport::initFlag_;
-bool RsFrameReport::inited = false;
 
 static void GraphReportSchedEvent(OHOS::RME::FrameSchedEvent event,
     const std::unordered_map<std::string, std::string> &payload)
@@ -136,7 +136,7 @@ void RsFrameReport::CheckBeginFlushPoint()
 void RsFrameReport::ReportBufferCount(uint32_t count)
 {
     std::call_once(initFlag_, &RsFrameReport::InitSched);
-    static uint32_t  bufferCount = 0;
+    static uint32_t bufferCount = 0;
     if (bufferCount == count) {
         return;
     }
@@ -254,7 +254,7 @@ bool RsFrameReport::GetVulkanFunctionPointersByLibrary()
 {
     vkhandle.reset(dlopenFunc(LIB_VULKAN_PATH.c_str(), RTLD_NOW | RTLD_LOCAL));
     if (vkhandle == nullptr) {
-        LOGE("Failed to load Vulkan library: %{public}s", dlerror());
+        LOGE("Failed to load Vulkan library");
         return false;
     }
     vkGetInstanceProcAddr =
@@ -262,10 +262,9 @@ bool RsFrameReport::GetVulkanFunctionPointersByLibrary()
     vkGetDeviceProcAddr = reinterpret_cast<PFN_vkGetDeviceProcAddr>(dlsymFunc(vkhandle.get(), "vkGetDeviceProcAddr"));
     vkCreateInstance = reinterpret_cast<PFN_vkCreateInstance>(dlsymFunc(vkhandle.get(), "vkCreateInstance"));
     vkDestroyInstance = reinterpret_cast<PFN_vkDestroyInstance>(dlsymFunc(vkhandle.get(), "vkDestroyInstance"));
-
     return true;
 }
- 
+
 bool RsFrameReport::GetVulkanFunctionPointersByInstance()
 {
     if (!instance_) {
@@ -286,7 +285,7 @@ bool RsFrameReport::GetVulkanFunctionPointersByInstance()
  
     return true;
 }
- 
+
 bool RsFrameReport::CreateVulkanInstance()
 {
     if (!vkCreateInstance) {
@@ -310,7 +309,7 @@ bool RsFrameReport::CreateVulkanInstance()
     }
     return GetVulkanFunctionPointersByInstance();
 }
- 
+
 uint32_t RsFrameReport::FindQueueFamilyIndex(VkPhysicalDevice physicalDevice)
 {
     if (!vkGetPhysicalDeviceQueueFamilyProperties) {
@@ -328,7 +327,7 @@ uint32_t RsFrameReport::FindQueueFamilyIndex(VkPhysicalDevice physicalDevice)
     }
     return UINT32_MAX;
 }
- 
+
 bool RsFrameReport::CreateVulkanDevice()
 {
     if (!vkEnumeratePhysicalDevices) {
@@ -339,31 +338,31 @@ bool RsFrameReport::CreateVulkanDevice()
         LOGE("Failed to get Vulkan function pointers : vkCreateDevice");
         return false;
     }
- 
+
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance_, &deviceCount, nullptr);
     if (deviceCount == 0) {
         LOGE("Failed to find GPUs with Vulkan support");
         return false;
     }
- 
+
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance_, &deviceCount, devices.data());
     VkPhysicalDevice physicalDevice = devices[0];
- 
+
     uint32_t queueFamilyIndex = FindQueueFamilyIndex(physicalDevice);
     if (queueFamilyIndex == UINT32_MAX) {
         LOGE("Failed to find a suitable queue family");
         return false;
     }
- 
+
     VkDeviceQueueCreateInfo queueCreateInfo{};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueCreateInfo.queueFamilyIndex = queueFamilyIndex;
     queueCreateInfo.queueCount = 1;
     float queuePriority = 1.0f;
     queueCreateInfo.pQueuePriorities = &queuePriority;
- 
+
     VkDeviceCreateInfo deviceCreateInfo{};
     deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     deviceCreateInfo.pQueueCreateInfos = &queueCreateInfo;
@@ -374,7 +373,7 @@ bool RsFrameReport::CreateVulkanDevice()
     }
     return true;
 }
- 
+
 bool RsFrameReport::GetSetFrontWindowStatusHUAWEI()
 {
     if (!vkGetDeviceProcAddr) {
@@ -389,7 +388,7 @@ bool RsFrameReport::GetSetFrontWindowStatusHUAWEI()
     }
     return true;
 }
- 
+
 bool RsFrameReport::InitializeVulkanExtensions()
 {
     if (isInit.load() && mSetFrontWindowStatusHUAWEI) {

@@ -20,6 +20,10 @@
 #include "gtest/gtest.h"
 #include "dfx/rs_pipeline_dumper.h"
 #include "dfx/rs_pipeline_dump_manager.h"
+#include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_render_node_allocator.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_scb_node_memory_pool.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -2347,5 +2351,230 @@ HWTEST_F(RSPipelineDumperTest, RegisterContextStatesFuncs_ValidManager, TestSize
 
     // Then: Should execute without crash
     EXPECT_FALSE(out.empty());
+}
+
+/*
+ * @tc.name: RegisterScbPoolFuncs_ValidManager
+ * @tc.desc: Test RegisterScbPoolFuncs registers the scbpool handler and it can be executed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, RegisterScbPoolFuncs_ValidManager, TestSize.Level1)
+{
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    std::unordered_set<std::u16string> argSets = { u"scbpool" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Handler registered → command must produce the pool status header
+    EXPECT_FALSE(out.empty());
+    EXPECT_NE(out.find("SCB Memory Pool Status"), std::string::npos);
+}
+
+/*
+ * @tc.name: RegisterAllRenderNodesFuncs_ValidManager
+ * @tc.desc: Test RegisterAllRenderNodesFuncs registers the allrendernodes handler
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, RegisterAllRenderNodesFuncs_ValidManager, TestSize.Level1)
+{
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    std::unordered_set<std::u16string> argSets = { u"allrendernodes" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    EXPECT_FALSE(out.empty());
+    EXPECT_NE(out.find("All Render Nodes List"), std::string::npos);
+    EXPECT_NE(out.find("nodeId,pid,isScb,type,onTree,inPool,chunk,slot,globalSlot,surfaceName"),
+        std::string::npos);
+}
+
+/*
+ * @tc.name: RegisterAllRenderNodesFuncs_ScbnodesAlias
+ * @tc.desc: Test the scbnodes alias resolves to the same ALL_RENDER_NODES_INFO handler
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, RegisterAllRenderNodesFuncs_ScbnodesAlias, TestSize.Level1)
+{
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    std::unordered_set<std::u16string> argSets = { u"scbnodes" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    EXPECT_FALSE(out.empty());
+    EXPECT_NE(out.find("All Render Nodes List"), std::string::npos);
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_DirectCall_EmptyTree
+ * @tc.desc: Direct call DumpAllRenderNodes with an empty node map; verifies the
+ *           zero-node path (total=0) and the SCB Pool snapshot tail.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_DirectCall_EmptyTree, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+
+    // Header + CSV column line must always be emitted
+    EXPECT_NE(dumpString.find("=== All Render Nodes List (pid:"), std::string::npos);
+    EXPECT_NE(dumpString.find("nodeId,pid,isScb,type,onTree,inPool,chunk,slot,globalSlot,surfaceName"),
+        std::string::npos);
+    // Summary + SCB Pool snapshot must always be emitted
+    EXPECT_NE(dumpString.find("Summary: total="), std::string::npos);
+    EXPECT_NE(dumpString.find("SCB Pool: totalSlots="), std::string::npos);
+    EXPECT_NE(dumpString.find(", scbPid="), std::string::npos);
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_DirectCall_WithScbPid
+ * @tc.desc: Direct call DumpAllRenderNodes after setting scbPid_; verifies the
+ *           scbPid value is echoed in the SCB Pool snapshot tail.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_DirectCall_WithScbPid, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    pid_t originalPid = nodeGC.GetScbPid();
+
+    constexpr pid_t testPid = 4321;
+    nodeGC.SetScbPid(testPid);
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+    nodeGC.SetScbPid(originalPid);
+
+    EXPECT_NE(dumpString.find("scbPid=" + std::to_string(testPid)), std::string::npos);
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_DirectCall_PoolSnapshot
+ * @tc.desc: Direct call DumpAllRenderNodes after allocating a SCB pool slot; verifies
+ *           the pool snapshot reflects a non-zero totalSlots and at least one chunk.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_DirectCall_PoolSnapshot, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    auto& pool = RSScbNodeMemoryPool::Instance();
+
+    // Ensure the pool is initialized (lazy init on first Allocate)
+    void* probe = pool.Allocate();
+    ASSERT_NE(probe, nullptr);
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+
+    // Pool snapshot must report a non-zero capacity and at least one chunk
+    EXPECT_EQ(dumpString.find("SCB Pool: totalSlots=0,"), std::string::npos) << "unexpected zero capacity";
+    EXPECT_EQ(dumpString.find(", chunks=0,"), std::string::npos) << "unexpected zero chunk count";
+
+    pool.Deallocate(probe);
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_DirectCall_ScbNodeInPool
+ * @tc.desc: Create a real SCB-pool node, register it into the node map, then dump;
+ *           verifies the isScb=1 and inPool=1 columns for that node.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_DirectCall_ScbNodeInPool, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    pid_t originalPid = nodeGC.GetScbPid();
+
+    constexpr pid_t scbPid = 4242;
+    nodeGC.SetScbPid(scbPid);
+    NodeId nodeId = (static_cast<NodeId>(scbPid) << 32) | 1;
+    auto node = allocator.CreateScbCanvasRenderNode(nodeId, {}, false);
+    ASSERT_NE(node, nullptr);
+    ASSERT_TRUE(allocator.IsScbNodePool(node.get()));
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(node));
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+    nodeMap.UnregisterRenderNode(nodeId);
+    nodeGC.SetScbPid(originalPid);
+
+    // The node must appear with isScb=1 and inPool=1
+    std::string expectedPrefix = std::to_string(nodeId) + "," + std::to_string(scbPid) + ",1,";
+    auto pos = dumpString.find(expectedPrefix);
+    ASSERT_NE(pos, std::string::npos) << "SCB node row not found in dump";
+    // Within the same CSV row, the 6th field (inPool) must be 1
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    // Fields: nodeId,pid,isScb,type,onTree,inPool,chunk,slot,globalSlot,surfaceName
+    std::vector<std::string> fields;
+    size_t start = 0;
+    for (int i = 0; i < 9; ++i) {
+        auto comma = row.find(',', start);
+        ASSERT_NE(comma, std::string::npos);
+        fields.push_back(row.substr(start, comma - start));
+        start = comma + 1;
+    }
+    EXPECT_EQ(fields[2], "1") << "isScb should be 1";
+    EXPECT_EQ(fields[5], "1") << "inPool should be 1";
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_DirectCall_NonScbNodeNotInPool
+ * @tc.desc: Create a heap (non-pool) node under a non-SCB pid, register it, then dump;
+ *           verifies isScb=0 and inPool=0 columns.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_DirectCall_NonScbNodeNotInPool, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    pid_t originalPid = nodeGC.GetScbPid();
+
+    constexpr pid_t otherPid = 5353;
+    nodeGC.SetScbPid(-1); // ensure the node below is NOT treated as SCB
+    NodeId nodeId = (static_cast<NodeId>(otherPid) << 32) | 2;
+    auto node = allocator.CreateRSCanvasRenderNode(nodeId, {}, false);
+    ASSERT_NE(node, nullptr);
+    ASSERT_FALSE(allocator.IsScbNodePool(node.get()));
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(node));
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+    nodeMap.UnregisterRenderNode(nodeId);
+    nodeGC.SetScbPid(originalPid);
+
+    std::string expectedPrefix = std::to_string(nodeId) + "," + std::to_string(otherPid) + ",0,";
+    auto pos = dumpString.find(expectedPrefix);
+    ASSERT_NE(pos, std::string::npos) << "non-SCB node row not found in dump";
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    std::vector<std::string> fields;
+    size_t start = 0;
+    for (int i = 0; i < 9; ++i) {
+        auto comma = row.find(',', start);
+        ASSERT_NE(comma, std::string::npos);
+        fields.push_back(row.substr(start, comma - start));
+        start = comma + 1;
+    }
+    EXPECT_EQ(fields[2], "0") << "isScb should be 0";
+    EXPECT_EQ(fields[5], "0") << "inPool should be 0";
 }
 } // namespace OHOS::Rosen

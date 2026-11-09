@@ -27,6 +27,7 @@
 #include "common/rs_event_def.h"
 #include "memory/rs_memory_graphic.h"
 #include "screen_manager/rs_surface_region_config.h"
+#include "screen_manager/rs_virtual_screen_option.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_display_node.h"
 #include "ui/rs_surface_node.h"
@@ -87,6 +88,16 @@ public:
         ScreenId associatedScreenId = 0,
         int flags = 0,
         std::vector<NodeId> whiteList = {});
+
+    /**
+     * @brief Create virtual screen with option. The HDR mode is applied when the virtual screen is
+     *        created, so the first frame always reads the expected mode; it avoids the timing issue
+     *        of calling SetVirtualScreenHDRMode separately after CreateVirtualScreen.
+     * @param option Virtual screen creation option, see RSVirtualScreenOption.
+     * @param errorCode Optional output parameter for error code, see StatusCode.
+     * @return Virtual screen id, INVALID_SCREEN_ID means failed.
+     */
+    ScreenId CreateVirtualScreen(const RSVirtualScreenOption& option, int32_t* errorCode = nullptr);
 
     // ========== Multi-Surface Virtual Screen Dynamic Surface Management ==========
     // These methods are for managing surfaces on virtual screens.

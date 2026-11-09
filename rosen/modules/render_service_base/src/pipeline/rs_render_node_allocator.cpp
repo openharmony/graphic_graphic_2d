@@ -15,15 +15,22 @@
 
 #include "pipeline/rs_render_node_allocator.h"
 
+#include <cstdlib>
+#include <cstring>
+ 
+#include "platform/common/rs_system_properties.h"
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_scb_node_memory_pool.h"
 #include "platform/common/rs_log.h"
+#include "rs_trace.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr uint32_t NODE_ALLOCATOR_LIMIT = 512;
 constexpr uint32_t DRAWABLE_ALLOCATOR_LIMIT = 512;
+constexpr uint32_t SCB_NODE_FREE_QUEUE_LIMIT = 32;
 }
 
 RSRenderNodeAllocator& RSRenderNodeAllocator::Instance()
@@ -78,6 +85,7 @@ std::shared_ptr<RSCanvasRenderNode> RSRenderNodeAllocator::CreateRSCanvasRenderN
     const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
 {
     std::shared_ptr<RSCanvasRenderNode> node = nullptr;
+    RS_OPTIONAL_TRACE_NAME_FMT("CanvasNodeCreate legacy, id=%" PRIu64, id);
     nodeAllocatorSpinlock_.lock();
     if (nodeAllocator_.empty()) {
         nodeAllocatorSpinlock_.unlock();
@@ -116,6 +124,94 @@ RSRenderNodeAllocator::DrawablePtr RSRenderNodeAllocator::CreateRSRenderNodeDraw
     drawableAllocatorSpinlock_.unlock();
     return generator(node, front);
 }
+
+std::shared_ptr<RSCanvasRenderNode> RSRenderNodeAllocator::CreateScbCanvasRenderNode(NodeId id,
+    const std::weak_ptr<RSContext>& context, bool isTextureExportNode)
+{
+    std::shared_ptr<RSCanvasRenderNode> node = nullptr;
+    void* mem = nullptr;
+ 
+    // 1. Try to reuse a previously destructed node from the SCB free queue.
+    bool reusedFromFreeQueue = false;
+    scbNodeSpinlock_.lock();
+    if (!scbNodeFreeQueue_.empty()) {
+        auto front = scbNodeFreeQueue_.front();
+        scbNodeFreeQueue_.pop();
+        scbNodeSpinlock_.unlock();
+        mem = front;
+        reusedFromFreeQueue = true;
+    } else {
+        scbNodeSpinlock_.unlock();
+        // 2. Allocate a new slot from the contiguous memory pool.
+        mem = RSScbNodeMemoryPool::Instance().Allocate();
+    }
+ 
+    if (mem != nullptr) {
+        if (reusedFromFreeQueue) {
+            RS_OPTIONAL_TRACE_NAME_FMT("ScbNodeCreate reuse, id=%" PRIu64 ", freeQueue=%zu, used=%u/%u",
+                id, GetScbFreeQueueSize(), RSScbNodeMemoryPool::Instance().GetTotalUsed(),
+                RSScbNodeMemoryPool::Instance().GetTotalSlots());
+        } else {
+            RS_OPTIONAL_TRACE_NAME_FMT("ScbNodeCreate alloc, id=%" PRIu64 ", freeQueue=%zu, used=%u/%u",
+                id, GetScbFreeQueueSize(), RSScbNodeMemoryPool::Instance().GetTotalUsed(),
+                RSScbNodeMemoryPool::Instance().GetTotalSlots());
+        }
+        node = std::shared_ptr<RSCanvasRenderNode>(
+            new (mem) RSCanvasRenderNode(id, context, isTextureExportNode),
+            RSRenderNodeGC::NodeDestructor);
+    } else {
+        // 3. Pool exhausted — fallback to heap allocation with the standard destructor.
+        RS_OPTIONAL_TRACE_NAME_FMT("ScbNodeCreate heapFallback, id=%" PRIu64 ", used=%u/%u",
+            id, RSScbNodeMemoryPool::Instance().GetTotalUsed(),
+            RSScbNodeMemoryPool::Instance().GetTotalSlots());
+        RS_LOGW("CreateScbCanvasRenderNode fallback to heap, id=%{public}" PRIu64 ", poolUsed=%{public}u, "
+            "poolMax=%{public}u", id, RSScbNodeMemoryPool::Instance().GetTotalUsed(),
+            RSScbNodeMemoryPool::Instance().GetTotalSlots());
+        node = std::shared_ptr<RSCanvasRenderNode>(
+            new RSCanvasRenderNode(id, context, isTextureExportNode),
+            RSRenderNodeGC::NodeDestructor);
+    }
+ 
+    if (node && node->IsNodeMemClearEnable()) {
+        RSRenderNodeGC::Instance().SetIsOnTheTree(node->GetId(), node, node->IsOnTheTree());
+    }
+    return node;
+}
+ 
+bool RSRenderNodeAllocator::AddScbNodeToPool(RSRenderNode* ptr)
+{
+    if (ptr == nullptr || ptr->GetType() != RSRenderNodeType::CANVAS_NODE) {
+        return false;
+    }
+    if (!RSScbNodeMemoryPool::Instance().Owns(ptr)) {
+        return false;
+    }
+    NodeId nodeId = ptr->GetId();
+    scbNodeSpinlock_.lock();
+    if (scbNodeFreeQueue_.size() >= SCB_NODE_FREE_QUEUE_LIMIT) {
+        scbNodeSpinlock_.unlock();
+        RS_LOGD_IF(DEBUG_NODE, "AddScbNodeToPool queue full, id=%{public}" PRIu64 ", queueSize=%{public}zu",
+            nodeId, scbNodeFreeQueue_.size());
+        return false;
+    }
+    ptr->~RSRenderNode();
+    scbNodeFreeQueue_.push(ptr);
+    scbNodeSpinlock_.unlock();
+    return true;
+}
+ 
+bool RSRenderNodeAllocator::IsScbNodePool(const void* ptr) const
+{
+    return RSScbNodeMemoryPool::Instance().Owns(ptr);
+}
+ 
+// Best-effort snapshot for diagnostics/dump only. No locking;
+// value may be transiently inconsistent under concurrent Create/Recycle.
+size_t RSRenderNodeAllocator::GetScbFreeQueueSize() const
+{
+    return scbNodeFreeQueue_.size();
+}
+ 
 
 } // namespace Rosen
 } // namespace OHOS

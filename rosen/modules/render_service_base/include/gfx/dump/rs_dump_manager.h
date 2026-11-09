@@ -67,6 +67,8 @@ enum class RSDumpID : uint8_t {
     UICONTEXT_STATES_INFO,
     FRAME_STATS_INFO,
     FRAME_STATS_CLEAR,
+    SCB_POOL_INFO,  // Dump SCB memory pool status
+    ALL_RENDER_NODES_INFO, // Dump all render nodes with chunk/slot info
 };
 
 // Define a function type alias for the dump point handling function
@@ -131,6 +133,10 @@ const std::unordered_map<std::u16string, RSDumpCmd> cmdMap_ = {
     { u"uiContextState", { { RSDumpID::UICONTEXT_STATES_INFO }, "dumpUIContextState [pid] [token]" } },
     { u"frameStats", { {RSDumpID::FRAME_STATS_INFO }, "dump frame stats counters"} },
     { u"clearFrameStats", { {RSDumpID::FRAME_STATS_CLEAR }, "clear frame stats counters"} },
+    { u"scbpool", { { RSDumpID::SCB_POOL_INFO }, "dump SCB memory pool status and fragmentation info" } },
+    { u"allrendernodes", { { RSDumpID::ALL_RENDER_NODES_INFO }, "dump all render nodes with chunk/slot info" } },
+    { u"scbnodes", { { RSDumpID::ALL_RENDER_NODES_INFO },
+        "dump all render nodes with chunk/slot info (alias of allrendernodes)" } },
 };
 
 const std::unordered_set<std::u16string> excludeCmds_ = { u"buffer" };

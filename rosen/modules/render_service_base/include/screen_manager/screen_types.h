@@ -239,6 +239,7 @@ typedef enum : uint32_t {
     SCREEN_TYPE_ERROR,
     WHITELIST_IS_EMPTY,
     FEATURE_DISABLED,
+    HDR_NOT_SUPPORT,
 } StatusCode;
 
 typedef enum : uint32_t {

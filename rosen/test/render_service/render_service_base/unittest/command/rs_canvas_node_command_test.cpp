@@ -18,7 +18,9 @@
 #include "command/rs_ui_director_command.h"
 #include "common/rs_common_def.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_render_node_allocator.h"
 #include "pipeline/rs_render_node_gc.h"
+#include "parameters.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -275,4 +277,105 @@ HWTEST_F(RSCanvasNodeCommandTest, CreateSceneBoardBranchTest001, TestSize.Level1
     EXPECT_EQ(node->GetUIContextToken(), token);
 }
 
+/**
+ * @tc.name: CreateScbRoute001
+ * @tc.desc: Create routes to the SCB pool when the pool switch is on and the creating
+ *           instance is SceneBoard-marked (useScbPool == true).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandTest, CreateScbRoute001, TestSize.Level1)
+{
+    RSContext context;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    system::SetParameter("persist.debug.rs.scb_pool_enabled", "1");
+
+    constexpr pid_t pid = 820;
+    constexpr uint64_t token = 821;
+    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId id = MakeNodeId(pid, 1);
+    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
+
+    RSCanvasNodeCommandHelper::Create(context, id, false, token);
+    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    // Marked instance -> node must have been allocated from the SCB contiguous pool
+    EXPECT_TRUE(allocator.IsScbNodePool(node.get()));
+
+    system::SetParameter("persist.debug.rs.scb_pool_enabled", "1");
+    context.GetMutableNodeMap().UnregisterRenderNode(id);
+}
+
+/**
+ * @tc.name: CreateScbRouteDisabled001
+ * @tc.desc: Create routes to the generic path when the SCB pool switch is off
+ *           even for a SceneBoard-marked instance (useScbPool == false via the flag).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandTest, CreateScbRouteDisabled001, TestSize.Level1)
+{
+    RSContext context;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    system::SetParameter("persist.debug.rs.scb_pool_enabled", "0");
+
+    constexpr pid_t pid = 830;
+    constexpr uint64_t token = 831;
+    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId id = MakeNodeId(pid, 1);
+    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
+
+    RSCanvasNodeCommandHelper::Create(context, id, false, token);
+    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    // Switch off -> must NOT come from the SCB pool
+    EXPECT_FALSE(allocator.IsScbNodePool(node.get()));
+
+    // Restore the default switch state.
+    system::SetParameter("persist.debug.rs.scb_pool_enabled", "1");
+    context.GetMutableNodeMap().UnregisterRenderNode(id);
+}
+
+/**
+ * @tc.name: CreateScbRouteUnmarked001
+ * @tc.desc: Create routes to the generic path for an unmarked process (no mark, no pool).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandTest, CreateScbRouteUnmarked001, TestSize.Level1)
+{
+    RSContext context;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    system::SetParameter("persist.debug.rs.scb_pool_enabled", "1");
+
+    constexpr pid_t pid = 840;
+    constexpr NodeId id = MakeNodeId(pid, 1);
+    RSCanvasNodeCommandHelper::Create(context, id, false, 0);
+    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    EXPECT_FALSE(allocator.IsScbNodePool(node.get()));
+
+    context.GetMutableNodeMap().UnregisterRenderNode(id);
+}
+
+ 
+/**
+ * @tc.name: CreateUnRegisterUnTreeNode001
+ * @tc.desc: test Create takes the UnRegisterUnTreeNode==true branch (node pre-registered
+ *           as an un-tree node) and still registers the node successfully.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasNodeCommandTest, CreateUnRegisterUnTreeNode001, TestSize.Level1)
+{
+    RSContext context;
+    NodeId id = (static_cast<NodeId>(7) << 32) | 3;
+    // Pre-register the node as an un-tree node so UnRegisterUnTreeNode returns true
+    context.GetMutableNodeMap().RegisterUnTreeNode(id);
+    RSCanvasNodeCommandHelper::Create(context, id, false);
+    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
+    ASSERT_NE(node, nullptr);
+    // The un-tree registration must have been consumed by Create
+    EXPECT_FALSE(context.GetMutableNodeMap().UnRegisterUnTreeNode(id));
+    context.GetMutableNodeMap().UnregisterRenderNode(id);
+}
+ 
 } // namespace OHOS::Rosen

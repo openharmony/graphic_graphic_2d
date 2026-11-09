@@ -21,6 +21,7 @@
 #include "common/rs_common_def.h"
 #include "gfx/fps_info/rs_surface_fps_manager.h"
 #include "platform/common/rs_log.h"
+
 namespace OHOS::Rosen {
 RSSurfaceFpsManager& RSSurfaceFpsManager::GetInstance()
 {
@@ -193,11 +194,13 @@ void RSSurfaceFpsManager::ClearDump(std::string& result, NodeId id)
     result += " The fps info of surface [" + surfaceFps->GetName() + "] is cleared.\n";
     surfaceFps->ClearDump();
 }
+
 const std::string RSSurfaceFpsManager::GetSelfDrawSurfaceNameByPid(pid_t nodePid)
 {
     std::unique_lock<std::shared_mutex> lock(smtx);
     for (auto [id, surfaceFps] : surfaceFpsMap_) {
         auto name = surfaceFps->GetName();
+        // surfaceFpsMap_ is all selfDrawingNode.
         if (ExtractPid(id) == nodePid && name.find("RosenWeb") == std::string::npos) {
             return name;
         }

@@ -39,7 +39,7 @@ void RsFrameReport::SetFrameParam(int requestId, int load, int schedFrameNum, in
 void RsFrameReport::ReceiveVSync()
 {
 }
- 
+
 void RsFrameReport::RequestNextVSync()
 {
 }
