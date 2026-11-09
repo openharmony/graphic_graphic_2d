@@ -20,7 +20,9 @@
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_simple_draw_cmd_list.h"
 
+#include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
+#include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
 
 namespace OHOS {
@@ -34,8 +36,25 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTex
             MAX_NODE_COUNT_PER_PID, static_cast<uint32_t>(ExtractPid(id)));
         return;
     }
-    auto node = RSRenderNodeAllocator::Instance().CreateRSCanvasRenderNode(id,
-        context.weak_from_this(), isTextureExportNode);
+    std::shared_ptr<RSCanvasRenderNode> node;
+ 
+    auto pid = ExtractPid(id);
+    bool scbPoolEnabled = RSSystemProperties::GetBoolSystemProperty("persist.debug.rs.scb_pool_enabled", true);
+    bool useScbPool = scbPoolEnabled && pid == RSRenderNodeGC::Instance().GetScbPid();
+ 
+    RS_OPTIONAL_TRACE_NAME_FMT("CanvasNodeCreate route, id=%" PRIu64 ", pid=%d, scbPid=%d, scbEnabled=%d,"
+        " useScbPool=%d",
+        id, pid, RSRenderNodeGC::Instance().GetScbPid(),
+        scbPoolEnabled ? 1 : 0, useScbPool ? 1 : 0);
+    
+    if (useScbPool) {
+        node = RSRenderNodeAllocator::Instance().CreateScbCanvasRenderNode(
+            id, context.weak_from_this(), isTextureExportNode);
+    } else {
+        node = RSRenderNodeAllocator::Instance().CreateRSCanvasRenderNode(
+            id, context.weak_from_this(), isTextureExportNode);
+    }
+    
     if (context.GetMutableNodeMap().UnRegisterUnTreeNode(id)) {
         HILOG_COMM_ERROR("RSCanvasNodeCommandHelper::Create after add, id:%{public}" PRIu64 " ", id);
         RS_TRACE_NAME_FMT("RSCanvasNodeCommandHelper::Create after add, id:%" PRIu64 " ", id);

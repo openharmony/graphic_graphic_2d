@@ -36,6 +36,21 @@ public:
     DrawablePtr CreateRSRenderNodeDrawable(std::shared_ptr<const RSRenderNode> node,
         std::function<DrawablePtr(std::shared_ptr<const RSRenderNode> node, DrawablePtr front)> generator);
 
+    // Create a CANVAS_NODE allocated from the SCB contiguous memory pool.
+    // Falls back to heap allocation when the pool is exhausted.
+    std::shared_ptr<RSCanvasRenderNode> CreateScbCanvasRenderNode(NodeId id,
+        const std::weak_ptr<RSContext>& context = {}, bool isTextureExportNode = false);
+ 
+    // Recycle an SCB-pool-allocated node back to the SCB free queue.
+    // Returns false when ptr is not from the SCB pool or the queue is full.
+    bool AddScbNodeToPool(RSRenderNode* ptr);
+ 
+    // Check whether ptr was allocated from the SCB contiguous memory pool.
+    bool IsScbNodePool(const void* ptr) const;
+ 
+    // Get the current size of the SCB free queue (nodes waiting for reuse).
+    size_t GetScbFreeQueueSize() const;
+ 
 private:
     class Spinlock {
     public:
@@ -58,6 +73,10 @@ private:
 
     std::queue<DrawablePtr> drawableAllocator_;
     Spinlock drawableAllocatorSpinlock_;
+     
+    // SCB-pool nodes that have been destructed and are waiting for reuse.
+    std::queue<RSRenderNode*> scbNodeFreeQueue_;
+    mutable Spinlock scbNodeSpinlock_;
 };
 
 } // namespace Rosen

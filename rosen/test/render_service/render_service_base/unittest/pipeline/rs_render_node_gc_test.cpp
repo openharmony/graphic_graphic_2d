@@ -14,6 +14,7 @@
  */
 #include <atomic>
 #include <thread>
+#include <vector>
 
 #include "gtest/gtest.h"
 
@@ -23,6 +24,7 @@
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_node_allocator.h"
 #include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_scb_node_memory_pool.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_system_properties.h"
 
@@ -60,6 +62,7 @@ private:
     void ClearOffTreeBucket();
     void ClearOffTreeBucketMap();
     void ClearBgBucket();
+    void ClearScbFreeQueue();
 };
 
 void RSRenderNodeGCTest::ClearResource()
@@ -102,7 +105,16 @@ void RSRenderNodeGCTest::ClearBgBucket()
     }
     nodeGC.bgReleasePending_ = false;
 }
-
+ 
+void RSRenderNodeGCTest::ClearScbFreeQueue()
+{
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    // Drain the SCB free queue by creating nodes (each create pulls one entry)
+    while (allocator.GetScbFreeQueueSize() > 0) {
+        allocator.CreateScbCanvasRenderNode(0);
+    }
+}
+ 
 void RSRenderNodeGCTest::AddNodes(uint32_t nums, pid_t pid, NodeId startId,
     bool needInvalidNode, std::shared_ptr<RSBaseRenderNode> parent)
 {
@@ -1614,6 +1626,276 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseNodeMemory_CallsBothBuckets, TestSize.Level1
     // ReleaseNodeMemory should process both buckets
     gc.ReleaseNodeMemory();
     EXPECT_EQ(gc.nodeBucket_.size(), 0u);
+}
+
+/**
+ * @tc.name: ReleaseNodeBucket_ScbRecycle001
+ * @tc.desc: Test ReleaseNodeBucket routes an SCB-pool node to AddScbNodeToPool (recycle path).
+ *           Owns(ptr)==true and AddScbNodeToPool succeeds -> node recycled to scbNodeFreeQueue_.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucket_ScbRecycle001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    RSRenderNodeAllocator& allocator = RSRenderNodeAllocator::Instance();
+    ClearNodeBucket();
+    ClearScbFreeQueue();
+    gc.isEnable_.store(true);
+
+    // Create a node from the SCB pool so Owns returns true
+    auto scbNode = allocator.CreateScbCanvasRenderNode(7001);
+    ASSERT_NE(scbNode, nullptr);
+    ASSERT_TRUE(allocator.IsScbNodePool(scbNode.get()));
+    size_t queueBefore = allocator.GetScbFreeQueueSize();
+    RSCanvasRenderNode* raw = scbNode.get();
+    // Replace deleter with no-op: ReleaseNodeBucket recycles (destructs) the node,
+    // so the shared_ptr must not invoke NodeDestructor again on scope exit.
+    scbNode = std::shared_ptr<RSCanvasRenderNode>(raw, [](RSCanvasRenderNode*) {});
+    scbNode.reset(); // no-op deleter won't fire
+
+    // Place the raw pointer into nodeBucket_ for ReleaseNodeBucket to process
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    tempQueue.push({raw});
+    gc.nodeBucket_.swap(tempQueue);
+
+    // Release: should recycle to scbNodeFreeQueue_ (not delete, not Deallocate)
+    gc.ReleaseNodeBucket();
+    EXPECT_EQ(gc.nodeBucket_.size(), 0u);
+    EXPECT_EQ(allocator.GetScbFreeQueueSize(), queueBefore + 1);
+
+    ClearScbFreeQueue();
+}
+
+/**
+ * @tc.name: ReleaseNodeBucket_ScbQueueFull001
+ * @tc.desc: Test ReleaseNodeBucket routes an SCB-pool node to Deallocate when the SCB free
+ *           queue is full (AddScbNodeToPool fails -> ~RSRenderNode + Deallocate).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucket_ScbQueueFull001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    RSRenderNodeAllocator& allocator = RSRenderNodeAllocator::Instance();
+    ClearNodeBucket();
+    ClearScbFreeQueue();
+    gc.isEnable_.store(true);
+
+    // Fill the SCB free queue to its limit (SCB_NODE_FREE_QUEUE_LIMIT=32)
+    constexpr uint32_t queueLimit = 32;
+    std::vector<RSCanvasRenderNode*> recycledHolders;
+    for (uint32_t i = 0; i < queueLimit; ++i) {
+        auto node = allocator.CreateScbCanvasRenderNode(7100 + i);
+        ASSERT_NE(node, nullptr);
+        RSCanvasRenderNode* raw = node.get();
+        node = std::shared_ptr<RSCanvasRenderNode>(raw, [](RSCanvasRenderNode*) {});
+        ASSERT_TRUE(allocator.AddScbNodeToPool(raw));
+        node.reset(); // no-op deleter won't fire, already destructed by AddScbNodeToPool
+        recycledHolders.push_back(raw);
+    }
+    ASSERT_EQ(allocator.GetScbFreeQueueSize(), queueLimit);
+
+    // Create one more SCB-pool node and route it through ReleaseNodeBucket.
+    // AddScbNodeToPool will fail (queue full), so it should fall back to Deallocate.
+    auto extraNode = allocator.CreateScbCanvasRenderNode(7199);
+    ASSERT_NE(extraNode, nullptr);
+    ASSERT_TRUE(allocator.IsScbNodePool(extraNode.get()));
+    RSCanvasRenderNode* extraRaw = extraNode.get();
+    extraNode = std::shared_ptr<RSCanvasRenderNode>(extraRaw, [](RSCanvasRenderNode*) {});
+    extraNode.reset(); // no-op deleter won't fire
+    auto& pool = RSScbNodeMemoryPool::Instance();
+    size_t poolFreeBefore = pool.GetFreeSlotCount();
+
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    tempQueue.push({extraRaw});
+    gc.nodeBucket_.swap(tempQueue);
+    gc.ReleaseNodeBucket();
+    EXPECT_EQ(gc.nodeBucket_.size(), 0u);
+    // Queue should still be at limit (recycle failed, slot returned to pool)
+    EXPECT_EQ(allocator.GetScbFreeQueueSize(), queueLimit);
+    // Pool free slot count should have increased (Deallocate returned the slot)
+    EXPECT_EQ(pool.GetFreeSlotCount(), poolFreeBefore + 1);
+
+    // Cleanup: drain the queue and pool
+    while (allocator.GetScbFreeQueueSize() > 0) {
+        allocator.CreateScbCanvasRenderNode(0);
+    }
+    pool.Shrink();
+}
+
+/**
+ * @tc.name: ReleaseNodeBucket_ScbVsGenericRouting001
+ * @tc.desc: Test ReleaseNodeBucket routes a non-SCB (heap) node through the generic
+ *           AddNodeToAllocator path (Owns==false branch).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucket_ScbVsGenericRouting001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    RSRenderNodeAllocator& allocator = RSRenderNodeAllocator::Instance();
+    ClearNodeBucket();
+    gc.isEnable_.store(true);
+
+    // A heap-allocated canvas node (not from the SCB pool). Use a no-op deleter so
+    // that ReleaseNodeBucket (which destructs via AddNodeToAllocator) owns the lifetime;
+    // the shared_ptr must not also call delete on scope exit.
+    auto heapNode = std::shared_ptr<RSCanvasRenderNode>(
+        new RSCanvasRenderNode(7201), [](RSCanvasRenderNode*) {});
+    ASSERT_FALSE(allocator.IsScbNodePool(heapNode.get()));
+    RSCanvasRenderNode* heapRaw = heapNode.get();
+    heapNode.reset(); // no-op deleter won't fire
+
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    tempQueue.push({heapRaw});
+    gc.nodeBucket_.swap(tempQueue);
+    // Should route to AddNodeToAllocator (generic pool), not crash
+    gc.ReleaseNodeBucket();
+    EXPECT_EQ(gc.nodeBucket_.size(), 0u);
+}
+
+/**
+ * @tc.name: ReleaseNodeOnBgThread_ScbRecycle001
+ * @tc.desc: Test ReleaseNodeOnBgThread routes an SCB-pool node to AddScbNodeToPool
+ *           (recycle path) instead of delete.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeOnBgThread_ScbRecycle001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    RSRenderNodeAllocator& allocator = RSRenderNodeAllocator::Instance();
+    ClearBgBucket();
+    ClearScbFreeQueue();
+
+    auto scbNode = allocator.CreateScbCanvasRenderNode(7301);
+    ASSERT_NE(scbNode, nullptr);
+    ASSERT_TRUE(allocator.IsScbNodePool(scbNode.get()));
+    size_t queueBefore = allocator.GetScbFreeQueueSize();
+    RSCanvasRenderNode* raw = scbNode.get();
+    // Replace deleter with no-op: ReleaseNodeOnBgThread recycles (destructs) the node
+    scbNode = std::shared_ptr<RSCanvasRenderNode>(raw, [](RSCanvasRenderNode*) {});
+    scbNode.reset(); // no-op deleter won't fire
+
+    // Place the SCB node into the bg bucket
+    gc.AddNodeToBgBucket(raw);
+    ASSERT_EQ(gc.nodeBgBucket_.size(), 1u);
+
+    // ReleaseOnBgThread should recycle the SCB node to the free queue
+    gc.ReleaseNodeOnBgThread();
+    EXPECT_TRUE(gc.nodeBgBucket_.empty());
+    EXPECT_EQ(allocator.GetScbFreeQueueSize(), queueBefore + 1);
+
+    ClearScbFreeQueue();
+}
+
+/**
+ * @tc.name: ReleaseNodeOnBgThread_ScbQueueFull001
+ * @tc.desc: Test ReleaseNodeOnBgThread falls back to Deallocate when the SCB free
+ *           queue is full.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeOnBgThread_ScbQueueFull001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    RSRenderNodeAllocator& allocator = RSRenderNodeAllocator::Instance();
+    auto& pool = RSScbNodeMemoryPool::Instance();
+    ClearBgBucket();
+    ClearScbFreeQueue();
+
+    // Fill the SCB free queue to its limit
+    constexpr uint32_t queueLimit = 32;
+    for (uint32_t i = 0; i < queueLimit; ++i) {
+        auto node = allocator.CreateScbCanvasRenderNode(7400 + i);
+        ASSERT_NE(node, nullptr);
+        RSCanvasRenderNode* raw = node.get();
+        node = std::shared_ptr<RSCanvasRenderNode>(raw, [](RSCanvasRenderNode*) {});
+        ASSERT_TRUE(allocator.AddScbNodeToPool(raw));
+        node.reset(); // no-op deleter won't fire, already destructed by AddScbNodeToPool
+    }
+    ASSERT_EQ(allocator.GetScbFreeQueueSize(), queueLimit);
+
+    auto extraNode = allocator.CreateScbCanvasRenderNode(7499);
+    ASSERT_NE(extraNode, nullptr);
+    ASSERT_TRUE(allocator.IsScbNodePool(extraNode.get()));
+    RSCanvasRenderNode* extraRaw = extraNode.get();
+    extraNode = std::shared_ptr<RSCanvasRenderNode>(extraRaw, [](RSCanvasRenderNode*) {});
+    extraNode.reset(); // no-op deleter won't fire
+    size_t poolFreeBefore = pool.GetFreeSlotCount();
+
+    gc.AddNodeToBgBucket(extraRaw);
+    ASSERT_EQ(gc.nodeBgBucket_.size(), 1u);
+    gc.ReleaseNodeOnBgThread();
+    EXPECT_TRUE(gc.nodeBgBucket_.empty());
+    // Queue still at limit (recycle failed), slot returned to pool
+    EXPECT_EQ(allocator.GetScbFreeQueueSize(), queueLimit);
+    EXPECT_EQ(pool.GetFreeSlotCount(), poolFreeBefore + 1);
+
+    while (allocator.GetScbFreeQueueSize() > 0) {
+        allocator.CreateScbCanvasRenderNode(0);
+    }
+    pool.Shrink();
+}
+
+/**
+ * @tc.name: ReleaseMainBucket_TriggersShrink001
+ * @tc.desc: Test ReleaseMainBucket calls RSScbNodeMemoryPool::Shrink when nodeBucket_
+ *           is empty (the "all buckets drained -> Shrink" branch).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseMainBucket_TriggersShrink001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearNotOnTreeState();
+    ClearNodeBucket();
+    ClearBgBucket();
+    auto& pool = RSScbNodeMemoryPool::Instance();
+    // Force an expansion so Shrink has work to do
+    size_t freeBefore = pool.GetFreeSlotCount();
+    std::vector<void*> allocated;
+    for (uint32_t i = 0; i < 1024 + 32; ++i) {
+        void* p = pool.Allocate();
+        if (p == nullptr) {
+            break;
+        }
+        allocated.push_back(p);
+    }
+    for (void* p : allocated) {
+        pool.Deallocate(p);
+    }
+    uint32_t totalBeforeShrink = pool.GetTotalSlots();
+    // nodeBucket_ is empty -> ReleaseMainBucket should call Shrink
+    gc.ReleaseMainBucket(false);
+    // Shrink should have released fully-free expansion chunks (keeping >= INITIAL_SLOTS)
+    EXPECT_LE(pool.GetTotalSlots(), totalBeforeShrink);
+    EXPECT_GE(pool.GetTotalSlots(), 1024u);
+    (void)freeBefore;
+}
+
+/**
+ * @tc.name: ReleaseNodeBucket_NullptrInBucket001
+ * @tc.desc: Test ReleaseNodeBucket skips nullptr entries in the bucket (continue branch)
+ *           for SCB-related scenarios.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucket_NullptrInBucket001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearNodeBucket();
+    gc.isEnable_.store(true);
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    tempQueue.push({nullptr, nullptr});
+    gc.nodeBucket_.swap(tempQueue);
+    gc.ReleaseNodeBucket();
+    EXPECT_EQ(gc.nodeBucket_.size(), 0u);
+}
+
+/**
+ * @tc.name: TryRecycleScbPoolNode_Nullptr001
+ * @tc.desc: Test TryRecycleScbPoolNode returns false for a nullptr (early-return branch).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, TryRecycleScbPoolNode_Nullptr001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    EXPECT_FALSE(gc.TryRecycleScbPoolNode(nullptr));
 }
 
 } // namespace Rosen

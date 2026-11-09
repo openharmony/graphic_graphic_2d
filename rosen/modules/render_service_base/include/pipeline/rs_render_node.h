@@ -83,6 +83,7 @@ namespace ModifierNG {
 class RSRenderModifier;
 class RSForegroundFilterRenderModifier;
 class RSBackgroundFilterRenderModifier;
+class RSPipelineDumper;
 enum class RSModifierType : uint16_t;
 }
 struct SharedTransitionParam;
@@ -97,6 +98,11 @@ struct CurFrameInfoDetail {
 
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode> {
 public:
+    // Friend declaration grants RSPipelineDumper access to protected static
+    // DumpNodeType, so the SCB nodes dump can reuse this enum-to-string helper
+    // instead of duplicating the mapping.
+    friend class RSPipelineDumper;
+ 
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using WeakPtrSet = std::set<WeakPtr, std::owner_less<WeakPtr>>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;

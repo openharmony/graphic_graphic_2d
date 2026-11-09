@@ -64,6 +64,11 @@ public:
 
     static void NodeDestructor(RSRenderNode* ptr);
     void NodeDestructorInner(RSRenderNode* ptr);
+    // Recycle an SCB-pool node back to the SCB free queue, or Deallocate the
+    // slot when the queue is full. Returns true when the node was handled
+    // (caller must skip the legacy delete path); false when ptr does not
+    // belong to the SCB pool (caller should use the legacy path).
+    bool TryRecycleScbPoolNode(RSRenderNode* ptr);
     bool IsBucketQueueEmpty();
     void ReleaseNodeBucket();
     void ReleaseNodeOnBgThread();
@@ -102,6 +107,11 @@ public:
         scbPid_ = pid;
     }
 
+    pid_t GetScbPid() const
+    {
+        return scbPid_;
+    }
+ 
     void SetImageReleaseFunc(std::function<void()> func)
     {
         imageReleaseFunc_ = func;
@@ -157,7 +167,7 @@ private:
     std::mutex nodeNotOnTreeMutex_;
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::weak_ptr<RSBaseRenderNode>>> notOnTreeNodeMap_;
     std::set<pid_t> backgroundPidSet_;
-    pid_t scbPid_;
+    pid_t scbPid_ = -1;
 
     std::function<void()> imageReleaseFunc_;
     std::function<void(bool)> drawableReleaseFunc_;
