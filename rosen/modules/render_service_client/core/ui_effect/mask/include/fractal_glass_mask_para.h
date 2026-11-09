@@ -109,12 +109,6 @@ public:
             ROSEN_LE(dst_.x_, dst_.z_) && ROSEN_LE(dst_.y_, dst_.w_);
     }
 
-    bool Marshalling(Parcel& parcel) const override;
-
-    static void RegisterUnmarshallingCallback();
-
-    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val);
-
     std::shared_ptr<MaskPara> Clone() const override;
 
 private:

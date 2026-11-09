@@ -960,10 +960,6 @@ napi_value MaskNapi::CreateAtlasFrameMask(napi_env env, napi_callback_info info)
     UIEFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc == maxArgc, nullptr,
         MASK_LOG_E("MaskNapi CreateAtlasFrameMask parsing input fail."));
 
-    if (!UIEffectNapiUtils::CheckNullOrUndefined(env, argv[NUM_0], "atlasInfo")) {
-        return nullptr;
-    }
-
     AtlasInfo atlasInfo;
     if (!ParseAtlasImage(env, argv[NUM_0], atlasInfo)) {
         MASK_LOG_E("MaskNapi CreateAtlasFrameMask parse param failed");

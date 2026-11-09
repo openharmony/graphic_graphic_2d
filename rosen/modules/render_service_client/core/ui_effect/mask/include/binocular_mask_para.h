@@ -39,12 +39,6 @@ public:
     void SetSoftness(float softness) { softness_ = softness; }
     float GetSoftness() const { return softness_; }
 
-    bool Marshalling(Parcel& parcel) const override;
-
-    static void RegisterUnmarshallingCallback();
-
-    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val);
-
     std::shared_ptr<MaskPara> Clone() const override;
 
 private:

@@ -114,8 +114,8 @@ static std::unordered_map<RSNGEffectType, ShaderCreator> creatorLUT = {
             return std::make_shared<RSNGRenderSpatialGlassEffect>();
         }
     },
-    {RSNGEffectType::GLASS_EFFECT, [] {
-            return std::make_shared<RSNGRenderGlassEffect>();
+    {RSNGEffectType::GLASS_MARBLE_EFFECT, [] {
+            return std::make_shared<RSNGRenderGlassMarbleEffect>();
         }
     },
     {RSNGEffectType::COSMOS_RING, [] {

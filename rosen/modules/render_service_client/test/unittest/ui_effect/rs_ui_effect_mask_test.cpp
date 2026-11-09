@@ -67,9 +67,6 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectMaskRegisterUnmarshallingCallbackTest, Te
     EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::PIXEL_MAP_MASK)));
     EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::RADIAL_GRADIENT_MASK)));
     EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::IMAGE_MASK)));
-    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::FRACTAL_GLASS_MASK)));
-    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::BINOCULAR_MASK)));
-    EXPECT_NE(nullptr, singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::SWEEP_REFRACTION_MASK)));
 }
 
 static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
@@ -388,7 +385,7 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectImageMaskParaTest, TestSize.Level1)
 
 /**
  * @tc.name: RSUIEffectFractalGlassMaskParaTest
- * @tc.desc: Verify the FractalGlassMaskPara Marshalling/Unmarshalling, Clone, getters/setters
+ * @tc.desc: Verify the FractalGlassMaskPara Clone, copy constructor, getters/setters
  * @tc.type: FUNC
  */
 HWTEST_F(RSUIEffectMaskTest, RSUIEffectFractalGlassMaskParaTest, TestSize.Level1)
@@ -406,25 +403,16 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectFractalGlassMaskParaTest, TestSize.Level1
     para->SetGlassSoftness(0.001f);
     para->SetIsSymmetric(true);
 
-    Parcel parcel;
-    EXPECT_EQ(true, para->Marshalling(parcel));
-    std::shared_ptr<MaskPara> val = nullptr;
-    EXPECT_EQ(true, MaskPara::Unmarshalling(parcel, val));
-    EXPECT_NE(nullptr, val);
-    EXPECT_EQ(val->GetMaskParaType(), MaskPara::Type::FRACTAL_GLASS_MASK);
-
-    auto resultPara = std::static_pointer_cast<FractalGlassMaskPara>(val);
-    EXPECT_FLOAT_EQ(resultPara->GetSrc().x_, src.x_);
-    EXPECT_FLOAT_EQ(resultPara->GetSrc().z_, src.z_);
-    EXPECT_FLOAT_EQ(resultPara->GetDst().x_, dst.x_);
-    EXPECT_FLOAT_EQ(resultPara->GetDst().z_, dst.z_);
-    EXPECT_FLOAT_EQ(resultPara->GetGlassNum(), 25.0f);
-    EXPECT_FLOAT_EQ(resultPara->GetGlassStrength(), 1.0f);
-    EXPECT_FLOAT_EQ(resultPara->GetGlassSoftness(), 0.001f);
-    EXPECT_EQ(resultPara->GetIsSymmetric(), true);
-
-    auto clonePara = para->Clone();
+    auto clonePara = std::static_pointer_cast<FractalGlassMaskPara>(para->Clone());
     EXPECT_NE(nullptr, clonePara);
+    EXPECT_FLOAT_EQ(clonePara->GetSrc().x_, src.x_);
+    EXPECT_FLOAT_EQ(clonePara->GetSrc().z_, src.z_);
+    EXPECT_FLOAT_EQ(clonePara->GetDst().x_, dst.x_);
+    EXPECT_FLOAT_EQ(clonePara->GetDst().z_, dst.z_);
+    EXPECT_FLOAT_EQ(clonePara->GetGlassNum(), 25.0f);
+    EXPECT_FLOAT_EQ(clonePara->GetGlassStrength(), 1.0f);
+    EXPECT_FLOAT_EQ(clonePara->GetGlassSoftness(), 0.001f);
+    EXPECT_EQ(clonePara->GetIsSymmetric(), true);
 
     // Copy constructor
     auto copyPara = std::make_shared<FractalGlassMaskPara>(*para);
@@ -438,38 +426,8 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectFractalGlassMaskParaTest, TestSize.Level1
 }
 
 /**
- * @tc.name: RSUIEffectFractalGlassMaskParaAbnormalTest
- * @tc.desc: Verify FractalGlassMaskPara OnUnmarshalling error paths
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIEffectMaskTest, RSUIEffectFractalGlassMaskParaAbnormalTest, TestSize.Level1)
-{
-    std::shared_ptr<MaskPara> valTest = nullptr;
-    Parcel parcelTest;
-
-    // Empty parcel
-    parcelTest.FlushBuffer();
-    EXPECT_EQ(false, FractalGlassMaskPara::OnUnmarshalling(parcelTest, valTest));
-
-    // Wrong type
-    parcelTest.FlushBuffer();
-    parcelTest.WriteUint16(666);
-    EXPECT_EQ(false, FractalGlassMaskPara::OnUnmarshalling(parcelTest, valTest));
-
-    // Correct type but no pixelMap data
-    parcelTest.FlushBuffer();
-    parcelTest.WriteUint16(static_cast<uint16_t>(MaskPara::Type::FRACTAL_GLASS_MASK));
-    EXPECT_EQ(false, FractalGlassMaskPara::OnUnmarshalling(parcelTest, valTest));
-
-    // Marshalling without pixelMap should fail
-    auto paraNoPixelMap = std::make_shared<FractalGlassMaskPara>();
-    Parcel parcel2;
-    EXPECT_EQ(false, paraNoPixelMap->Marshalling(parcel2));
-}
-
-/**
  * @tc.name: RSUIEffectFractalGlassMaskParaIsSymmetricTest
- * @tc.desc: Verify FractalGlassMaskPara isSymmetric false path
+ * @tc.desc: Verify FractalGlassMaskPara isSymmetric false path via clone
  * @tc.type: FUNC
  */
 HWTEST_F(RSUIEffectMaskTest, RSUIEffectFractalGlassMaskParaIsSymmetricTest, TestSize.Level1)
@@ -482,17 +440,13 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectFractalGlassMaskParaIsSymmetricTest, Test
     para->SetDst(Vector4f { 0.0f, 0.0f, 1.0f, 1.0f });
     para->SetIsSymmetric(false);
 
-    Parcel parcel;
-    EXPECT_EQ(true, para->Marshalling(parcel));
-    std::shared_ptr<MaskPara> val = nullptr;
-    EXPECT_EQ(true, MaskPara::Unmarshalling(parcel, val));
-    auto resultPara = std::static_pointer_cast<FractalGlassMaskPara>(val);
-    EXPECT_EQ(resultPara->GetIsSymmetric(), false);
+    auto clonePara = std::static_pointer_cast<FractalGlassMaskPara>(para->Clone());
+    EXPECT_EQ(clonePara->GetIsSymmetric(), false);
 }
 
 /**
  * @tc.name: RSUIEffectBinocularMaskParaTest
- * @tc.desc: Verify the BinocularMaskPara Marshalling/Unmarshalling, Clone, getters/setters
+ * @tc.desc: Verify the BinocularMaskPara Clone, copy constructor, getters/setters
  * @tc.type: FUNC
  */
 HWTEST_F(RSUIEffectMaskTest, RSUIEffectBinocularMaskParaTest, TestSize.Level1)
@@ -503,21 +457,12 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectBinocularMaskParaTest, TestSize.Level1)
     para->SetGap(0.3f);
     para->SetSoftness(0.4f);
 
-    Parcel parcel;
-    EXPECT_EQ(true, para->Marshalling(parcel));
-    std::shared_ptr<MaskPara> val = nullptr;
-    EXPECT_EQ(true, MaskPara::Unmarshalling(parcel, val));
-    EXPECT_NE(nullptr, val);
-    EXPECT_EQ(val->GetMaskParaType(), MaskPara::Type::BINOCULAR_MASK);
-
-    auto resultPara = std::static_pointer_cast<BinocularMaskPara>(val);
-    EXPECT_FLOAT_EQ(resultPara->GetRadiusX(), 0.5f);
-    EXPECT_FLOAT_EQ(resultPara->GetRadiusY(), 0.8f);
-    EXPECT_FLOAT_EQ(resultPara->GetGap(), 0.3f);
-    EXPECT_FLOAT_EQ(resultPara->GetSoftness(), 0.4f);
-
-    auto clonePara = para->Clone();
+    auto clonePara = std::static_pointer_cast<BinocularMaskPara>(para->Clone());
     EXPECT_NE(nullptr, clonePara);
+    EXPECT_FLOAT_EQ(clonePara->GetRadiusX(), 0.5f);
+    EXPECT_FLOAT_EQ(clonePara->GetRadiusY(), 0.8f);
+    EXPECT_FLOAT_EQ(clonePara->GetGap(), 0.3f);
+    EXPECT_FLOAT_EQ(clonePara->GetSoftness(), 0.4f);
 
     // Copy constructor
     auto copyPara = std::make_shared<BinocularMaskPara>(*para);
@@ -525,39 +470,8 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectBinocularMaskParaTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: RSUIEffectBinocularMaskParaAbnormalTest
- * @tc.desc: Verify BinocularMaskPara OnUnmarshalling error paths
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIEffectMaskTest, RSUIEffectBinocularMaskParaAbnormalTest, TestSize.Level1)
-{
-    std::shared_ptr<MaskPara> valTest = nullptr;
-    Parcel parcelTest;
-
-    // Empty parcel
-    parcelTest.FlushBuffer();
-    EXPECT_EQ(false, BinocularMaskPara::OnUnmarshalling(parcelTest, valTest));
-
-    // Wrong type
-    parcelTest.FlushBuffer();
-    parcelTest.WriteUint16(666);
-    EXPECT_EQ(false, BinocularMaskPara::OnUnmarshalling(parcelTest, valTest));
-
-    // Correct type but no float data
-    parcelTest.FlushBuffer();
-    parcelTest.WriteUint16(static_cast<uint16_t>(MaskPara::Type::BINOCULAR_MASK));
-    EXPECT_EQ(false, BinocularMaskPara::OnUnmarshalling(parcelTest, valTest));
-
-    // Partial data: only 1 float
-    parcelTest.FlushBuffer();
-    parcelTest.WriteUint16(static_cast<uint16_t>(MaskPara::Type::BINOCULAR_MASK));
-    parcelTest.WriteFloat(0.5f);
-    EXPECT_EQ(false, BinocularMaskPara::OnUnmarshalling(parcelTest, valTest));
-}
-
-/**
 * @tc.name: RSUIEffectSweepRefractionMaskParaTest
-* @tc.desc: Verify the SweepRefractionMaskPara marshalling/unmarshalling and clone
+* @tc.desc: Verify the SweepRefractionMaskPara clone preserves all fields
 * @tc.type: FUNC
 */
 HWTEST_F(RSUIEffectMaskTest, RSUIEffectSweepRefractionMaskParaTest, TestSize.Level1)
@@ -576,60 +490,20 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectSweepRefractionMaskParaTest, TestSize.Lev
     Vector2f center(0.5f, 0.5f);
     sweepRefractionMaskPara->SetSweepCenter(center);
 
-    Parcel parcel;
-    EXPECT_EQ(true, sweepRefractionMaskPara->Marshalling(parcel));
-    std::shared_ptr<MaskPara> val = nullptr;
-    EXPECT_EQ(true, MaskPara::Unmarshalling(parcel, val));
-    EXPECT_NE(nullptr, val);
-    EXPECT_EQ(val->GetMaskParaType(), MaskPara::Type::SWEEP_REFRACTION_MASK);
-
-    auto resultPara = std::static_pointer_cast<SweepRefractionMaskPara>(val);
-    EXPECT_FLOAT_EQ(resultPara->GetMaskRadius(), 1.5f);
-    EXPECT_FLOAT_EQ(resultPara->GetEdgeThickness(), 500.0f);
-    EXPECT_FLOAT_EQ(resultPara->GetRefractAmount(), 0.3f);
-    EXPECT_FLOAT_EQ(resultPara->GetRippleWidth(), 0.4f);
-    EXPECT_FLOAT_EQ(resultPara->GetSweepOffset(), 0.25f);
-    EXPECT_FLOAT_EQ(resultPara->GetChromaDelta(), 0.08f);
-    EXPECT_EQ(resultPara->GetShapeType(), 1);
-    EXPECT_FLOAT_EQ(resultPara->GetCornerRadius(), 0.16f);
-    EXPECT_FLOAT_EQ(resultPara->GetPrismWidth(), 1.0f);
-    EXPECT_FLOAT_EQ(resultPara->GetPrismHeight(), 1.0f);
-    EXPECT_FLOAT_EQ(resultPara->GetSweepCenterX(), 0.5f);
-    EXPECT_FLOAT_EQ(resultPara->GetSweepCenterY(), 0.5f);
-
-    auto clonePara = sweepRefractionMaskPara->Clone();
+    auto clonePara = std::static_pointer_cast<SweepRefractionMaskPara>(sweepRefractionMaskPara->Clone());
     EXPECT_NE(nullptr, clonePara);
-}
-
-/**
-* @tc.name: RSUIEffectSweepRefractionMaskParaAbnormalTest001
-* @tc.desc: Verify SweepRefractionMaskPara OnUnmarshalling with invalid parcel
-* @tc.type: FUNC
-*/
-HWTEST_F(RSUIEffectMaskTest, RSUIEffectSweepRefractionMaskParaAbnormalTest001, TestSize.Level1)
-{
-    std::shared_ptr<MaskPara> valTest = nullptr;
-    Parcel parcelTest;
-    // Empty parcel
-    EXPECT_EQ(false, SweepRefractionMaskPara::OnUnmarshalling(parcelTest, valTest));
-
-    // Wrong type
-    parcelTest.FlushBuffer();
-    parcelTest.WriteUint16(666);
-    EXPECT_EQ(false, SweepRefractionMaskPara::OnUnmarshalling(parcelTest, valTest));
-
-    // Correct type but insufficient float data
-    parcelTest.FlushBuffer();
-    parcelTest.WriteUint16(static_cast<uint16_t>(MaskPara::Type::SWEEP_REFRACTION_MASK));
-    EXPECT_EQ(false, SweepRefractionMaskPara::OnUnmarshalling(parcelTest, valTest));
-
-    // Partial float data
-    parcelTest.FlushBuffer();
-    parcelTest.WriteUint16(static_cast<uint16_t>(MaskPara::Type::SWEEP_REFRACTION_MASK));
-    parcelTest.WriteFloat(1.0f);
-    parcelTest.WriteFloat(2.0f);
-    parcelTest.WriteFloat(3.0f);
-    EXPECT_EQ(false, SweepRefractionMaskPara::OnUnmarshalling(parcelTest, valTest));
+    EXPECT_FLOAT_EQ(clonePara->GetMaskRadius(), 1.5f);
+    EXPECT_FLOAT_EQ(clonePara->GetEdgeThickness(), 500.0f);
+    EXPECT_FLOAT_EQ(clonePara->GetRefractAmount(), 0.3f);
+    EXPECT_FLOAT_EQ(clonePara->GetRippleWidth(), 0.4f);
+    EXPECT_FLOAT_EQ(clonePara->GetSweepOffset(), 0.25f);
+    EXPECT_FLOAT_EQ(clonePara->GetChromaDelta(), 0.08f);
+    EXPECT_EQ(clonePara->GetShapeType(), 1);
+    EXPECT_FLOAT_EQ(clonePara->GetCornerRadius(), 0.16f);
+    EXPECT_FLOAT_EQ(clonePara->GetPrismWidth(), 1.0f);
+    EXPECT_FLOAT_EQ(clonePara->GetPrismHeight(), 1.0f);
+    EXPECT_FLOAT_EQ(clonePara->GetSweepCenterX(), 0.5f);
+    EXPECT_FLOAT_EQ(clonePara->GetSweepCenterY(), 0.5f);
 }
 
 /**
@@ -690,72 +564,6 @@ HWTEST_F(RSUIEffectMaskTest, RSUIEffectWarpedRingMaskParaStoresNewArguments, Tes
     EXPECT_FLOAT_EQ(storedRingParam.baseHalfWidth, ringParam.baseHalfWidth);
     EXPECT_FLOAT_EQ(storedRingParam.widthVariation, ringParam.widthVariation);
     EXPECT_FLOAT_EQ(storedRingParam.rotate3DProgress, ringParam.rotate3DProgress);
-}
-/**
- * @tc.name: RSUIEffectMaskRegisterAtlasFrameMaskCallback
- * @tc.desc: Verify ATLAS_FRAME_MASK callback is registered
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIEffectMaskTest, RSUIEffectMaskRegisterAtlasFrameMaskCallback, TestSize.Level1)
-{
-    auto& singleton = MaskUnmarshallingSingleton::GetInstance();
-    auto cb = singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::ATLAS_FRAME_MASK));
-    EXPECT_NE(nullptr, cb);
-}
-
-/**
- * @tc.name: RSUIEffectAtlasFrameMaskParaTest
- * @tc.desc: Verify AtlasFrameMaskPara marshalling round trip via base class
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIEffectMaskTest, RSUIEffectAtlasFrameMaskParaTest, TestSize.Level1)
-{
-    auto atlasFrameMaskPara = std::make_shared<AtlasFrameMaskPara>();
-    auto pixelMap = CreatePixelMap(64, 64);
-    ASSERT_NE(nullptr, pixelMap);
-
-    AtlasInfo atlasInfo;
-    atlasInfo.mode = 1;
-    atlasInfo.rows = 4;
-    atlasInfo.cols = 4;
-    atlasInfo.frameWidth = 360.0f;
-    atlasInfo.frameHeight = 360.0f;
-    atlasInfo.padding = 2.0f;
-    atlasInfo.totalFrame = 16;
-    atlasInfo.frameIndex = 8.0f;
-    atlasInfo.pixelMap = pixelMap;
-    atlasFrameMaskPara->SetAtlasInfo(atlasInfo);
-
-    EXPECT_EQ(atlasFrameMaskPara->GetMaskParaType(), MaskPara::Type::ATLAS_FRAME_MASK);
-
-    Parcel parcel;
-    EXPECT_EQ(true, atlasFrameMaskPara->Marshalling(parcel));
-    std::shared_ptr<MaskPara> val = nullptr;
-    EXPECT_EQ(true, MaskPara::Unmarshalling(parcel, val));
-    ASSERT_NE(nullptr, val);
-    EXPECT_EQ(val->GetMaskParaType(), MaskPara::Type::ATLAS_FRAME_MASK);
-
-    auto clonePara = atlasFrameMaskPara->Clone();
-    EXPECT_NE(nullptr, clonePara);
-    EXPECT_EQ(clonePara->GetMaskParaType(), MaskPara::Type::ATLAS_FRAME_MASK);
-}
-
-/**
- * @tc.name: RSUIEffectAtlasFrameMaskParaOnUnmarshallingBadType
- * @tc.desc: Verify AtlasFrameMaskPara OnUnmarshalling fails on wrong type
- * @tc.type: FUNC
- */
-HWTEST_F(RSUIEffectMaskTest, RSUIEffectAtlasFrameMaskParaOnUnmarshallingBadType, TestSize.Level1)
-{
-    Parcel parcelTest;
-    parcelTest.WriteUint16(666);
-    std::shared_ptr<MaskPara> valTest = nullptr;
-    EXPECT_EQ(false, AtlasFrameMaskPara::OnUnmarshalling(parcelTest, valTest));
-    EXPECT_EQ(nullptr, valTest);
-
-    Parcel emptyParcel;
-    EXPECT_EQ(false, AtlasFrameMaskPara::OnUnmarshalling(emptyParcel, valTest));
-    EXPECT_EQ(nullptr, valTest);
 }
 
 } // namespace Rosen

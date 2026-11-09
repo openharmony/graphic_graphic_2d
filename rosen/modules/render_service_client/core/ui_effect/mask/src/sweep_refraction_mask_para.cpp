@@ -14,7 +14,6 @@
  */
 
 #include "ui_effect/mask/include/sweep_refraction_mask_para.h"
-#include "platform/common/rs_log.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -34,80 +33,6 @@ SweepRefractionMaskPara::SweepRefractionMaskPara(const SweepRefractionMaskPara& 
     this->prismHeight_ = other.prismHeight_;
     this->sweepCenterX_ = other.sweepCenterX_;
     this->sweepCenterY_ = other.sweepCenterY_;
-}
-
-bool SweepRefractionMaskPara::Marshalling(Parcel& parcel) const
-{
-    auto isSuccess = parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
-        parcel.WriteUint16(static_cast<uint16_t>(type_)) &&
-        parcel.WriteFloat(maskRadius_) &&
-        parcel.WriteFloat(edgeThickness_) &&
-        parcel.WriteFloat(refractAmount_) &&
-        parcel.WriteFloat(rippleWidth_) &&
-        parcel.WriteFloat(sweepOffset_) &&
-        parcel.WriteFloat(chromaDelta_) &&
-        parcel.WriteInt32(shapeType_) &&
-        parcel.WriteFloat(cornerRadius_) &&
-        parcel.WriteFloat(prismWidth_) &&
-        parcel.WriteFloat(prismHeight_) &&
-        parcel.WriteFloat(sweepCenterX_) &&
-        parcel.WriteFloat(sweepCenterY_);
-    if (!isSuccess) {
-        RS_LOGE("[ui_effect] SweepRefractionMaskPara Marshalling write failed");
-        return false;
-    }
-    return true;
-}
-
-void SweepRefractionMaskPara::RegisterUnmarshallingCallback()
-{
-    MaskPara::RegisterUnmarshallingCallback(MaskPara::Type::SWEEP_REFRACTION_MASK, OnUnmarshalling);
-}
-
-bool SweepRefractionMaskPara::OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val)
-{
-    uint16_t type = MaskPara::Type::NONE;
-    if (!parcel.ReadUint16(type) || type != MaskPara::Type::SWEEP_REFRACTION_MASK) {
-        RS_LOGE("[ui_effect] SweepRefractionMaskPara OnUnmarshalling read type failed, type=%{public}d", type);
-        return false;
-    }
-
-    auto para = std::make_shared<SweepRefractionMaskPara>();
-    float maskRadius = 0.0f;
-    float edgeThickness = 0.0f;
-    float refractAmount = 0.0f;
-    float rippleWidth = 0.0f;
-    float sweepOffset = 0.0f;
-    float chromaDelta = 0.0f;
-    int32_t shapeType = 0;
-    float cornerRadius = 0.16f;
-    float prismWidth = 1.0f;
-    float prismHeight = 1.0f;
-    float sweepCenterX = 0.0f;
-    float sweepCenterY = 0.0f;
-    if (!(parcel.ReadFloat(maskRadius) && parcel.ReadFloat(edgeThickness) &&
-        parcel.ReadFloat(refractAmount) && parcel.ReadFloat(rippleWidth) &&
-        parcel.ReadFloat(sweepOffset) && parcel.ReadFloat(chromaDelta) &&
-        parcel.ReadInt32(shapeType) && parcel.ReadFloat(cornerRadius) &&
-        parcel.ReadFloat(prismWidth) && parcel.ReadFloat(prismHeight) &&
-        parcel.ReadFloat(sweepCenterX) && parcel.ReadFloat(sweepCenterY))) {
-        RS_LOGE("[ui_effect] SweepRefractionMaskPara OnUnmarshalling read params failed");
-        return false;
-    }
-    para->SetMaskRadius(maskRadius);
-    para->SetEdgeThickness(edgeThickness);
-    para->SetRefractAmount(refractAmount);
-    para->SetRippleWidth(rippleWidth);
-    para->SetSweepOffset(sweepOffset);
-    para->SetChromaDelta(chromaDelta);
-    para->SetShapeType(shapeType);
-    para->SetCornerRadius(cornerRadius);
-    para->SetPrismWidth(prismWidth);
-    para->SetPrismHeight(prismHeight);
-    Vector2f center(sweepCenterX, sweepCenterY);
-    para->SetSweepCenter(center);
-    val = std::move(para);
-    return true;
 }
 
 std::shared_ptr<MaskPara> SweepRefractionMaskPara::Clone() const

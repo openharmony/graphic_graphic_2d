@@ -2386,7 +2386,7 @@ void RSNode::SetVisualEffect(const VisualEffect* visualEffect)
             visualEffectPara->GetParaType() == VisualEffectPara::HARMONIUM_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::FROSTED_GLASS_EFFECT ||
             visualEffectPara->GetParaType() == VisualEffectPara::SPATIAL_GLASS_EFFECT ||
-            visualEffectPara->GetParaType() == VisualEffectPara::GLASS_EFFECT) {
+            visualEffectPara->GetParaType() == VisualEffectPara::GLASS_MARBLE_EFFECT) {
             SetBackgroundNGShader(RSNGShaderBase::Create(visualEffectPara));
         }
 

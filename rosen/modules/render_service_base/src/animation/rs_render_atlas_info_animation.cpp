@@ -30,8 +30,10 @@ RSRenderAtlasInfoAnimation::RSRenderAtlasInfoAnimation(
     const std::shared_ptr<RSRenderPropertyBase>& endValue)
     : RSRenderPropertyAnimation(id, propertyId, originValue)
 {
-    auto startProp = std::static_pointer_cast<RSRenderAnimatableProperty<AtlasInfo>>(startValue);
-    auto endProp = std::static_pointer_cast<RSRenderAnimatableProperty<AtlasInfo>>(endValue);
+    auto startProp = startValue ?
+        startValue->CastToAnimatablePropertyOf<AtlasInfo>(__func__) : nullptr;
+    auto endProp = endValue ?
+        endValue->CastToAnimatablePropertyOf<AtlasInfo>(__func__) : nullptr;
     if (startProp != nullptr) {
         startValue_ = startProp->Get();
     }
@@ -42,7 +44,8 @@ RSRenderAtlasInfoAnimation::RSRenderAtlasInfoAnimation(
 
 void RSRenderAtlasInfoAnimation::OnSetPropertyOnAdd()
 {
-    auto prop = std::static_pointer_cast<RSRenderProperty<AtlasInfo>>(property_);
+    auto prop = property_ ?
+        property_->CastToAnimatablePropertyOf<AtlasInfo>(__func__) : nullptr;
     if (prop == nullptr) {
         ROSEN_LOGE("RSRenderAtlasInfoAnimation::OnSetPropertyOnAdd, property cast failed");
         return;
@@ -57,7 +60,8 @@ bool RSRenderAtlasInfoAnimation::OnAnimate(float fraction)
     AtlasInfo result = startValue_;
     result.frameIndex = interpolatedFrame;
 
-    auto prop = std::static_pointer_cast<RSRenderProperty<AtlasInfo>>(property_);
+    auto prop = property_ ?
+        property_->CastToAnimatablePropertyOf<AtlasInfo>(__func__) : nullptr;
     if (prop == nullptr) {
         ROSEN_LOGE("RSRenderAtlasInfoAnimation::OnAnimate, property cast failed");
         return false;
