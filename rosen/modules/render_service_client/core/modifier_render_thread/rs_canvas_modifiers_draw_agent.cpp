@@ -15,69 +15,118 @@
 
 #include "modifier_render_thread/rs_canvas_modifiers_draw_agent.h"
 
-namespace OHOS::Rosen {
-RSCanvasModifiersDrawAgent::RSCanvasModifiersDrawAgent()
-{
-    canvasModifiersDraw_ = std::make_shared<RSCanvasModifiersDraw>();
-}
+#include "common/rs_common_utils.h"
 
-RSCanvasModifiersDrawAgent::~RSCanvasModifiersDrawAgent() = default;
+namespace OHOS::Rosen {
+RSCanvasModifiersDrawAgent::RSCanvasModifiersDrawAgent(std::weak_ptr<RSRenderInterface> weakRenderInterface)
+{
+    canvasModifiersDraw_ = std::make_shared<RSCanvasModifiersDraw>(weakRenderInterface);
+}
 
 void RSCanvasModifiersDrawAgent::SetCacheDir(const std::string& cacheDir)
 {
-    canvasModifiersDraw_->SetCacheDir(cacheDir);
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = canvasModifiersDraw_;
+    canvasModifiersDraw_->PostTask([weakCanvasModifiersDraw, path = cacheDir] {
+        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+        CHECK_NULL_VOID(canvasModifiersDraw);
+        canvasModifiersDraw->SetCacheDir(path);
+    });
 }
 
-void RSCanvasModifiersDrawAgent::OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface)
+void RSCanvasModifiersDrawAgent::OnNodeCreate(NodeId nodeId, GraphicColorGamut colorSpace)
 {
-    canvasModifiersDraw_->OnNodeCreate(nodeId, weakRenderInterface);
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = canvasModifiersDraw_;
+    canvasModifiersDraw_->PostTask([weakCanvasModifiersDraw, nodeId, colorSpace] {
+        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+        CHECK_NULL_VOID(canvasModifiersDraw);
+        canvasModifiersDraw->OnNodeCreate(nodeId, colorSpace);
+    });
 }
 
-void RSCanvasModifiersDrawAgent::OnNodeRelease(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface)
+void RSCanvasModifiersDrawAgent::OnNodeRelease(NodeId nodeId)
 {
-    canvasModifiersDraw_->OnNodeRelease(nodeId, weakRenderInterface);
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = canvasModifiersDraw_;
+    canvasModifiersDraw_->PostTask([weakCanvasModifiersDraw, nodeId] {
+        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+        CHECK_NULL_VOID(canvasModifiersDraw);
+        canvasModifiersDraw->OnNodeRelease(nodeId);
+    });
 }
 
 void RSCanvasModifiersDrawAgent::OnNodeStateChanged(NodeId nodeId, RSNodeState state)
 {
-    canvasModifiersDraw_->OnNodeStateChanged(nodeId, state);
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = canvasModifiersDraw_;
+    canvasModifiersDraw_->PostTask([weakCanvasModifiersDraw, nodeId, state] {
+        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+        CHECK_NULL_VOID(canvasModifiersDraw);
+        canvasModifiersDraw->OnNodeStateChanged(nodeId, state);
+    });
 }
 
-void RSCanvasModifiersDrawAgent::ResetSurface(
-    NodeId nodeId, int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace)
+void RSCanvasModifiersDrawAgent::ResetSurface(NodeId nodeId, int width, int height, bool sizeOutOfGpuLimit)
 {
-    canvasModifiersDraw_->ResetSurface(nodeId, width, height, sizeOutOfGpuLimit, colorSpace);
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = canvasModifiersDraw_;
+    canvasModifiersDraw_->PostTask([weakCanvasModifiersDraw, nodeId, width, height, sizeOutOfGpuLimit] {
+        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+        CHECK_NULL_VOID(canvasModifiersDraw);
+        canvasModifiersDraw->ResetSurface(nodeId, width, height, sizeOutOfGpuLimit);
+    });
 }
 
 bool RSCanvasModifiersDrawAgent::GetBitmap(NodeId nodeId, Drawing::Bitmap& bitmap)
 {
-    return canvasModifiersDraw_->GetBitmap(nodeId, bitmap);
+    bool ret = false;
+    canvasModifiersDraw_->PostSyncTask([canvasModifiersDraw = canvasModifiersDraw_, nodeId, &bitmap, &ret] {
+        ret = canvasModifiersDraw->GetBitmap(nodeId, bitmap);
+    });
+    return ret;
 }
 
 bool RSCanvasModifiersDrawAgent::GetPixelMap(NodeId nodeId, std::shared_ptr<Media::PixelMap> pixelMap,
     const Drawing::Rect* rect, Drawing::DrawCmdListPtr drawCmdList)
 {
-    return canvasModifiersDraw_->GetPixelMap(nodeId, pixelMap, rect, drawCmdList);
+    bool ret = false;
+    canvasModifiersDraw_->PostSyncTask(
+        [canvasModifiersDraw = canvasModifiersDraw_, nodeId, pixelMap, rect, drawCmdList, &ret] {
+            ret = canvasModifiersDraw->GetPixelMap(nodeId, pixelMap, rect, drawCmdList);
+        });
+    return ret;
 }
 
 void RSCanvasModifiersDrawAgent::UpdateCanvasContent(NodeId nodeId, Drawing::DrawCmdListPtr drawCmdList)
 {
-    canvasModifiersDraw_->UpdateCanvasContent(nodeId, drawCmdList);
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = canvasModifiersDraw_;
+    canvasModifiersDraw_->PostTask([weakCanvasModifiersDraw, nodeId, drawCmdList] {
+        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+        CHECK_NULL_VOID(canvasModifiersDraw);
+        canvasModifiersDraw->UpdateCanvasContent(nodeId, drawCmdList);
+    });
 }
 
 void RSCanvasModifiersDrawAgent::SubmitAndCollectCanvasBuffers()
 {
-    canvasModifiersDraw_->SubmitAndCollectCanvasBuffers();
+    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = canvasModifiersDraw_;
+    canvasModifiersDraw_->PostTask([weakCanvasModifiersDraw] {
+        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+        CHECK_NULL_VOID(canvasModifiersDraw);
+        canvasModifiersDraw->SubmitAndCollectCanvasBuffers();
+    });
 }
 
-void RSCanvasModifiersDrawAgent::SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList)
+std::unique_ptr<RSCommand> RSCanvasModifiersDrawAgent::SyncAndWait()
 {
-    canvasModifiersDraw_->SwapTransactionConfigList(transactionConfigList);
+    std::unique_ptr<RSCommand> command = nullptr;
+    canvasModifiersDraw_->PostSyncTask(
+        [canvasModifiersDraw = canvasModifiersDraw_, &command] { command = canvasModifiersDraw->SyncAndWait(); });
+    return command;
 }
 
 void RSCanvasModifiersDrawAgent::WaitAllTasksFinish()
 {
-    canvasModifiersDraw_->WaitAllTasksFinish();
+    if (canvasModifiersDraw_->RemoveCleanFreeBuffersTask()) {
+        canvasModifiersDraw_->PostSyncTask(
+            [canvasModifiersDraw = canvasModifiersDraw_] { canvasModifiersDraw->ReleaseResource(); });
+    }
 }
 
 void RSCanvasModifiersDrawAgent::Destroy()
