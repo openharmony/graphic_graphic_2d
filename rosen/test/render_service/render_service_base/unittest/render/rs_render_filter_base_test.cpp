@@ -1563,7 +1563,7 @@ HWTEST_F(RSRenderFilterBaseTest, PrepareForForeground001, TestSize.Level1)
 
     auto afterVal = blurCast->Getter<OHOS::Rosen::BlurExpandDrawRegionRenderTag>();
     ASSERT_NE(afterVal, nullptr);
-    EXPECT_FALSE(afterVal->Get());
+    EXPECT_TRUE(afterVal->Get());
 
     auto contentLightFilter =
         RSNGRenderFilterBase::Create(RSNGEffectType::CONTENT_LIGHT);
