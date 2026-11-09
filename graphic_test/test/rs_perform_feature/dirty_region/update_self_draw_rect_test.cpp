@@ -56,6 +56,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
+        SetCaptureScreenNativeToken();
         SetSurfaceBounds({ 0, 0, screenSize.x_, screenSize.y_ });
     }
 

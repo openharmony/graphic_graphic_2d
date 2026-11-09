@@ -54,6 +54,11 @@ public:
     void SetCaptureCrop(const Vector4f& cropRect);
     void ClearCaptureCrop();
 
+    // Set native token with CAPTURE_SCREEN acl so that screenshot-related
+    // permissions are not filtered out by access_token
+    // (isNativePermissionAvailable).
+    void SetCaptureScreenNativeToken();
+
     // overrides gtest functions
     static void SetUpTestCase();
     static void TearDownTestCase();

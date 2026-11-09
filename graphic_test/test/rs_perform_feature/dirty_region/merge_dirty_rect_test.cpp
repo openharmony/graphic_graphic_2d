@@ -42,6 +42,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
+        SetCaptureScreenNativeToken();
         SetScreenSize(DIRTY_REGION_SCREEN_WIDTH, DIRTY_REGION_SCREEN_HEIGHT);
         SetSurfaceColor(RSColor(0xFFFFFFFF));
     }

@@ -50,6 +50,7 @@ public:
     // called before each tests
     void BeforeEach() override
     {
+        SetCaptureScreenNativeToken();
         SetSurfaceBounds({ 0, 0, screenSize.x_, screenSize.y_ });
         if (GetRootNode() == nullptr || GetRootNode()->testSurfaceNodes_.empty() ||
             GetRootNode()->testSurfaceNodes_.back() == nullptr) {

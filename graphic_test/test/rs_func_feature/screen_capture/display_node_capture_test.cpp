@@ -79,13 +79,15 @@ public:
         uint64_t tokenId;
         const char* perms[1];
         perms[0] = "ohos.permission.CAPTURE_SCREEN";
+        const char* acls[1];
+        acls[0] = "ohos.permission.CAPTURE_SCREEN";
         NativeTokenInfoParams infoInstance = {
             .dcapsNum = 0,
             .permsNum = 1,
-            .aclsNum = 0,
+            .aclsNum = 1,
             .dcaps = NULL,
             .perms = perms,
-            .acls = NULL,
+            .acls = acls,
             .processName = "foundation",
             .aplStr = "system_basic",
         };
