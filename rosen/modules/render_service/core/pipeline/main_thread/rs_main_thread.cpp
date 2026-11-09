@@ -3366,8 +3366,7 @@ void RSMainThread::UpdateSurfaceFilterRate(std::string param, int rate)
         nodeNameMark = lastApsParam_.substr(lastDotPos + 1);
     }
     std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> updateSurfaceFilterRateFunc =
-        [this, nodeNameMark](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)
-    {
+        [this, nodeNameMark](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode){
         if (surfaceNode == nullptr) {
             return;
         }

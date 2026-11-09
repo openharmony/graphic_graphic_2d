@@ -132,7 +132,7 @@ void RSCacheUpdateManager::UpdateFlags(FilterCacheType type, bool cacheValid)
     int cacheUpdateInterval_tmp = RSSystemProperties::GetFilterCacheUpdateInterval();
     // blockade gradient blur when aps skip-frame
     bool isGradientBlur = filterType_ == RSFilter::LINEAR_GRADIENT_BLUR;
-    cacheUpdateInterval_tmp = (nodeFilterRate_ > 0 && !isGradientBlur) ? 
+    cacheUpdateInterval_tmp = (nodeFilterRate_ > 0 && !isGradientBlur) ?
         CalApsCacheUpdateInterval(cacheUpdateInterval_tmp, nodeFilterRate_) : cacheUpdateInterval_tmp;
     if (!cacheValid) {
         cacheUpdateInterval_ =
@@ -140,7 +140,7 @@ void RSCacheUpdateManager::UpdateFlags(FilterCacheType type, bool cacheValid)
                 ? ROTATION_CACHE_UPDATE_INTERVAL
                 : (filterType_ == RSFilter::AIBAR
                           ? AIBAR_CACHE_UPDATE_INTERVAL
-                          : (((stagingIsLargeArea_ && canSkipFrame_) || (nodeFilterRate_ > 0 && !isGradientBlur)) 
+                          : (((stagingIsLargeArea_ && canSkipFrame_) || (nodeFilterRate_ > 0 && !isGradientBlur))
                           ? cacheUpdateInterval_tmp
                           : 0));
         pendingPurge_ = false;

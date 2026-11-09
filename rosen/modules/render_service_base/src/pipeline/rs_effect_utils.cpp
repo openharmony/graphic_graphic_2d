@@ -103,18 +103,16 @@ void UpdateNodeFilterRateToDrawable(
     if (properties.GetMaterialFilter()) {
         RS_TRACE_NAME_FMT("%s MaterialFilter", traceTag);
         node.InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER,
-            [ rate, &rateUpdateFunc ](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable)
-        {
-            rateUpdateFunc(drawable, rate);
-        });
+            [ rate, &rateUpdateFunc ](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable) {
+                rateUpdateFunc(drawable, rate);
+            });
     }
     if (properties.GetBackgroundFilter()) {
         RS_TRACE_NAME_FMT("%s BackgroundFilter", traceTag);
         node.InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER,
-            [ rate, &rateUpdateFunc ](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable)
-        {
-            rateUpdateFunc(drawable, rate);
-        });
+            [ rate, &rateUpdateFunc ](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable) {
+                rateUpdateFunc(drawable, rate);
+            });
     }
     if (properties.GetCompositingFilter()) {
         RS_TRACE_NAME_FMT("%s CompositingFilter", traceTag);

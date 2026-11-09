@@ -494,7 +494,6 @@ void RSFilterCacheManager::ClearFilterCache()
     bool isSaveSnapshot = renderFilterHashChanged_ || GetCachedType() == FilterCacheType::NONE;
     bool isAIbarWithLastFrame =
         GetRSCacheUpdateManager()->filterType_ == RSFilter::AIBAR && renderForceClearCacheForLastFrame_; // last vsync
-
     if ((GetRSCacheUpdateManager()->filterType_ != RSFilter::AIBAR || isAIbarWithLastFrame) && isSaveSnapshot) {
         renderClearFilteredCacheAfterDrawing_ = true; // hold snapshot
     } else {
