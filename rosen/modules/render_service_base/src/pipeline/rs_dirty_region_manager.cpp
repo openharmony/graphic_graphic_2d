@@ -63,6 +63,18 @@ void RSDirtyRegionManager::MergeDirtyRect(const RectI& rect, bool isDebugRect)
     }
 }
 
+void RSDirtyRegionManager::MergeUifirstDirtyRect(const RectI& rect)
+{
+    if (rect.IsEmpty()) {
+        return;
+    }
+    if (uifirstFrameDirtyRegion_.IsEmpty()) {
+        uifirstFrameDirtyRegion_ = rect;
+    } else {
+        uifirstFrameDirtyRegion_ = uifirstFrameDirtyRegion_.JoinRect(rect);
+    }
+}
+
 void RSDirtyRegionManager::UpdateCurrentFrameAdvancedDirtyRegion(RectI rect)
 {
     currentFrameAdvancedDirtyRegion_.emplace_back(rect);

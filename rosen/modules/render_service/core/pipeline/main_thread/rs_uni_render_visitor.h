@@ -286,7 +286,8 @@ void ProcessGpuOfflineForTopLayer(
     void CheckMergeDisplayDirtyByAttractionChanged(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeDisplayDirtyBySurfaceChanged() const;
     void CheckMergeDisplayDirtyByAttraction(RSSurfaceRenderNode& surfaceNode) const;
-    void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const;
+    void CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+        bool transparentNotSkip) const;
     void CheckMergeDisplayDirtyByTransparentRegions(RSSurfaceRenderNode& surfaceNode) const;
     void CheckMergeFilterDirtyWithPreDirty(const std::shared_ptr<RSDirtyRegionManager>& dirtyManager,
         Occlusion::Region accumulatedDirtyRegion, FilterDirtyType filterDirtyType);
@@ -533,6 +534,9 @@ void ProcessGpuOfflineForTopLayer(
     bool isVirtualExpandScreenDirtyEnabled_ = false;
     bool needRequestNextVsync_ = true;
     bool isTargetUIFirstDfxEnabled_ = false;
+
+    // check if subthread process done node swaped
+    bool isSubthreadProcessDoneNodeSwaped_ = false;
 #ifdef SUBTREE_PARALLEL_ENABLE
     bool isInFocusSurface_ = false;
 #endif

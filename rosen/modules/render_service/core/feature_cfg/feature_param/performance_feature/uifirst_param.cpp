@@ -128,4 +128,14 @@ void UIFirstParam::SetSubThreadFrameRateControlByScene(uint32_t value)
 {
     subThreadFrameRateControlByScene_ = value;
 }
+
+bool UIFirstParam::IsUIFirstFrameControlEnable()
+{
+    return isUIFirstFrameControlEnable_;
+}
+
+void UIFirstParam::SetUIFirstFrameControlEnable(bool isEnabled)
+{
+    isUIFirstFrameControlEnable_ = isEnabled;
+}
 } // namespace OHOS::Rosen

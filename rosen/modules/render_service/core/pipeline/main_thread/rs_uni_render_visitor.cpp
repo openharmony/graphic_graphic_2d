@@ -3124,6 +3124,7 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
     // this is used to record mainAndLeash surface accumulatedDirtyRegion by Pre-order traversal
     Occlusion::Region accumulatedDirtyRegion;
     bool hasMainAndLeashSurfaceDirty = false;
+    RSUifirstManager::Instance().SwapProcessDoneNodes(isSubthreadProcessDoneNodeSwaped_);
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> topLayers;
     // 0. update hwc node dirty region and create layer
     UpdateHwcNodeDirtyRegionAndCreateLayer(topLayers);
@@ -3141,24 +3142,30 @@ void RSUniRenderVisitor::UpdateSurfaceDirtyAndGlobalDirty()
             auto dirtyManager = surfaceNode->GetDirtyManager();
             RSMainThread::Instance()->GetContext().AddPendingSyncNode(nodePtr);
             // cal done node dirtyRegion for uifirst
+            bool uifirstCacheUpdated =
+                RSUifirstManager::Instance().UifirstCacheUpdated(surfaceNode);
+            
             RSUifirstManager::Instance().MergeOldDirtyToDirtyManager(surfaceNode);
             UpdatePointWindowDirtyStatus(surfaceNode);
             // 1. calculate abs dirtyrect and update partialRenderParams
             // currently only sync visible region info
             surfaceNode->UpdatePartialRenderParams();
             // 2. check surface node dirtyrect need merge into displayDirtyManager
-            CheckMergeSurfaceDirtysForDisplay(surfaceNode);
+            CheckMergeSurfaceDirtysForDisplay(surfaceNode, uifirstCacheUpdated);
             // 3. check merge transparent filter when it intersects with pre-dirty.
             CheckMergeFilterDirtyWithPreDirty(dirtyManager, accumulatedDirtyRegion,
                 surfaceNode->IsTransparent() ? FilterDirtyType::TRANSPARENT_SURFACE_FILTER
                                              : FilterDirtyType::OPAQUE_SURFACE_FILTER);
             // 4. for cross-display node, process its filter (which is not collected during prepare).
             CollectFilterInCrossDisplayWindow(surfaceNode, accumulatedDirtyRegion);
-            // 5. accumulate dirty region of this surface.
-            AccumulateSurfaceDirtyRegion(surfaceNode, accumulatedDirtyRegion);
-            hasMainAndLeashSurfaceDirty |=
-                dirtyManager && dirtyManager->IsCurrentFrameDirty() &&
+            if (uifirstCacheUpdated) {
+                // 5. accumulate dirty region of this surface.
+                AccumulateSurfaceDirtyRegion(surfaceNode, accumulatedDirtyRegion);
+            }
+            bool curDirty = uifirstCacheUpdated && dirtyManager &&
+                dirtyManager->IsCurrentFrameDirty() &&
                 surfaceNode->GetVisibleRegion().IsIntersectWith(dirtyManager->GetCurrentFrameDirtyRegion());
+            hasMainAndLeashSurfaceDirty |= curDirty;
         });
     UpdateTopLayersDirtyStatus(topLayers);
 
@@ -3528,7 +3535,8 @@ void RSUniRenderVisitor::CheckMergeDisplayDirtyByAttractionChanged(RSSurfaceRend
     }
 }
 
-void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) const
+void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSurfaceRenderNode>& surfaceNode,
+    bool transparentNotSkip) const
 {
     if (surfaceNode->GetDirtyManager() == nullptr || curScreenNode_->GetDirtyManager() == nullptr) {
         return;
@@ -3541,14 +3549,18 @@ void RSUniRenderVisitor::CheckMergeSurfaceDirtysForDisplay(std::shared_ptr<RSSur
         CheckMergeDisplayDirtyByCrossDisplayWindow(*surfaceNode);
         return;
     }
-    // 3 Handles the case of transparent surface, merge transparent dirty rect
-    CheckMergeDisplayDirtyByTransparent(*surfaceNode);
+    if (transparentNotSkip) {
+        // 3 Handles the case of transparent surface, merge transparent dirty rect
+        CheckMergeDisplayDirtyByTransparent(*surfaceNode);
+    }
     // 4 Zorder changed case, merge surface dest Rect
     CheckMergeDisplayDirtyByZorderChanged(*surfaceNode);
     // 5 surfacePos chanded case, merge surface lastframe pos or curframe pos
     CheckMergeDisplayDirtyByPosChanged(*surfaceNode);
-    // 6 shadow disappear and appear case.
-    CheckMergeDisplayDirtyByShadowChanged(*surfaceNode);
+    if (transparentNotSkip) {
+        // 6 shadow disappear and appear case.
+        CheckMergeDisplayDirtyByShadowChanged(*surfaceNode);
+    }
     // 7 handle surface has attraction effect
     CheckMergeDisplayDirtyByAttractionChanged(*surfaceNode);
     // More: any other screen dirty caused by surfaceNode should be added here like CheckMergeDisplayDirtByXXX

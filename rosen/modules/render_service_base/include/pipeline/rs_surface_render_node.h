@@ -1694,6 +1694,11 @@ public:
         return needDrawFocusChange_;
     }
 
+    const bool& GetNodeAbsRectChanged() const { return nodeAbsRectChanged_; }
+    void SetNodeAbsRectChanged(const bool& nodeAbsRectChanged) { nodeAbsRectChanged_ = nodeAbsRectChanged; }
+    void SetLastFrameAbsDrawRect(const RectI& rectI) { lastFrameAbsDrawRect_ = rectI; }
+    const RectI& GetLastFrameAbsDrawRect() const { return lastFrameAbsDrawRect_; }
+
     bool HasWindowCorner()
     {
         Vector4f cornerRadius;
@@ -2237,6 +2242,9 @@ private:
     bool isScale_ = false;
     bool isParentScaling_ = false;
     bool needDrawAnimateProperty_ = false;
+    bool prevVisible_ = false;
+    RectI lastFrameAbsDrawRect_; // last frame node's abs draw rects
+    bool nodeAbsRectChanged_ = false; // node's abs draw rects changed or not
 
     // mark if this self-drawing node do not consume buffer when gpu -> hwc
     bool hwcDelayDirtyFlag_ = false;

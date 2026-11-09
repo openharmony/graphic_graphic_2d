@@ -124,15 +124,31 @@ bool RSUifirstManager::SetUifirstNodeEnableParam(RSSurfaceRenderNode& node, Mult
 }
 
 // unref in sub when cache done
-void RSUifirstManager::AddProcessDoneNode(NodeId id)
+void RSUifirstManager::AddProcessDoneNode(NodeId id, MultiThreadCacheType type)
 {
     // mutex
     if (id == INVALID_NODEID) {
         return;
     }
     RS_OPTIONAL_TRACE_NAME_FMT("sub done %" PRIu64"", id);
-    std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
-    subthreadProcessDoneNode_.push_back(id);
+    {
+        std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
+        if (GetUIFirstDirtyFrameControlEnabled() &&
+            type == MultiThreadCacheType::NONFOCUS_WINDOW) {
+            subthreadProcessDoneNodeStaging_.insert(id);
+            RS_OPTIONAL_TRACE_NAME_FMT("sub staging done %" PRIu64"", id);
+        } else {
+            subthreadProcessDoneNode_.push_back(id);
+        }
+    }
+}
+
+bool RSUifirstManager::GetUIFirstDirtyFrameControlEnabled()
+{
+    return isUIFirstFrameControlEnable_ &&
+        uifirstType_ != UiFirstCcmType::SINGLE &&
+        GetUiFirstMode() == UiFirstModeType::MULTI_WINDOW_MODE &&
+        RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
 }
 
 void RSUifirstManager::AddProcessSkippedNode(NodeId id)
@@ -164,6 +180,16 @@ void RSUifirstManager::RemoveFirstFrameCacheGeneratedNode(NodeId id)
 {
     std::lock_guard<std::mutex> lock(firstFrameCacheMutex_);
     firstFrameCacheGeneratedNodes_.erase(id);
+}
+
+void RSUifirstManager::SwapProcessDoneNodes(bool& isDoneNodesSwaped)
+{
+    if (uifirstType_ == UiFirstCcmType::SINGLE || isDoneNodesSwaped) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
+    std::swap(subthreadProcessDoneNodeAhead_, subthreadProcessDoneNodeStaging_);
+    isDoneNodesSwaped = true;
 }
 
 void RSUifirstManager::AddPurgedNode(NodeId id)
@@ -285,11 +311,16 @@ void RSUifirstManager::MergeOldDirty(NodeId id)
 
 void RSUifirstManager::MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRenderNode>& node)
 {
+    if (GetUIFirstDirtyFrameControlEnabled() && !HandleUIFirstDirtyFrameControl(node)) {
+        return;
+    }
+
     auto& curDirtyManager = node->GetDirtyManagerForUifirst();
     if (!curDirtyManager) {
         RS_LOGE("MergeOldDirtyToDirtyManager curDirtyManager is nullptr");
         return;
     }
+
     auto curDirtyRegion = curDirtyManager->GetCurrentFrameDirtyRegion();
     auto uifirstDirtyRegion = curDirtyManager->GetUifirstFrameDirtyRegion();
     curDirtyManager->MergeDirtyRect(uifirstDirtyRegion);
@@ -300,6 +331,59 @@ void RSUifirstManager::MergeOldDirtyToDirtyManager(std::shared_ptr<RSSurfaceRend
         uifirstDirtyRegion.left_, uifirstDirtyRegion.top_, uifirstDirtyRegion.width_, uifirstDirtyRegion.height_);
     if (!uifirstDirtyRegion.IsEmpty()) {
         node->AddToPendingSyncList();
+    }
+}
+
+bool RSUifirstManager::HandleUIFirstDirtyFrameControl(const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    auto& curDirtyManager = node->GetDirtyManagerForUifirst();
+    if (!curDirtyManager) {
+        RS_LOGE("HandleUIFirstDirtyFrameControl curDirtyManager is nullptr");
+        return false;
+    }
+
+    bool uifirstCacheUpdated = (node->GetLastFrameUifirstCacheType() == MultiThreadCacheType::NONE) ||
+            !UifirstCacheUpdate(node->GetId());
+    if (uifirstCacheUpdated && !node->GetNodeAbsRectChanged()) {
+        auto curDirtyRegion = curDirtyManager->GetCurrentFrameDirtyRegion();
+        curDirtyManager->MergeUifirstDirtyRect(curDirtyRegion);
+        auto uifirstDirtyRegion = curDirtyManager->GetUifirstFrameDirtyRegion();
+        RS_OPTIONAL_TRACE_NAME_FMT("UIfirstDirtyFrameControl %" PRIu64", nodeName %s"
+            " curDirtyRegion[%d %d %d %d], uifirstDirtyRegion[%d %d %d %d]",
+            node->GetId(), node->GetName().c_str(), curDirtyRegion.left_, curDirtyRegion.top_,
+            curDirtyRegion.width_, curDirtyRegion.height_, uifirstDirtyRegion.left_,
+            uifirstDirtyRegion.top_, uifirstDirtyRegion.width_, uifirstDirtyRegion.height_);
+        if (!uifirstDirtyRegion.IsEmpty()) {
+            node->AddToPendingSyncList();
+        }
+        return false;
+    }
+
+    MergeOldDirty(node->GetId());
+    HandleAppWindowChildrenDirty(node);
+    return true;
+}
+
+void RSUifirstManager::HandleAppWindowChildrenDirty(const std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    if (!node->IsLeashWindow()) {
+        return;
+    }
+
+    for (auto& child : *node->GetSortedChildren()) {
+        auto surfaceNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(child);
+        if (!surfaceNode || !surfaceNode->IsAppWindow()) {
+            continue;
+        }
+
+        auto& childDirtyManager = surfaceNode->GetDirtyManagerForUifirst();
+        if (!childDirtyManager) {
+            continue;
+        }
+        auto curRegion = childDirtyManager->GetCurrentFrameDirtyRegion();
+        auto uifirstRegion = childDirtyManager->GetUifirstFrameDirtyRegion();
+        childDirtyManager->MergeDirtyRect(uifirstRegion);
+        childDirtyManager->SetUifirstFrameDirtyRect(curRegion);
     }
 }
 
@@ -379,18 +463,68 @@ void RSUifirstManager::NotifyUIStartingWindow(NodeId id, bool waitUifirstFrame,
     }
 }
 
+bool RSUifirstManager::UifirstCacheUpdated(std::shared_ptr<RSSurfaceRenderNode>& node)
+{
+    // 1.node is not appwindow
+    // 2.UIFirst dirty frame control not enable
+    // 3.node's abs rect changed
+    // 4.node is uifirst node and its cache need update
+    // 5.node is first level cross node
+    if (!GetUIFirstDirtyFrameControlEnabled() ||
+        node == nullptr ||
+        !node->IsAppWindow() ||
+        node->IsFirstLevelCrossNode()) {
+        return true;
+    }
+
+    bool nodeAbsRectChanged =
+        !node->GetLastFrameAbsDrawRect().IsNearEqual(node->GetAbsDrawRect(), 0);
+    node->SetNodeAbsRectChanged(nodeAbsRectChanged);
+    node->SetLastFrameAbsDrawRect(node->GetAbsDrawRect());
+
+    if (nodeAbsRectChanged) {
+        return true;
+    }
+    if ((node->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE)) {
+        return UifirstCacheUpdate(node->GetId());
+    } else {
+        auto leashNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock());
+        if ((leashNode != nullptr) && leashNode->IsLeashWindow() &&
+            leashNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE) {
+                return UifirstCacheUpdate(leashNode->GetId());
+            }
+        return true;
+        }
+    return true;
+}
+
+bool RSUifirstManager::UifirstCacheUpdate(NodeId id)
+{
+    std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
+    return subthreadProcessDoneNodeAhead_.count(id) || !subthreadProcessDoneNode_.empty();
+}
+
 void RSUifirstManager::ProcessDoneNodeInner()
 {
-    std::vector<NodeId> tmp;
+    std::vector<NodeId> processDoneNodes;
     {
         std::lock_guard<std::mutex> lock(childrenDrawableMutex_);
-        if (subthreadProcessDoneNode_.size() == 0) {
+        RS_OPTIONAL_TRACE_NAME_FMT("subthreadProcessDoneNodeAhead_ size %d, subthreadProcessDoneNode_ size %d",
+            subthreadProcessDoneNodeAhead_.size(), subthreadProcessDoneNode_.size());
+        if (subthreadProcessDoneNodeAhead_.size() == 0 && subthreadProcessDoneNode_.size() == 0) {
             return;
         }
-        std::swap(tmp, subthreadProcessDoneNode_);
+        processDoneNodes.insert(processDoneNodes.end(),
+            subthreadProcessDoneNodeAhead_.begin(),
+            subthreadProcessDoneNodeAhead_.end());
+        processDoneNodes.insert(processDoneNodes.end(),
+            subthreadProcessDoneNode_.begin(),
+            subthreadProcessDoneNode_.end());
+        subthreadProcessDoneNodeAhead_.clear();
+        subthreadProcessDoneNode_.clear();
     }
-    RS_TRACE_NAME_FMT("ProcessDoneNode num:%zu", tmp.size());
-    for (auto& id : tmp) {
+
+    for (auto& id : processDoneNodes) {
         RS_OPTIONAL_TRACE_NAME_FMT("Done %" PRIu64"", id);
         auto drawable = GetSurfaceDrawableByID(id);
         if (drawable && drawable->GetRsSubThreadCache().GetCacheSurfaceNeedUpdated() &&
@@ -2391,6 +2525,7 @@ void RSUifirstManager::ReadUIFirstCcmParam()
 #else
     isUiFirstOn_ = UIFirstParam::IsUIFirstEnable();
     isCardUiFirstOn_ = UIFirstParam::IsCardUIFirstEnable();
+    isUIFirstFrameControlEnable_ = UIFirstParam::IsUIFirstFrameControlEnable();
 #endif
     SetUiFirstType(UIFirstParam::GetUIFirstType());
     uifirstWindowsNumThreshold_ = UIFirstParam::GetUIFirstEnableWindowThreshold();

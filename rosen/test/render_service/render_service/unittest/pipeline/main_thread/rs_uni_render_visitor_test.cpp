@@ -12232,5 +12232,79 @@ HWTEST_F(RSUniRenderVisitorTest, PrevalidateHwcNode005, TestSize.Level2)
     RSUniHwcPrevalidateUtil::GetInstance().loadSuccess_ = false;
     RSTestUtil::UnregisterConsumerListener();
 }
+
+/*
+ * @tc.name: UpdateSurfaceDirtyAndGlobalDirty005
+ * @tc.desc: Test while app window node skip in calculate global dirty
+ * @tc.type: FUNC
+ * @tc.require: issueIAJJ43
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateSurfaceDirtyAndGlobalDirty005, TestSize.Level2)
+{
+    NodeId id = 1;
+    auto rsContext = std::make_shared<RSContext>();
+    auto displayNode = std::make_shared<RSScreenRenderNode>(id, 0, rsContext);
+    auto surfaceNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(surfaceNode, nullptr);
+    auto hwcNode = RSTestUtil::CreateSurfaceNodeWithBuffer();
+    ASSERT_NE(hwcNode, nullptr);
+    surfaceNode->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    surfaceNode->AddChildHardwareEnabledNode(hwcNode);
+    RectI lastFrameRect = {20, 20, 70, 70};
+    surfaceNode->SetLastFrameAbsDrawRect(lastFrameRect);
+    auto params = static_cast<RSSurfaceRenderParams*>(surfaceNode->GetRenderParams().get());
+    params->SetAbsDrawRect(lastFrameRect);
+
+    displayNode->GetAllMainAndLeashSurfaces().push_back(surfaceNode);
+
+    RsCommonHook::Instance().SetHardwareEnabledByBackgroundAlphaFlag(true);
+    RsCommonHook::Instance().SetHardwareEnabledByHwcnodeBelowSelfInAppFlag(true);
+
+    auto dirtyManager = surfaceNode->GetDirtyManager();
+    RSUifirstManager::Instance().subthreadProcessDoneNodeAhead_.clear();
+    bool checkType = RSSystemProperties::GetUIFirstDirtyFrameControlEnabled();
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "1");
+
+    dirtyManager->SetCurrentFrameDirtyRect({200, 200, 300, 300});
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    rsSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+    rsSurfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::LEASH_WINDOW;
+    rsSurfaceRenderNode->AddChild(surfaceNode, -1);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = displayNode;
+    Occlusion::Region regiontemp({0, 0, 20, 20});
+    surfaceNode->SetVisibleRegion(regiontemp);
+
+    rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
+    rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
+    ASSERT_FALSE(surfaceNode->GetVisibleRegion().IsEmpty());
+
+    rsSurfaceRenderNode->RemoveChild(surfaceNode, -1);
+    rsSurfaceRenderNode->lastFrameUifirstFlag_ = MultiThreadCacheType::NONE;
+    rsSurfaceRenderNode->AddChild(surfaceNode, -1);
+    rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
+    ASSERT_FALSE(surfaceNode->GetVisibleRegion().IsEmpty());
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", "0");
+    rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
+    ASSERT_FALSE(surfaceNode->GetVisibleRegion().IsEmpty());
+
+    dirtyManager->SetCurrentFrameDirtyRect({200, 200, 300, 300});
+    Occlusion::Region region1({200, 200, 300, 300});
+    surfaceNode->SetVisibleRegion(region1);
+    rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
+    ASSERT_FALSE(surfaceNode->GetVisibleRegion().IsEmpty());
+
+    Occlusion::Region region2({300, 300, 50, 50});
+    surfaceNode->SetVisibleRegion(region2);
+    rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
+    ASSERT_TRUE(surfaceNode->GetVisibleRegion().IsEmpty());
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1": "0");
+}
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER
