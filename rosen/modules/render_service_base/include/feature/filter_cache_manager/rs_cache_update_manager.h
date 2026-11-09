@@ -143,7 +143,7 @@ private:
     bool pendingPurge_ = false;
 
     // last offscreenNodeId_ value
-    NodeId lastOffScreenNodeId_ = INVALID_NODEID;
+    NodeId lastOffscreenNodeId_ = INVALID_NODEID;
     bool lastStagingFilterInteractWithDirty_ = false;
     bool debugEnabled_ = false;
 
