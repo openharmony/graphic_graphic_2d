@@ -90,7 +90,7 @@ HWTEST_F(LocalSocketPairTest, TestSendDataWithoutCreateChannel, Function | Small
     LocalSocketPair socketPair;
     int32_t data = 10;
     int32_t ret = socketPair.SendData((void *)&data, sizeof(int32_t));
-    ASSERT_EQ(ret, -1);
+    ASSERT_EQ(ret, -2);
 }
 
 /*
@@ -106,7 +106,7 @@ HWTEST_F(LocalSocketPairTest, TestSendNullptr, Function | SmallTest | Level2)
     int32_t ret = socketPair.CreateChannel(8, 8);
     ASSERT_EQ(ret, 0);
     ret = socketPair.SendData(nullptr, sizeof(int32_t));
-    ASSERT_EQ(ret, -1);
+    ASSERT_EQ(ret, -2);
 }
 
 /*
