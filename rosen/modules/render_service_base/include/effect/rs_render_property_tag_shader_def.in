@@ -370,6 +370,7 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(PointLight, BorderRRect, RRect);
 DECLARE_ANIMATABLE_PROPERTY_TAG(PointLight, DrawRect, Vector4f);
 
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, Progress, float);
+DECLARE_NONANIMATABLE_PROPERTY_TAG(CosmosRing, RotationTurns, int);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, Radius, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, Width, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, Feather, float);
@@ -409,7 +410,6 @@ DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, HLP2InnerDispScales, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, HLRadialFeatherPx, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, HLTangentFeatherDeg, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, HLAngularFade, float);
-DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, HLRotationAngle, float);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, GlowStrength, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, GlowRadius, Vector2f);
 DECLARE_ANIMATABLE_PROPERTY_TAG(CosmosRing, GlowThreshold, Vector2f);
