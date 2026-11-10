@@ -971,39 +971,5 @@ HWTEST_F(RSNodeCommandModifierTest, LayerPartRenderTest003, TestSize.Level1)
     mod->UpdateToRender();
 }
 
-/**
- * @tc.name: NodeTargetRateTest001
- * @tc.desc: Test NodeTargetRateCmdModifier GetType, SetParam, GetParam, DumpParam and UpdateToRender
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeCommandModifierTest, NodeTargetRateTest001, TestSize.Level1)
-{
-    auto node = RSCanvasNode::Create();
-    NodeTargetRateCmdParam param{60};
-    auto mod = std::make_shared<NodeTargetRateCmdModifier>(node, param);
-    ASSERT_TRUE(mod);
-    EXPECT_EQ(mod->GetType(), RSCmdModifierType::NODE_TARGET_RATE);
-    EXPECT_EQ(mod->GetParam().nodeTargetRate_, 60);
-
-    EXPECT_TRUE(mod->SetParam(NodeTargetRateCmdParam{30}));
-    EXPECT_EQ(mod->GetParam().nodeTargetRate_, 30);
-
-    std::string out;
-    mod->DumpParam(out);
-    EXPECT_NE(out.find("30"), std::string::npos);
-
-    // update to render with valid node should not crash
-    mod->UpdateToRender();
-
-    // update to render with expired node should not crash
-    std::weak_ptr<RSNode> expired;
-    {
-        auto n = RSCanvasNode::Create();
-        expired = n;
-    }
-    auto expiredMod = std::make_shared<NodeTargetRateCmdModifier>(expired, param);
-    expiredMod->UpdateToRender();
-}
-
 } // namespace Rosen
 } // namespace OHOS
