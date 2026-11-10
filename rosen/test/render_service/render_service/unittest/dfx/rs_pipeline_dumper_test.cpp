@@ -2361,9 +2361,14 @@ HWTEST_F(RSPipelineDumperTest, RegisterContextStatesFuncs_ValidManager, TestSize
 HWTEST_F(RSPipelineDumperTest, RegisterScbPoolFuncs_ValidManager, TestSize.Level1)
 {
     ASSERT_NE(dumpManager_, nullptr);
-    ASSERT_NE(dumper_, nullptr);
+    // The handler dispatches through ScheduleTask, which needs a real main handler;
+    // the fixture's default dumper has none and would silently drop the dump.
+    auto runner = AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    ASSERT_NE(handler, nullptr);
+    auto dumper = std::make_unique<RSPipelineDumper>(handler);
 
-    dumper_->RenderPipelineDumpInit(dumpManager_);
+    dumper->RenderPipelineDumpInit(dumpManager_);
 
     std::unordered_set<std::u16string> argSets = { u"scbpool" };
     std::string out;
@@ -2382,9 +2387,14 @@ HWTEST_F(RSPipelineDumperTest, RegisterScbPoolFuncs_ValidManager, TestSize.Level
 HWTEST_F(RSPipelineDumperTest, RegisterAllRenderNodesFuncs_ValidManager, TestSize.Level1)
 {
     ASSERT_NE(dumpManager_, nullptr);
-    ASSERT_NE(dumper_, nullptr);
+    // Same as above: DumpAllRenderNodes runs inside ScheduleTask, so a real handler is
+    // required for the dump string to be produced.
+    auto runner = AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    ASSERT_NE(handler, nullptr);
+    auto dumper = std::make_unique<RSPipelineDumper>(handler);
 
-    dumper_->RenderPipelineDumpInit(dumpManager_);
+    dumper->RenderPipelineDumpInit(dumpManager_);
 
     std::unordered_set<std::u16string> argSets = { u"allrendernodes" };
     std::string out;
@@ -2576,5 +2586,210 @@ HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_DirectCall_NonScbNodeNotInPool
     }
     EXPECT_EQ(fields[2], "0") << "isScb should be 0";
     EXPECT_EQ(fields[5], "0") << "inPool should be 0";
+}
+
+namespace {
+inline NodeId MakeNodeIdForTopo(pid_t pid, uint32_t seq)
+{
+    return (static_cast<NodeId>(pid) << 32) | seq;
+}
+} // namespace
+
+/*
+ * @tc.name: DumpAllRenderNodes_ParentChainSurfaceName
+ * @tc.desc: Build surface->canvas parent-child topology and mark it on tree; covers the
+ *           getSurfaceName parent-chain SURFACE_NODE hit branch and pidSurfaceMap insertion.
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_ParentChainSurfaceName, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    constexpr pid_t pid = 6262;
+    constexpr uint32_t surfSeq = 10;
+    constexpr uint32_t childSeq = 11;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    RSSurfaceRenderNodeConfig cfg = {
+        .id = MakeNodeIdForTopo(pid, surfSeq),
+        .name = "ParentChainSurface",
+    };
+    auto surface = std::make_shared<RSSurfaceRenderNode>(cfg);
+    ASSERT_NE(surface, nullptr);
+    auto child = allocator.CreateRSCanvasRenderNode(MakeNodeIdForTopo(pid, childSeq), {}, false);
+    ASSERT_NE(child, nullptr);
+
+    surface->AddChild(child);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(surface));
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(child));
+    // Setting the surface on tree cascades to the child and sets instanceRootNodeId_.
+    surface->SetIsOnTheTree(true, surface->GetId());
+    ASSERT_TRUE(child->IsOnTheTree());
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+
+    std::string childPrefix = std::to_string(MakeNodeIdForTopo(pid, childSeq)) + "," +
+        std::to_string(pid) + ",";
+    auto pos = dumpString.find(childPrefix);
+    ASSERT_NE(pos, std::string::npos) << "child node row not found in dump";
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    EXPECT_NE(row.find("ParentChainSurface"), std::string::npos)
+        << "surfaceName should come from parent chain, row: " << row;
+
+    surface->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(child->GetId());
+    nodeMap.UnregisterRenderNode(surface->GetId());
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_RootNodeFallbackHit
+ * @tc.desc: Detach a former child from its surface parent while keeping its
+ *           instanceRootNodeId_, covering the root-node fallback branch and
+ *           the notOnTree counter branch of DumpAllRenderNodes.
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_RootNodeFallbackHit, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    constexpr pid_t pid = 7373;
+    constexpr uint32_t surfSeq = 20;
+    constexpr uint32_t orphanSeq = 21;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    RSSurfaceRenderNodeConfig cfg = {
+        .id = MakeNodeIdForTopo(pid, surfSeq),
+        .name = "FallbackSurface",
+    };
+    auto surface = std::make_shared<RSSurfaceRenderNode>(cfg);
+    ASSERT_NE(surface, nullptr);
+    auto orphan = allocator.CreateRSCanvasRenderNode(MakeNodeIdForTopo(pid, orphanSeq), {}, false);
+    ASSERT_NE(orphan, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(surface));
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(orphan));
+
+    // Attach, mark on tree (cascades rootId to orphan), then detach so the
+    // parent chain is broken but instanceRootNodeId_ is preserved on orphan.
+    surface->AddChild(orphan);
+    surface->SetIsOnTheTree(true, surface->GetId());
+    surface->RemoveChild(orphan);
+    ASSERT_FALSE(orphan->IsOnTheTree());
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+
+    std::string orphanPrefix = std::to_string(MakeNodeIdForTopo(pid, orphanSeq)) + "," +
+        std::to_string(pid) + ",";
+    auto pos = dumpString.find(orphanPrefix);
+    ASSERT_NE(pos, std::string::npos) << "orphan row not found in dump";
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    EXPECT_NE(row.find("FallbackSurface"), std::string::npos)
+        << "surfaceName should come from root-node/pid fallback, row: " << row;
+    // the orphan row's onTree field (5th CSV column) must be 0 -> notOnTree branch taken
+    std::string onTreeField = "," + std::to_string(orphan->IsOnTheTree() ? 1 : 0) + ",";
+    EXPECT_NE(row.find(",0,"), std::string::npos)
+        << "orphan row onTree field should be 0, row: " << row;
+
+    nodeMap.UnregisterRenderNode(orphan->GetId());
+    surface->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(surface->GetId());
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_PidSurfaceMapDedup
+ * @tc.desc: Multiple on-tree nodes under one pid; covers the pidSurfaceMap
+ *           count()>0 skip branch and the empty-name not-inserted branch.
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_PidSurfaceMapDedup, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    constexpr pid_t pid = 8484;
+    constexpr uint32_t baseSeq = 30;
+    constexpr uint32_t surfSeq = 31;
+    constexpr uint32_t canvasSeq = 32;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    // 1) On-tree base node whose getSurfaceName result is empty (not inserted into map).
+    auto base = std::make_shared<RSBaseRenderNode>(MakeNodeIdForTopo(pid, baseSeq));
+    ASSERT_NE(base, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(base));
+    base->SetIsOnTheTree(true);
+
+    // 2) Named on-tree surface (inserted into pidSurfaceMap).
+    RSSurfaceRenderNodeConfig cfg = {
+        .id = MakeNodeIdForTopo(pid, surfSeq),
+        .name = "DedupSurface",
+    };
+    auto surface = std::make_shared<RSSurfaceRenderNode>(cfg);
+    ASSERT_NE(surface, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(surface));
+
+    // 3) Second on-tree node with the same pid (count()>0 -> skip branch).
+    auto canvas = allocator.CreateRSCanvasRenderNode(MakeNodeIdForTopo(pid, canvasSeq), {}, false);
+    ASSERT_NE(canvas, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(canvas));
+    surface->AddChild(canvas);
+    surface->SetIsOnTheTree(true, surface->GetId());
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString); // covering the skip/no-insert branches without crash
+    EXPECT_NE(dumpString.find("DedupSurface"), std::string::npos);
+
+    surface->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(canvas->GetId());
+    nodeMap.UnregisterRenderNode(surface->GetId());
+    base->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(base->GetId());
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_NameEmptyNoFallback
+ * @tc.desc: An on-tree node with no surface ancestor, invalid root id and no pid
+ *           fallback entry; covers the INVALID_NODEID else branch and the
+ *           empty-surfaceName branches of DumpAllRenderNodes.
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_NameEmptyNoFallback, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    constexpr pid_t lonelyPid = 9595;
+    constexpr uint32_t seq = 40;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    auto node = allocator.CreateRSCanvasRenderNode(MakeNodeIdForTopo(lonelyPid, seq), {}, false);
+    ASSERT_NE(node, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(node));
+    node->SetIsOnTheTree(true);
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+
+    std::string prefix = std::to_string(MakeNodeIdForTopo(lonelyPid, seq)) + "," +
+        std::to_string(lonelyPid) + ",";
+    auto pos = dumpString.find(prefix);
+    ASSERT_NE(pos, std::string::npos) << "lonely node row not found in dump";
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    // surfaceName is the last CSV field: expect the row to end with a bare comma
+    // (empty name, all fallbacks missed) followed by end of line.
+    EXPECT_NE(row.find(',', std::to_string(MakeNodeIdForTopo(lonelyPid, seq)).size()), std::string::npos);
+    EXPECT_TRUE(row.substr(row.find_last_of(',') + 1).empty())
+        << "surfaceName should be empty when all fallbacks miss, row: " << row;
+
+    node->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(node->GetId());
 }
 } // namespace OHOS::Rosen
