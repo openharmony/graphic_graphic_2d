@@ -554,7 +554,7 @@ napi_value JsParagraph::OnGetGlyphPositionAtCoordinate(napi_env env, napi_callba
     double dx = 0.0;
     double dy = 0.0;
     if (!(argv[0] != nullptr && ConvertFromJsValue(env, argv[0], dx) && argv[1] != nullptr &&
-        ConvertFromJsValue(env, argv[1], dy))) {
+         ConvertFromJsValue(env, argv[1], dy))) {
         TEXT_LOGE("Failed to convert");
         return NapiGetUndefined(env);
     }

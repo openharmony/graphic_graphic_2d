@@ -19,7 +19,6 @@
 #include <cstdint>
 
 namespace OHOS::Rosen::SrvText {
-
 enum TextHighContrast {
     /* Follow system's high contrast setting for text rendering */
     TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST,

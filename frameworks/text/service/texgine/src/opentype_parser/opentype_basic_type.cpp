@@ -35,7 +35,7 @@ const std::string Tag::Get() const
     tagsWithZero[1] = tags[1];  // 1 means array subscripts
     tagsWithZero[2] = tags[2];  // 2 means array subscripts
     tagsWithZero[3] = tags[3];  // 3 means array subscripts
-    tagsWithZero[4] = 0;  // 4 means array subscripts
+    tagsWithZero[4] = 0;        // 4 means array subscripts
     return tagsWithZero;
 }
 

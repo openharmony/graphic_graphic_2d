@@ -31,10 +31,10 @@ static uint32_t GetTextHighContrast()
 }
 
 /*
-* @tc.name: NdkTextHighContrastTest01
-* @tc.desc: test for text high contrast mode
-* @tc.type: FUNC
-*/
+ * @tc.name: NdkTextHighContrastTest01
+ * @tc.desc: test for text high contrast mode
+ * @tc.type: FUNC
+ */
 HWTEST_F(NdkTextGlobalTest, NdkTextHighContrastTest01, TestSize.Level0)
 {
     OH_Drawing_SetTextHighContrast(OH_Drawing_TextHighContrast::TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST);
@@ -48,10 +48,10 @@ HWTEST_F(NdkTextGlobalTest, NdkTextHighContrastTest01, TestSize.Level0)
 }
 
 /*
-* @tc.name: NdkTextHighContrastTest02
-* @tc.desc: test for text high contrast mode（Invalid）
-* @tc.type: FUNC
-*/
+ * @tc.name: NdkTextHighContrastTest02
+ * @tc.desc: test for text high contrast mode（Invalid）
+ * @tc.type: FUNC
+ */
 HWTEST_F(NdkTextGlobalTest, NdkTextHighContrastTest02, TestSize.Level0)
 {
     uint32_t preValue = GetTextHighContrast();
