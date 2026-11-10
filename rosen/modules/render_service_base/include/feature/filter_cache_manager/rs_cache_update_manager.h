@@ -106,7 +106,6 @@ public:
 
 private:
     void UpdateFlags(FilterCacheType type, bool cacheValid);
-    void PrintDebugInfo(NodeId nodeId);
 
     // flags for clearing filter cache
     NodeId offscreenNodeId_ = INVALID_NODEID;

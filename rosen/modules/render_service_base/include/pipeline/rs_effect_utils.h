@@ -24,6 +24,8 @@
 namespace OHOS {
 
 namespace Rosen {
+class RSRenderNodeMap;
+
 class RSB_EXPORT RSEffectUtils {
 public:
     static bool AccumulateFilterRenderContext(RSRenderNode& node,
@@ -55,6 +57,15 @@ public:
     // Update app filter rate to all filter drawables (material/background/compositing)
     static void UpdateNodeFilterAppRateToDrawable(RSRenderNode& node, int32_t nodeAppRate);
 
+    // Update surface APS filter rate to all visible filter children drawables.
+    // nodeMap is passed in by caller: RSMainThread is not accessible in render_service_base.
+    static void UpdateNodeFilterApsRate(RSSurfaceRenderNode& curSurfaceNode, const RSRenderNodeMap& nodeMap);
+
+    // Update APS filter rate on surface nodes whose name contains the suffix of param
+    // (after the last '.'). Empty suffix updates nothing.
+    // nodeMap is passed in by caller: RSMainThread is not accessible in render_service_base.
+    static void UpdateSurfaceFilterRate(const std::string& param, int rate, const RSRenderNodeMap& nodeMap);
+
     // true: has filter that only depends on background
     static bool HasBackgroundDependentFilter(const RSProperties& properties);
 
@@ -83,6 +94,12 @@ public:
     static bool HasValidFilterOrEffect(const RSRenderNode& renderNode);
 
 private:
+    using FilterRateUpdateFunc = std::function<void(std::shared_ptr<DrawableV2::RSFilterDrawable>, int32_t)>;
+    // Update filter rate to all filter drawables (material/background/compositing).
+    // No-op on non-GPU targets: filter drawable accessors are GPU-guarded in RSRenderNode.
+    static void UpdateNodeFilterRateToDrawable(
+        RSRenderNode& node, const FilterRateUpdateFunc& rateUpdateFunc, int32_t rate, const char* traceTag);
+
     // Walk up to the enclosing EFFECT_NODE and verify it has a valid background filter.
     static bool HasValidEffectNode(const std::shared_ptr<RSRenderNode>& node);
     // Walk the parent chain for a valid UseEffect node, then validate via HasValidEffectNode.

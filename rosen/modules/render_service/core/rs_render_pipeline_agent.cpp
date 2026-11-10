@@ -62,6 +62,7 @@
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/main_thread/rs_surface_permission.h"
 #include "rs_profiler.h"
+#include "pipeline/rs_effect_utils.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -2213,13 +2214,18 @@ ErrCode RSRenderPipelineAgent::SetApsConfigParams(
         }
         auto itRate = params.find("FRAME_RATE");
         if (itRate != params.end()) {
-            rate = std::stoi(itRate->second);
+            std::from_chars(itRate->second.data(), itRate->second.data() + itRate->second.size(), rate);
+            if (rate < 0 || rate > MAX_VALID_RATE) { rate = 0; }
         }
         RS_TRACE_NAME_FMT("SetApsConfigParams rate:%d, appName:%s", rate, appName.c_str());
-        auto mainThread = pipeline->GetMainThread();
-        if (mainThread != nullptr) {
-            mainThread->UpdateSurfaceFilterRate(appName, rate);
-        }
+        std::function<void()> updateSurfaceFilterRateTask = [renderPipeline = pipeline, appName, rate]() -> void {
+            auto mainThread = renderPipeline->GetMainThread();
+            if (mainThread == nullptr) {
+                return;
+            }
+            RSEffectUtils::UpdateSurfaceFilterRate(appName, rate, mainThread->GetContext().GetNodeMap());
+        };
+        pipeline->PostMainThreadTask(updateSurfaceFilterRateTask);
     }
     return ERR_OK;
 }

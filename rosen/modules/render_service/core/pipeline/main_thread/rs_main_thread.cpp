@@ -3179,7 +3179,7 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     }
     rsVsyncRateReduceManager_.ResetFrameValues(impl::CalculateRefreshRate(rsPeriod));
     uint32_t refreshRate = impl::CalculateRefreshRate(rsPeriod);
-    RS_TRACE_NAME_FMT("RSMainThread::UniRender refreshRate -> %d", refreshRate);
+    RS_TRACE_NAME_FMT("RSMainThread::UniRender refreshRate -> %u", refreshRate);
     RSCacheUpdateManager::SetCurrentVsyncRefreshRate(refreshRate);
 
     if (isHardwareForcedDisabled_) {
@@ -3353,34 +3353,6 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         RSSingleFrameComposer::SetVisibleWinCount(visibleWinCount);
     }
 #endif
-}
-
-void RSMainThread::UpdateSurfaceFilterRate(std::string param, int rate)
-{
-    const auto& nodeMap = GetContext().GetNodeMap();
-    lastApsParam_ = param;
-    lastApsRate_ = rate;
-    std::string nodeNameMark;
-    auto lastDotPos = lastApsParam_.find_last_of(".");
-    if (lastDotPos != std::string::npos && lastDotPos + 1 < lastApsParam_.size()) {
-        nodeNameMark = lastApsParam_.substr(lastDotPos + 1);
-    }
-    std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> updateSurfaceFilterRateFunc =
-        [this, nodeNameMark](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-        if (surfaceNode == nullptr) {
-            return;
-        }
-        const auto& nodeName = surfaceNode->GetName();
-        RS_TRACE_NAME_FMT("RSMainThread::UpdateSurfaceFilterRate surfaceNode->GetName: %s",
-            nodeName.c_str());
-        if (nodeNameMark.empty() || nodeName.find(nodeNameMark) == std::string::npos) {
-            return;
-        }
-        RS_TRACE_NAME_FMT("RSMainThread::UpdateSurfaceFilterRate -> modify lastApsParam: %s, targetRate: %d",
-            lastApsParam_.c_str(), lastApsRate_);
-        surfaceNode->SetApsFilterRate(lastApsRate_);
-    };
-    nodeMap.TraverseSurfaceNodes(updateSurfaceFilterRateFunc);
 }
 
 bool RSMainThread::IfStatusBarDirtyOnly()

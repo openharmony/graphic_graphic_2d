@@ -1413,7 +1413,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     auto preGlobalShouldPaint = globalShouldPaint_;
     globalShouldPaint_ &= node.ShouldPaint();
     node.SetSelfAndParentShouldPaint(globalShouldPaint_);
-    UpdateNodeFilterApsRate(node);
+    RSEffectUtils::UpdateNodeFilterApsRate(
+        node, RSMainThread::Instance()->GetContext().GetNodeMap());
     CheckFilterCacheNeedForceClearOrSave(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.CheckContainerDirtyStatusAndUpdateDirty(curContainerDirty_);
@@ -2095,25 +2096,6 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node, 
 void RSUniRenderVisitor::MarkFilterInForegroundFilterAndCheckNeedForceClearCache(RSRenderNode& node)
 {
     node.MarkFilterInForegroundFilterAndCheckNeedForceClearCache(offscreenCanvasNodeId_);
-}
-
-void RSUniRenderVisitor::UpdateNodeFilterApsRate(RSSurfaceRenderNode& curSurfaceNode)
-{
-    int rate = curSurfaceNode.GetApsFilterRate();
-    if (rate > 0) {
-        const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
-        // Traverse and process child nodes
-        const auto& visibleFilterChild = curSurfaceNode.GetVisibleFilterChild();
-        RS_TRACE_NAME_FMT("RSUniRenderVisitor::UpdateNodeFilterApsRate visibleFilterChild size: %zu",
-            visibleFilterChild.size());
-        for (auto& child : visibleFilterChild) {
-            auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
-            if (filterNode == nullptr) {
-                continue;
-            }
-            RSEffectUtils::UpdateNodeFilterApsRateToDrawable(*filterNode, rate);
-        }
-    }
 }
 
 // used for renderGroup

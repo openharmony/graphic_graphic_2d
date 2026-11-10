@@ -163,8 +163,9 @@ private:
 
     static std::atomic<bool> ccmEffectMergeEnable_;
     static std::atomic<bool> filterCacheEnabled_;
-public:
+
     std::shared_ptr<RSCacheUpdateManager> rsCacheUpdateManager_;
+public:
 
     // Called once per frame during sync (RSDrawFrame::Sync) to set the current vsync start time.
     static void SetFrameTimestamp(int64_t timestamp) { frameTimestamp_ = timestamp; }

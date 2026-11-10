@@ -284,14 +284,13 @@ void RSCacheUpdateManager::MarkNeedClearFilterCache(NodeId nodeId)
 
     // if do not request NextVsync, close skip
     if (stagingForceClearCacheForLastFrame_) {
-        RS_TRACE_NAME_FMT("no need tp process the tail frame when aps enable");
+        RS_TRACE_NAME_FMT("no need to process the tail frame when aps enable");
         if (nodeFilterRate_ <= 0) {
             cacheUpdateInterval_ = 0;
         }
     }
 
     stagingIsSkipFrame_ = stagingIsLargeArea_ && canSkipFrame_ && !stagingFilterRegionChanged_;
-    PrintDebugInfo(nodeId);
 
     // no valid cache
     if (lastCacheType_ == FilterCacheType::NONE) {
@@ -390,21 +389,6 @@ bool RSCacheUpdateManager::WouldDrawLargeAreaBlurPrecisely()
         return true;
     }
     return false;
-}
-
-void RSCacheUpdateManager::PrintDebugInfo(NodeId nodeId)
-{
-    if (!debugEnabled_) {
-        return;
-    }
-    if (lastStagingFilterInteractWithDirty_ == stagingFilterInteractWithDirty_) {
-        return;
-    }
-    ROSEN_LOGD("RSCacheUpdateManager::PrintDebugInfo nodeId:%{public}" PRIu64 ", forceUseCache_:%{public}d,"
-               " forceClearCache_:%{public}d, belowDirty_:%{public}d, cacheUpdateInterval_:%{public}d,"
-               " pendingPurge_%{public}d,",
-        nodeId, stagingForceUseCache_, stagingForceClearCache_, stagingFilterInteractWithDirty_, cacheUpdateInterval_,
-        pendingPurge_);
 }
 
 } // namespace Rosen

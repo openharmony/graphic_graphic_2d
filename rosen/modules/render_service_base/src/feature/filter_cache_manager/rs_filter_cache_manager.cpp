@@ -505,12 +505,12 @@ void RSFilterCacheManager::ClearFilterCache()
             ? GetCachedType()
             : (renderClearFilteredCacheAfterDrawing_ ? FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);
     RS_TRACE_NAME_FMT("RSFilterCacheManager::ClearFilterCache, clearType:%d,"
-                      " isOccluded_:%d, lastCacheType:%d needClearMemoryForGpu:%d ClearFilteredCacheAfterDrawing:%d",
+        " isOccluded_:%d, lastCacheType:%d needClearMemoryForGpu:%d ClearFilteredCacheAfterDrawing:%d",
         renderClearType_, GetRSCacheUpdateManager()->stagingIsOccluded_, GetRSCacheUpdateManager()->lastCacheType_,
         needClearMemoryForGpu, renderClearFilteredCacheAfterDrawing_);
     ROSEN_LOGD("RSFilterCacheManager::ClearFilterCache, clearType:%{public}d,"
-               " isOccluded_:%{public}d, lastCacheType:%{public}d needClearMemoryForGpu:%{public}d"
-               " ClearFilteredCacheAfterDrawing:%{public}d",
+        " isOccluded_:%{public}d, lastCacheType:%{public}d needClearMemoryForGpu:%{public}d"
+        " ClearFilteredCacheAfterDrawing:%{public}d",
         static_cast<int>(renderClearType_), GetRSCacheUpdateManager()->stagingIsOccluded_,
         static_cast<int>(GetRSCacheUpdateManager()->lastCacheType_), needClearMemoryForGpu,
         renderClearFilteredCacheAfterDrawing_);
@@ -521,10 +521,9 @@ bool RSFilterCacheManager::IsFilterCacheValidForOcclusion()
 {
     auto cacheType = GetCachedType();
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%d renderClearType_:%d"
-                               " offscreenNodeId_: %" PRIu64,
-        cacheType, renderClearType_, GetRSCacheUpdateManager()->offscreenNodeId_);
+        " offscreenNodeId_: %" PRIu64, cacheType, renderClearType_, GetRSCacheUpdateManager()->offscreenNodeId_);
     ROSEN_LOGD("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%{public}d renderClearType_:%{public}d"
-               " offscreenNodeId_: %{public}" PRIu64,
+        " offscreenNodeId_: %{public}" PRIu64,
         static_cast<int>(cacheType), static_cast<int>(renderClearType_), GetRSCacheUpdateManager()->offscreenNodeId_);
 
     return cacheType != FilterCacheType::NONE && GetRSCacheUpdateManager()->offscreenNodeId_ == INVALID_NODEID;

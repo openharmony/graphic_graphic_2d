@@ -1140,10 +1140,6 @@ public:
         return false;
     }
 
-    std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(RSDrawableSlot slot) const;
-    bool InvokeFilterDrawable(RSDrawableSlot slot,
-        std::function<void(std::shared_ptr<DrawableV2::RSFilterDrawable>)> checkMethodInvokeFunc);
-
 protected:
     void ResetDirtyStatus();
 
@@ -1218,6 +1214,10 @@ protected:
 
 #ifdef RS_ENABLE_GPU
     std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(bool isForeground) const;
+    std::shared_ptr<DrawableV2::RSFilterDrawable> GetFilterDrawable(RSDrawableSlot slot) const;
+
+    bool InvokeFilterDrawable(RSDrawableSlot slot,
+        std::function<void(std::shared_ptr<DrawableV2::RSFilterDrawable>)> checkMethodInvokeFunc);
 
     virtual void MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDrawable>& filterDrawable,
         RSDirtyRegionManager& dirtyManager, bool needRequestNextVsync);

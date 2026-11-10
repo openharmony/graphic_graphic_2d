@@ -32,6 +32,7 @@ namespace OHOS::Rosen {
 class RSRenderNode;
 class RSFilter;
 class RSFilterCacheManager;
+class RSCacheUpdateManager;
 class ExtendRecordingCanvas;
 namespace Drawing {
 class GEVisualEffectContainer;

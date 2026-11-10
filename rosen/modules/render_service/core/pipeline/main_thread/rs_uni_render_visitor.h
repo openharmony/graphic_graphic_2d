@@ -185,7 +185,6 @@ private:
     void CalculateOpaqueAndTransparentRegion(RSSurfaceRenderNode& node);
 
     void CheckFilterCacheNeedForceClearOrSave(RSRenderNode& node);
-    void UpdateNodeFilterApsRate(RSSurfaceRenderNode& curSurfaceNode);
     Occlusion::Region GetSurfaceTransparentFilterRegion(const RSSurfaceRenderNode& surfaceNode) const;
     void CollectTopOcclusionSurfacesInfo(RSSurfaceRenderNode& node, bool isParticipateInOcclusion);
     void PartialRenderOptionInit();
