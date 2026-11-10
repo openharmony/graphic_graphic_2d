@@ -1266,29 +1266,6 @@ void RSClientToServiceConnectionProxy::SetRefreshRateMode(int32_t refreshRateMod
     }
 }
 
-void RSClientToServiceConnectionProxy::SetThermalFrameRateLimit(uint32_t frameRate)
-{
-    MessageParcel data;
-    MessageParcel reply;
-    MessageOption option;
- 
-    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
-        ROSEN_LOGE("SetThermalFrameRateLimit: WriteInterfaceToken GetDescriptor err.");
-        return;
-    }
-    option.SetFlags(MessageOption::TF_SYNC);
-    if (!data.WriteUint32(frameRate)) {
-        ROSEN_LOGE("SetThermalFrameRateLimit: WriteUint32 frameRate err.");
-        return;
-    }
-    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_THERMAL_FRAME_RATE_LIMIT);
-    int32_t err = SendRequest(code, data, reply, option);
-    if (err != NO_ERROR) {
-        ROSEN_LOGE("RSRenderServiceProxy SetThermalFrameRateLimit sendrequest error : %{public}d", err);
-        return;
-    }
-}
-
 void RSClientToServiceConnectionProxy::SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
     int32_t animatorExpectedFrameRate)
 {
@@ -4790,6 +4767,29 @@ ErrCode RSClientToServiceConnectionProxy::NotifyTouchEvent(int32_t touchStatus, 
         return ERR_INVALID_VALUE;
     }
     return ERR_OK;
+}
+
+void RSClientToServiceConnectionProxy::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+ 
+    if (!data.WriteInterfaceToken(RSIClientToServiceConnection::GetDescriptor())) {
+        ROSEN_LOGE("SetThermalFrameRateLimit: WriteInterfaceToken GetDescriptor err.");
+        return;
+    }
+    option.SetFlags(MessageOption::TF_SYNC);
+    if (!data.WriteUint32(frameRate)) {
+        ROSEN_LOGE("SetThermalFrameRateLimit: WriteUint32 frameRate err.");
+        return;
+    }
+    uint32_t code = static_cast<uint32_t>(RSIClientToServiceConnectionInterfaceCode::SET_THERMAL_FRAME_RATE_LIMIT);
+    int32_t err = SendRequest(code, data, reply, option);
+    if (err != NO_ERROR) {
+        ROSEN_LOGE("RSRenderServiceProxy SetThermalFrameRateLimit sendrequest error : %{public}d", err);
+        return;
+    }
 }
 #ifndef ENABLE_RS_PROXY
 void RSClientToServiceConnectionProxy::NotifyDynamicModeEvent(bool enableDynamicMode)
