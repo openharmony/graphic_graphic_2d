@@ -4100,13 +4100,7 @@ NodeId RSNode::GenerateId()
 
 void RSNode::InitUniRenderEnabled()
 {
-    static bool inited = false;
-    if (!inited) {
-        inited = true;
-        g_isUniRenderEnabled = RSSystemProperties::GetUniRenderEnabled();
-        g_isSceneBoardEnable = RSSystemProperties::IsSceneBoardEnabled();
-        ROSEN_LOGD("RSNode::InitUniRenderEnabled:%{public}d", g_isUniRenderEnabled);
-    }
+    g_isUniRenderEnabled = RSSystemProperties::GetUniRenderEnabled();
 }
 
 bool RSNode::IsUniRenderEnabled() const
