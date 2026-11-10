@@ -578,7 +578,6 @@ private:
     void SetRSEventDetectorLoopFinishTag();
     void CheckSystemSceneStatus();
     void UpdateScreenNodeScreenId();
-
     uint32_t GetRefreshRate() const;
     uint32_t GetDynamicRefreshRate() const;
     static void OnHideNotchStatusCallback(const char *key, const char *value, void *context);

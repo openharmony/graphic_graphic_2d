@@ -31,7 +31,6 @@
 #include "drawable/rs_color_picker_drawable.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "image/gpu_context.h"
-#include "memory/rs_tag_tracker.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_paint_filter_canvas.h"
 #include "pipeline/rs_render_node_map.h"
@@ -321,9 +320,6 @@ bool ExtractSnapshotAndScheduleColorPick(RSPaintFilterCanvas& canvas,
         return false;
     }
 
-#ifdef RS_ENABLE_GPU
-    RSTagTracker tracker(canvas.GetGPUContext(), RSTagTracker::TAG_COLOR_PICKER_SNAPSHOT);
-#endif
     std::shared_ptr<Drawing::Image> snapshot;
     if (HveFilter::GetHveFilter().HasValidFilterNode(canvas, filterId)) {
         snapshot = HveFilter::GetHveFilter().SampleLayer(canvas, snapshotIBounds, filterId);

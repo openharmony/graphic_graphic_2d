@@ -412,6 +412,7 @@ public:
     static bool GetCanvasDrawingNodeRenderDmaEnabled();
 
     static bool GetReleaseImageOneByOneFlag();
+    static bool GetUIFirstDirtyFrameControlEnabled();
     static bool GetUsePrimList();
 
     static bool GetRebuildSceneEnabled();

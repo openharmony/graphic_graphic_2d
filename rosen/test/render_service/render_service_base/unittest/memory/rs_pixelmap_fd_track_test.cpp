@@ -1752,6 +1752,39 @@ HWTEST_F(RSPixelMapFdTrackTest, CheckFdWarningAndReportTest009, testing::ext::Te
 }
 
 /**
+ * @tc.name: CheckFdWarningAndReportTest010
+ * @tc.desc: Test function CheckFdWarningAndReport prunes rate limit entries whose window expired
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, CheckFdWarningAndReportTest010, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    int32_t otherPid = 200;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    for (int32_t i = 0; i < RSPixelMapFdTrack::WARNING_THRESHOLD / 2 + 1; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+    auto now = std::chrono::steady_clock::now();
+    int64_t nowNs = std::chrono::duration_cast<std::chrono::nanoseconds>(now.time_since_epoch()).count();
+    // otherPid holds an expired entry and pid holds a fresh one, only the expired entry is pruned
+    int64_t expiredTimeNs = nowNs - RSPixelMapFdTrack::WARNING_RATE_LIMIT_SECONDS * std::nano::den;
+    tracker.lastWarningTime_[otherPid] = expiredTimeNs;
+    tracker.lastWarningTime_[pid] = nowNs;
+
+    tracker.CheckFdWarningAndReport();
+
+    // the fresh entry still rate limits pid, so it is kept unchanged and no new warning fires
+    EXPECT_EQ(tracker.lastWarningTime_[pid], nowNs);
+    // the expired entry can no longer suppress a report, so it is pruned even if otherPid is not
+    // the current top pid
+    EXPECT_EQ(tracker.lastWarningTime_.count(otherPid), 0);
+    EXPECT_EQ(tracker.lastWarningTime_.size(), 1);
+}
+
+/**
  * @tc.name: CheckFdTotalBoundaryTest001
  * @tc.desc: Test function CheckFdTotal with fd total exactly at the limit
  * @tc.type: FUNC
@@ -2022,8 +2055,37 @@ HWTEST_F(RSPixelMapFdTrackTest, RemoveFdRecordUniqueIdStatTest001, testing::ext:
 }
 
 /**
+ * @tc.name: UpdateUniqueIdStatTest001
+ * @tc.desc: Test function UpdateUniqueIdStat ignores a late non-positive delta without a stat entry
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, UpdateUniqueIdStatTest001, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    constexpr uint64_t uniqueId = 12345;
+    Media::AllocatorType allocType = Media::AllocatorType::SHARE_MEM_ALLOC;
+
+    // the stat entry is dropped when its fd count reaches zero with the last record
+    tracker.AddFdRecord(pid, reinterpret_cast<const void*>(0x1000), allocType, uniqueId);
+    tracker.RemoveFdRecord(pid, reinterpret_cast<const void*>(0x1000), allocType);
+    EXPECT_TRUE(tracker.pixelMapFdCountTracker_.find(uniqueId) == tracker.pixelMapFdCountTracker_.end());
+
+    // a late negative delta arrives after the stat entry is gone, it must not resurrect the entry
+    tracker.UpdateUniqueIdStat(uniqueId, pid, -1);
+    EXPECT_TRUE(tracker.pixelMapFdCountTracker_.empty());
+    EXPECT_TRUE(tracker.topUniqueIdTracker_.empty());
+
+    // a zero delta must not create an entry either
+    tracker.UpdateUniqueIdStat(uniqueId, pid, 0);
+    EXPECT_TRUE(tracker.pixelMapFdCountTracker_.empty());
+    EXPECT_TRUE(tracker.topUniqueIdTracker_.empty());
+}
+
+/**
  * @tc.name: RemoveFdRecordLastWarningTimeTest001
- * @tc.desc: Test function RemoveFdRecord clears warning rate limit state of the pid
+ * @tc.desc: Test function RemoveFdRecord keeps warning rate limit state of the pid
  * @tc.type: FUNC
  * @tc.require: issue#21888
  */
@@ -2042,9 +2104,49 @@ HWTEST_F(RSPixelMapFdTrackTest, RemoveFdRecordLastWarningTimeTest001, testing::e
     tracker.RemoveFdRecord(pid, reinterpret_cast<const void*>(0x1000), allocType);
     EXPECT_EQ(tracker.lastWarningTime_.count(pid), 1);
 
-    // the last record of the pid is removed, so the rate limit state is cleared
+    // the last record of the pid is removed, but the rate limit state is independent of record
+    // existence and is kept
     tracker.RemoveFdRecord(pid, reinterpret_cast<const void*>(0x2000), allocType);
-    EXPECT_TRUE(tracker.lastWarningTime_.empty());
+    EXPECT_EQ(tracker.lastWarningTime_.count(pid), 1);
+}
+
+/**
+ * @tc.name: RemoveFdRecordLastWarningTimeTest002
+ * @tc.desc: Test function RemoveFdRecord keeps the pid rate limited after records are re-added
+ * @tc.type: FUNC
+ * @tc.require: issue#21888
+ */
+HWTEST_F(RSPixelMapFdTrackTest, RemoveFdRecordLastWarningTimeTest002, testing::ext::TestSize.Level1)
+{
+    RSPixelMapFdTrack tracker;
+    int32_t pid = 100;
+    Media::AllocatorType allocType = Media::AllocatorType::DMA_ALLOC;
+    constexpr int32_t recordCount = RSPixelMapFdTrack::WARNING_THRESHOLD / 2 + 1;
+    for (int32_t i = 0; i < recordCount; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+
+    tracker.CheckFdWarningAndReport();
+    ASSERT_EQ(tracker.lastWarningTime_.count(pid), 1);
+    int64_t firstReportTime = tracker.lastWarningTime_[pid];
+
+    for (int32_t i = 0; i < recordCount; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.RemoveFdRecord(pid, addr, allocType);
+    }
+    EXPECT_EQ(tracker.lastWarningTime_.count(pid), 1);
+
+    for (int32_t i = 0; i < recordCount; i++) {
+        const void* addr = reinterpret_cast<const void*>(0x1000 + i * 8);
+        tracker.AddFdRecord(pid, addr, allocType);
+    }
+    // the rate limit state survived the empty record set, so the re-added pid is still rate
+    // limited and no new warning is reported
+    tracker.CheckFdWarningAndReport();
+
+    EXPECT_EQ(tracker.lastWarningTime_[pid], firstReportTime);
+    EXPECT_EQ(tracker.lastWarningTime_.size(), 1);
 }
 
 /**

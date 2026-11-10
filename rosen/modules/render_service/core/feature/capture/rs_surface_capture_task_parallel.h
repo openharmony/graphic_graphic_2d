@@ -18,6 +18,8 @@
 #define EGL_EGLEXT_PROTOTYPES
 #define GL_GLEXT_PROTOTYPES
 
+#include <vector>
+
 #include "drawable/rs_render_node_drawable.h"
 #include "feature/capture/rs_surface_capture_task.h"
 #include "pixel_map.h"
@@ -106,11 +108,15 @@ private:
     void CaptureDisplayNode(DrawableV2::RSRenderNodeDrawable& displayNodeDrawable, RSPaintFilterCanvas& canvas,
         const RSSurfaceCaptureParam& captureParam, RSPaintFilterCanvas::ScreenshotType type);
 
+    // Resolve on the main thread before posting capture; the render thread only consumes node ids.
+    void ResolveBlacklistAncestorNodeIds();
+
     std::unique_ptr<Media::PixelMap> pixelMap_ = nullptr;
     std::unique_ptr<Media::PixelMap> pixelMapHDR_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> surfaceNodeDrawable_ = nullptr;
     std::shared_ptr<DrawableV2::RSRenderNodeDrawable> displayNodeDrawable_ = nullptr;
     std::shared_ptr<RSSurfaceRenderNode> surfaceNode_ = nullptr;
+    std::vector<NodeId> blacklistAncestorNodeIds_;
     NodeId nodeId_;
     ScreenId screenId_ = INVALID_SCREEN_ID;
     bool useScreenShotWithHDR_ = false;

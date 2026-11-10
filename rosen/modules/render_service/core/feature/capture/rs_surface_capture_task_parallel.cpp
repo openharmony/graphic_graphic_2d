@@ -61,36 +61,26 @@ namespace Rosen {
 namespace {
 constexpr uint32_t ALPHA_MASK = 0xFF000000;
 
-// Flag ancestor cache roots of each blacklisted surface so capture bypasses their caches,
-// and return the original flags for the caller to restore after capture. Reading the node
-// map and walking parents is race-free here: the capture flow runs on the main thread and
-// PostSyncTask blocks it until this render-thread task finishes.
 std::vector<std::pair<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr, bool>>
-MarkCaptureBlacklistAncestorCacheRoots(const std::unordered_set<NodeId>& blackList)
+MarkResolvedBlacklistAncestorCacheRoots(const std::vector<NodeId>& ancestorNodeIds)
 {
     std::vector<std::pair<DrawableV2::RSRenderNodeDrawableAdapter::SharedPtr, bool>> flaggedDrawables;
-    std::unordered_set<RSRenderParams*> touchedParams;
-    for (NodeId blackId : blackList) {
-        auto node = RSMainThread::Instance()->GetContext().GetNodeMap().GetRenderNode(blackId);
-        if (node == nullptr) {
+    for (NodeId nodeId : ancestorNodeIds) {
+        auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(nodeId);
+        if (drawable == nullptr) {
             continue;
         }
-        for (auto cur = node; cur != nullptr; cur = cur->GetParent().lock()) {
-            auto drawable = DrawableV2::RSRenderNodeDrawableAdapter::GetDrawableById(cur->GetId());
-            if (drawable == nullptr) {
-                continue;
-            }
-            const auto& params = drawable->GetRenderParams();
-            if (params == nullptr || params->GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE ||
-                !touchedParams.insert(params.get()).second) {
-                continue;
-            }
-            flaggedDrawables.emplace_back(drawable, params->NodeGroupHasChildInBlacklist());
-            params->SetNodeGroupHasChildInBlacklist(true);
+        const auto& params = drawable->GetRenderParams();
+        // Frozen nodes may retain a cache when drawing cache is disabled.
+        if (params == nullptr ||
+            (params->GetDrawingCacheType() == RSDrawingCacheType::DISABLED_CACHE && !params->GetRSFreezeFlag())) {
+            continue;
         }
+        flaggedDrawables.emplace_back(drawable, params->NodeGroupHasChildInBlacklist());
+        params->SetNodeGroupHasChildInBlacklist(true);
     }
     if (!flaggedDrawables.empty()) {
-        RS_TRACE_NAME_FMT("MarkCaptureBlacklistAncestorCacheRoots flagged:%zu", flaggedDrawables.size());
+        RS_TRACE_NAME_FMT("MarkResolvedBlacklistAncestorCacheRoots flagged:%zu", flaggedDrawables.size());
     }
     return flaggedDrawables;
 }
@@ -207,6 +197,31 @@ void RSSurfaceCaptureTaskParallel::Capture(
         }
     };
     RSUniRenderThread::Instance().PostSyncTask(captureTask);
+}
+
+void RSSurfaceCaptureTaskParallel::ResolveBlacklistAncestorNodeIds()
+{
+    blacklistAncestorNodeIds_.clear();
+    if (captureConfig_.blackList.empty()) {
+        return;
+    }
+    std::unordered_set<NodeId> visited;
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    // Parent links only exist on RenderNode, and the render thread must not read RSRenderNodeMap or
+    // RenderNode, so the whole chain is resolved here and only node ids cross to the render thread.
+    // Only node ids are matched: an entry carrying a LeashPersistentId is not resolved.
+    for (NodeId blackId : captureConfig_.blackList) {
+        auto node = nodeMap.GetRenderNode(blackId);
+        if (node == nullptr) {
+            continue;
+        }
+        for (auto cur = node; cur != nullptr; cur = cur->GetParent().lock()) {
+            if (!visited.insert(cur->GetId()).second) {
+                break;
+            }
+            blacklistAncestorNodeIds_.push_back(cur->GetId());
+        }
+    }
 }
 
 void RSSurfaceCaptureTaskParallel::ClearCacheImageByFreeze(NodeId id)
@@ -338,6 +353,9 @@ bool RSSurfaceCaptureTaskParallel::CreateResources()
     if (pixelMap_ == nullptr) {
         RS_LOGE("RSSurfaceCaptureTaskParallel::CreateResources: pixelMap_ is nullptr!");
         return false;
+    }
+    if (displayNodeDrawable_ != nullptr) {
+        ResolveBlacklistAncestorNodeIds();
     }
     return true;
 }
@@ -1034,7 +1052,7 @@ void RSSurfaceCaptureTaskParallel::CaptureDisplayNode(DrawableV2::RSRenderNodeDr
     // Screenshot blacklist, exclude surfaceNode in blacklist while capturing displaynode
     std::unordered_set<NodeId> blackList(captureConfig_.blackList.begin(), captureConfig_.blackList.end());
     RSUniRenderThread::Instance().SetBlackList(blackList);
-    auto flaggedDrawables = MarkCaptureBlacklistAncestorCacheRoots(blackList);
+    auto flaggedDrawables = MarkResolvedBlacklistAncestorCacheRoots(blacklistAncestorNodeIds_);
     RSEffectLuminanceManager::GetInstance().SetCurrentScreenshotType(type);
     displayNodeDrawable.OnCapture(canvas);
     for (const auto& [drawable, inBlacklist] : flaggedDrawables) {

@@ -19,7 +19,6 @@
 
 #include "feature/window_keyframe/rs_window_keyframe_node_command.h"
 #include "command_modifier/rs_window_keyframe_node_command_modifier.h"
-
 namespace OHOS {
 namespace Rosen {
 
