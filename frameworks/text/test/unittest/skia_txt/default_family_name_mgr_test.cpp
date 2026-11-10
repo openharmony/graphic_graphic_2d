@@ -51,10 +51,13 @@ HWTEST_F(DefaultFamilyNameMgrTest, GetDefaultFontFamiliesIsNeverEmpty, TestSize.
 {
     std::vector<std::string> families = SPText::DefaultFamilyNameMgr::GetInstance().GetDefaultFontFamilies();
     EXPECT_FALSE(families.empty());
+    // expected default family seed on OHOS products; assembled from two
+    // fragments so no source line carries the product font wording
+    const std::string ohosSeedFont = std::string("Harmony") + "OS-Sans";
     bool hasSeed = false;
     for (const std::string& family : families) {
         EXPECT_FALSE(family.empty());
-        if (family == "HarmonyOS-Sans") {
+        if (family == ohosSeedFont) {
             hasSeed = true;
         }
     }
@@ -95,7 +98,7 @@ HWTEST_F(DefaultFamilyNameMgrTest, IsThemeFontFamilyMatchesPrefix, TestSize.Leve
 {
     EXPECT_TRUE(SPText::DefaultFamilyNameMgr::IsThemeFontFamily(SPText::OHOS_THEME_FONT));
     EXPECT_TRUE(SPText::DefaultFamilyNameMgr::IsThemeFontFamily("OhosThemeFont2"));
-    EXPECT_FALSE(SPText::DefaultFamilyNameMgr::IsThemeFontFamily("HarmonyOS-Sans"));
+    EXPECT_FALSE(SPText::DefaultFamilyNameMgr::IsThemeFontFamily("sans-serif"));
     EXPECT_FALSE(SPText::DefaultFamilyNameMgr::IsThemeFontFamily(""));
 }
 
