@@ -74,7 +74,7 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSUiCaptureSolo
     const auto startTime = std::chrono::steady_clock::now();
     instanceRootNode->CollectAllChildren(instanceRootNode, nodeIdVec);
     for (auto nodeId : nodeIdVec) {
-        if (std::chrono::steady_clock::now() - startTime > CAPTURE_SOLO_NODE_TIMEOUT) {
+        if (std::chrono::steady_clock::now() - startTime >= CAPTURE_SOLO_NODE_TIMEOUT) {
             RS_LOGW("RSUiCaptureSoloTaskParallel::CaptureSoloNode timeout, return partial results");
             return pixelMapIdPairVector;
         }
