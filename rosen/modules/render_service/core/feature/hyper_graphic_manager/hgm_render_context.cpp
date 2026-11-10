@@ -120,57 +120,6 @@ bool HgmRenderContext::IsShellAssistantAncoGameNode(const std::string& nodeName)
         nodeName.rfind(SHELL_ASSISTANT_ANCO_PREFIX, 0) == 0;
 }
 
-void HgmRenderContext::EvaluateAdaptiveVsyncNodes(const std::shared_ptr<RSContext>& rsContext,
-    bool& isGameSelfNodeOnTree, bool& isOtherSelfNodeOnTree) const
-{
-    pid_t shellAssistantAncoPid = -1;
-    pid_t firstOtherSelfNodePid = -1;
-    auto& nodeMap = rsContext->GetNodeMap();
-    nodeMap.TraverseSurfaceNodesBreakOnCondition(
-        [this, &nodeMap, &shellAssistantAncoPid, &firstOtherSelfNodePid,
-         &isGameSelfNodeOnTree, &isOtherSelfNodeOnTree]
-        (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
-            if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree() ||
-                surfaceNode->GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE) {
-                return false;
-            }
-            const auto& nodeName = surfaceNode->GetName();
-            if (gameNodeName_ == nodeName) {
-                isGameSelfNodeOnTree = true;
-                return false;
-            }
-            if (IsShellAssistantAncoGameNode(nodeName)) {
-                isGameSelfNodeOnTree = true;
-                shellAssistantAncoPid = ExtractPid(surfaceNode->GetId());
-                return false;
-            }
-            auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
-                nodeMap.GetRenderNode(surfaceNode->GetInstanceRootNodeId()));
-            if (appNode && appNode->GetVisibleRegion().IsEmpty()) {
-                return false;
-            }
-            pid_t nodePid = ExtractPid(surfaceNode->GetId());
-            if (shellAssistantAncoPid != -1) {
-                if (nodePid != shellAssistantAncoPid) {
-                    isOtherSelfNodeOnTree = true;
-                    return true;
-                }
-                return false;
-            }
-            if (firstOtherSelfNodePid == -1) {
-                firstOtherSelfNodePid = nodePid;
-            } else if (nodePid != firstOtherSelfNodePid) {
-                isOtherSelfNodeOnTree = true;
-                return true;
-            }
-            return false;
-        });
-    if (firstOtherSelfNodePid != -1 && !isOtherSelfNodeOnTree &&
-        shellAssistantAncoPid != firstOtherSelfNodePid) {
-        isOtherSelfNodeOnTree = true;
-    }
-}
-
 void HgmRenderContext::HandleAdaptiveVsyncCondition(const std::shared_ptr<RSContext>& rsContext)
 {
     if (!IsSupportSoftVsyncAS(isAdaptive_.load())) {
@@ -180,7 +129,26 @@ void HgmRenderContext::HandleAdaptiveVsyncCondition(const std::shared_ptr<RSCont
     }
     bool isGameSelfNodeOnTree = false;
     bool isOtherSelfNodeOnTree = false;
-    EvaluateAdaptiveVsyncNodes(rsContext, isGameSelfNodeOnTree, isOtherSelfNodeOnTree);
+    auto& nodeMap = rsContext->GetNodeMap();
+    nodeMap.TraverseSurfaceNodesBreakOnCondition(
+        [this, &nodeMap, &isGameSelfNodeOnTree, &isOtherSelfNodeOnTree]
+        (const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+            if (surfaceNode == nullptr || !surfaceNode->IsOnTheTree() ||
+                surfaceNode->GetSurfaceNodeType() != RSSurfaceNodeType::SELF_DRAWING_NODE) {
+                return false;
+            }
+            const auto& nodeName = surfaceNode->GetName();
+            if (gameNodeName_ == nodeName || IsShellAssistantAncoGameNode(nodeName)) {
+                isGameSelfNodeOnTree = true;
+                return false;
+            }
+            auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
+                nodeMap.GetRenderNode(surfaceNode->GetInstanceRootNodeId()));
+            if (!appNode || !appNode->GetVisibleRegion().IsEmpty()) {
+                isOtherSelfNodeOnTree = true;
+                return true;
+            }
+        });
     isGameNodeOnTree_.store(isGameSelfNodeOnTree && !isOtherSelfNodeOnTree);
 
     uint32_t windowCount = rsContext->GetNodeMap().GetVisibleLeashWindowCount();
