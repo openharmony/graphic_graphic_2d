@@ -46,7 +46,6 @@ group("unittest") {
       ":RSCanvasModifiersDrawAgentTest",
       ":RSCanvasModifiersDrawTest",
       ":RSModifiersDrawTest",
-      ":RSModifiersDrawThreadTest",
     ]
   }
 }
@@ -60,10 +59,11 @@ ohos_unittest("RSCanvasModifiersDrawTest") {
   external_deps = [
     "egl:libEGL",
     "hilog:libhilog",
+    "image_framework:image_native",
     "opengles:libGLES",
   ]
 }
- 
+
 ## Build RSCanvasModifiersDrawAgentTest
 ohos_unittest("RSCanvasModifiersDrawAgentTest") {
   module_out_path = module_out_path
@@ -74,18 +74,7 @@ ohos_unittest("RSCanvasModifiersDrawAgentTest") {
     "hilog:libhilog",
   ]
 }
- 
-## Build RSModifiersDrawThreadTest
-ohos_unittest("RSModifiersDrawThreadTest") {
-  module_out_path = module_out_path
-  sources = [ "modifier_render_thread/rs_modifiers_draw_thread_test.cpp" ]
-  include_dirs = [ "$graphic_2d_root/rosen/modules/render_service_base/src" ]
-  deps = [ ":rs_client_test_common" ]
-  external_deps = [
-    "hilog:libhilog",
-  ]
-}
- 
+
 ## Build RSModifiersDrawTest
 ohos_unittest("RSModifiersDrawTest") {
   module_out_path = module_out_path
@@ -94,6 +83,7 @@ ohos_unittest("RSModifiersDrawTest") {
   deps = [ ":rs_client_test_common" ]
   external_deps = [
     "hilog:libhilog",
+    "image_framework:image_native",
   ]
 }
 

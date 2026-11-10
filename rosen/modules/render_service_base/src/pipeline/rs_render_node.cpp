@@ -1583,6 +1583,11 @@ void RSRenderNode::DumpSubClassNode(std::string& out) const
         auto canvasDrawingNode = static_cast<const RSCanvasDrawingRenderNode*>(this);
         out += ", lastResetSurfaceTime: " + std::to_string(canvasDrawingNode->lastResetSurfaceTime_);
         out += ", opCountAfterReset: " + std::to_string(canvasDrawingNode->opCountAfterReset_);
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+        if (canvasDrawingNode->IsBufferDraw()) {
+            out += ", bufferDraw: true";
+        }
+#endif
     } else if (GetType() == RSRenderNodeType::CANVAS_NODE) {
         auto canvasNode = static_cast<const RSCanvasRenderNode*>(this);
         auto& saveCount = canvasNode->GetCanvasNodeSaveCount();

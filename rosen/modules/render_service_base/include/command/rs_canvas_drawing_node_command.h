@@ -33,7 +33,7 @@ enum RSCanvasDrawingNodeCommandType : uint16_t {
 class RSB_EXPORT RSCanvasDrawingNodeCommandHelper {
 public:
     static void Create(RSContext& context, NodeId id, bool isTextureExportNode = false);
-    static void ResetSurface(RSContext& context, NodeId id, int width, int height, uint32_t resetSurfaceIndex);
+    static void ResetSurface(RSContext& context, NodeId id, int width, int height, uint32_t resetSurfaceMark);
 };
 
 ADD_COMMAND(RSCanvasDrawingNodeCreate,

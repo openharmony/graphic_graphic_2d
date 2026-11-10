@@ -853,10 +853,10 @@ void RSPipelineDumper::DumpNodeInfo(pid_t pid, uint64_t token, std::string& dump
 #ifdef RS_MODIFIERS_DRAW_ENABLE
             if (nodeType == RSRenderNodeType::CANVAS_DRAWING_NODE) {
                 const auto& canvasDrawingNode = RSBaseRenderNode::ReinterpretCast<RSCanvasDrawingRenderNode>(node);
-                if (canvasDrawingNode->sizeOutOfGpuLimit_) {
-                    nonGpuCanvasDrawingNodeCount++;
-                } else {
+                if (canvasDrawingNode->bufferDraw_) {
                     gpuCanvasDrawingNodeCount++;
+                } else {
+                    nonGpuCanvasDrawingNodeCount++;
                 }
             }
 #endif

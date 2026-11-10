@@ -15,6 +15,11 @@
 
 #include "ui/rs_ui_context.h"
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+#include "modifier_render_thread/rs_canvas_modifiers_draw_agent.h"
+#include "modifier_render_thread/rs_modifiers_draw_agent.h"
+#endif
+
 #include "animation/rs_interactive_implict_animator.h"
 #include "command/rs_animation_command.h"
 #include "command/rs_node_command.h"
@@ -336,10 +341,10 @@ bool RSUIContext::DestroyModifiersDraw()
     if (auto transaction = GetRSTransaction()) {
         transaction->SetCommitTransactionCallback(nullptr);
     }
-    if (modifiersDrawThread_ != nullptr) {
-        modifiersDrawThread_->WaitAllTasksFinish();
-        modifiersDrawThread_->Destroy();
-        modifiersDrawThread_ = nullptr;
+    if (modifiersDrawAgent_ != nullptr) {
+        modifiersDrawAgent_->WaitAllTasksFinish();
+        modifiersDrawAgent_->Destroy();
+        modifiersDrawAgent_ = nullptr;
     }
     if (canvasModifiersDrawAgent_ != nullptr) {
         canvasModifiersDrawAgent_->WaitAllTasksFinish();
@@ -372,7 +377,7 @@ void RSUIContext::UnblockUIThread()
 std::shared_ptr<RSCanvasModifiersDrawAgent> RSUIContext::GetCanvasModifiersDrawAgent()
 {
     if (canvasModifiersDrawAgent_ == nullptr) {
-        canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
+        canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>(rsRenderInterface_);
         if (!cacheDir_.empty()) {
             canvasModifiersDrawAgent_->SetCacheDir(cacheDir_);
         }
@@ -382,11 +387,10 @@ std::shared_ptr<RSCanvasModifiersDrawAgent> RSUIContext::GetCanvasModifiersDrawA
 
 CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
 {
-    if (modifiersDrawThread_ == nullptr) {
-        modifiersDrawThread_ = std::make_shared<RSModifiersDrawThread>();
+    if (modifiersDrawAgent_ == nullptr) {
+        modifiersDrawAgent_ = std::make_shared<RSModifiersDrawAgent>();
     }
 
-    modifiersDrawThread_->Start();
     std::weak_ptr<RSUIContext> weakContext = shared_from_this();
     return [weakContext](std::shared_ptr<RSRenderPipelineClient>& renderPiplineClient,
         std::unique_ptr<RSTransactionData>&& rsTransactionData, std::atomic<uint32_t>& transactionDataIndex) {
@@ -403,8 +407,8 @@ CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
             RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null uiContext.");
             return;
         }
-        if (uiContext->modifiersDrawThread_ == nullptr) {
-            RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null modifiersDrawThread inner.");
+        if (uiContext->modifiersDrawAgent_ == nullptr) {
+            RS_LOGE("RSUIContext::CreateCommitTransactionCallback, null modifiersDrawAgent inner.");
             return;
         }
         static uint32_t commitIndex = 0;
@@ -412,20 +416,8 @@ CommitTransactionCallback RSUIContext::CreateCommitTransactionCallback()
         uiContext->canBlockUIThread_ = true;
         commitIndex++;
         RS_TRACE_NAME_FMT("Post CommitTransaction, index=%u", commitIndex);
-        uiContext->modifiersDrawThread_->ScheduleTask(
-            [uiContext, renderPiplineClient, transactionData = std::move(rsTransactionData),
-                &transactionDataIndex, index = commitIndex]() mutable {
-                if (uiContext->modifiersDrawThread_ != nullptr) {
-                    RS_TRACE_NAME_FMT("Do CommitTransaction, index=%u", index);
-                    uiContext->modifiersDrawThread_->CommitTransaction(uiContext->canvasModifiersDrawAgent_,
-                        renderPiplineClient, transactionData, transactionDataIndex);
-                }
-                // Move transactionData back to UI thread for destruction to avoid
-                // releasing it on the ModifiersDraw thread.
-                auto sharedData = std::shared_ptr<RSTransactionData>(std::move(transactionData));
-                uiContext->PostTask([sharedData]() {});
-                uiContext->UnblockUIThread();
-            });
+        uiContext->modifiersDrawAgent_->CommitTransaction(
+            uiContext, renderPiplineClient, rsTransactionData, transactionDataIndex, commitIndex);
     };
 }
 
