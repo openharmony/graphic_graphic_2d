@@ -334,6 +334,7 @@ void RSScreen::WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode)
 
 uint32_t RSScreen::SetActiveMode(uint32_t modeId)
 {
+    std::lock_guard<std::mutex> lock(activeModeMutex_);
     if (IsVirtual()) {
         RS_LOGW("%{public}s: virtual screen not support SetActiveMode.", __func__);
         return StatusCode::VIRTUAL_SCREEN;
