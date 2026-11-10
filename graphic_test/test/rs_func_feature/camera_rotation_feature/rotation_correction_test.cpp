@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,6 +19,7 @@
 #include "rs_graphic_test_utils.h"
 
 #include "transaction/rs_interfaces.h"
+#include "transaction/rs_render_interface.h"
 #include "transaction/rs_render_service_client.h"
 #include "ui/rs_canvas_node.h"
 #include "ui/rs_root_node.h"
@@ -36,6 +37,16 @@ constexpr int SCREEN_WIDTH = 1200;
 constexpr int SCREEN_HEIGHT = 2000;
 constexpr ScreenId TEST_SCREEN_ID = 0; // 使用屏幕ID 0
 constexpr int PEN_WIDTH = 8;
+
+// The legacy RSInterfaces entry is a no-op; use the screen's render connection.
+std::shared_ptr<RSRenderInterface> GetRsRenderInterface(ScreenId screenId)
+{
+    auto connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    if (connectToRender == nullptr) {
+        return nullptr;
+    }
+    return std::make_shared<RSRenderInterface>(connectToRender);
+}
 } // namespace
 
 class RotationCorrectionTest : public RSGraphicTest {
@@ -207,17 +218,17 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_S
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_0);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -241,17 +252,17 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_S
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -275,17 +286,17 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_S
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_180);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -309,17 +320,17 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_S
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_270);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -343,17 +354,17 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_S
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, static_cast<ScreenRotation>(0));
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -377,17 +388,17 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_S
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, static_cast<ScreenRotation>(3));
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -411,17 +422,17 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_S
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, ScreenRotation::INVALID_SCREEN_ROTATION);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -445,17 +456,18 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_L
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_0);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_0);
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -479,17 +491,18 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_L
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -513,17 +526,18 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_L
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_180);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_180);
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -547,17 +561,18 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_L
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_270);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_270);
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -581,17 +596,18 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_L
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, static_cast<ScreenRotation>(0));
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, static_cast<ScreenRotation>(0));
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -615,17 +631,18 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_L
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, static_cast<ScreenRotation>(3));
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, static_cast<ScreenRotation>(3));
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -649,17 +666,18 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_L
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    auto& rsInterfaces = RSInterfaces::GetInstance();
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::INVALID_SCREEN_ROTATION);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::INVALID_SCREEN_ROTATION);
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -683,7 +701,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
@@ -691,7 +709,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     selfDrawingNode->SetAppRotationCorrection(ScreenRotation::ROTATION_0);
 
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -715,7 +733,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
@@ -723,7 +741,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     selfDrawingNode->SetAppRotationCorrection(ScreenRotation::ROTATION_90);
 
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -747,7 +765,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
@@ -755,7 +773,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     selfDrawingNode->SetAppRotationCorrection(ScreenRotation::ROTATION_180);
 
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -779,7 +797,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
@@ -787,7 +805,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     selfDrawingNode->SetAppRotationCorrection(ScreenRotation::ROTATION_270);
 
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -811,7 +829,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
@@ -819,7 +837,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     selfDrawingNode->SetAppRotationCorrection(static_cast<ScreenRotation>(0));
 
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -843,7 +861,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
@@ -851,7 +869,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     selfDrawingNode->SetAppRotationCorrection(static_cast<ScreenRotation>(3));
 
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -875,7 +893,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
@@ -883,7 +901,7 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_A
     selfDrawingNode->SetAppRotationCorrection(ScreenRotation::INVALID_SCREEN_ROTATION);
 
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -907,19 +925,21 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_C
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
 
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -943,19 +963,21 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_C
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
 
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_180);
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_180);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_180);
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -979,20 +1001,20 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_C
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
 
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     selfDrawingNode->SetAppRotationCorrection(ScreenRotation::ROTATION_90);
 
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -1016,20 +1038,21 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_C
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
-    auto& rsInterfaces = RSInterfaces::GetInstance();
 
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     selfDrawingNode->SetAppRotationCorrection(ScreenRotation::ROTATION_90);
 
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -1053,21 +1076,23 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_C
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
 
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     selfDrawingNode->SetAppRotationCorrection(ScreenRotation::ROTATION_90);
 
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -1091,19 +1116,21 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_C
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
 
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_90);
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_270);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_270);
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);
@@ -1127,21 +1154,23 @@ GRAPHIC_TEST(RotationCorrectionTest, CONTENT_DISPLAY_TEST, ROTATION_CORRECTION_C
     rootNode->SetFrame(0, 0, 1000, 1000);
     rootNode->SetBackgroundColor(Drawing::Color::COLOR_BLACK);
     GetRootNode()->AddChild(rootNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto& rsInterfaces = RSInterfaces::GetInstance();
 
     rsInterfaces.SetScreenCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_0);
-    rsInterfaces.SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_0);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    auto rsRenderInterface = GetRsRenderInterface(TEST_SCREEN_ID);
+    ASSERT_NE(rsRenderInterface, nullptr);
+    rsRenderInterface->SetLogicalCameraRotationCorrection(TEST_SCREEN_ID, ScreenRotation::ROTATION_0);
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     auto selfDrawingNode = CreateSelfDrawingNode();
     selfDrawingNode->SetAppRotationCorrection(ScreenRotation::ROTATION_0);
 
     rootNode->AddChild(selfDrawingNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    RSGraphicTestDirector::Instance().FlushMessage();
     usleep(SLEEP_TIME_FOR_PROXY);
 
     RegisterNode(rootNode);

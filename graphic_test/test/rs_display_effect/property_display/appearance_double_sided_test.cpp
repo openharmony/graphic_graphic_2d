@@ -54,7 +54,7 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene1_ParentY18
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
-    RegisterNode(parentNode);
+    RegisterNode(childNode);
 }
 
 /**
@@ -77,7 +77,7 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene2_ParentY18
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
-    RegisterNode(parentNode);
+    RegisterNode(childNode);
 }
 
 /**
@@ -100,7 +100,7 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene3_ParentY18
     childNode->SetDoubleSidedEnabled(true);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
-    RegisterNode(parentNode);
+    RegisterNode(childNode);
 }
 
 /**
@@ -123,7 +123,7 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene4_Parent0_C
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
-    RegisterNode(parentNode);
+    RegisterNode(childNode);
 }
 
 /**
@@ -146,7 +146,7 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene5_ParentX18
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
-    RegisterNode(parentNode);
+    RegisterNode(childNode);
 }
 
 /**
@@ -170,7 +170,7 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene6_Parent0_C
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
-    RegisterNode(parentNode);
+    RegisterNode(childNode);
 }
 
 /**
@@ -193,7 +193,7 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene7_Parent0_C
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
-    RegisterNode(parentNode);
+    RegisterNode(childNode);
 }
 
 /**
@@ -216,7 +216,7 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene8_ParentFal
     childNode->SetDoubleSidedEnabled(true);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
-    RegisterNode(parentNode);
+    RegisterNode(childNode);
 }
 
 /**
@@ -239,14 +239,14 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene9_ParentTru
     childNode->SetDoubleSidedEnabled(false);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
-    RegisterNode(parentNode);
+    RegisterNode(childNode);
 }
 
 /**
  * Scene 10: Parent doubleSided=false, Parent Y100, Child Y0, child doubleSided=true
  * Expected: parent child NOT visible.
  */
-GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene9_ParentTrue_Parent0_ChildY180_True)
+GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene10_ParentFalse_ParentY100_Child0_True)
 {
     auto parentNode = RSCanvasNode::Create(false, false, RSGraphicTestDirector::Instance().GetRSUIContext());
     parentNode->SetBounds({ 200, 200, 800, 800 });
@@ -262,6 +262,6 @@ GRAPHIC_TEST(DoubleSidedTest, CONTENT_DISPLAY_TEST, DoubleSided_Scene9_ParentTru
     childNode->SetDoubleSidedEnabled(true);
     parentNode->AddChild(childNode);
     RegisterNode(parentNode);
-    RegisterNode(parentNode);
+    RegisterNode(childNode);
 }
 } // namespace OHOS::Rosen

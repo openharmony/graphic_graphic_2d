@@ -31,6 +31,7 @@ namespace OHOS::Rosen {
 
 namespace {
 constexpr uint32_t SLEEP_TIME_FOR_PROXY = 100000;
+constexpr int SOURCE_COMMIT_TIMEOUT_MS = 1000;
 constexpr int RGBA_ALPHA_SHIFT = 24;
 constexpr int RGBA_RED_SHIFT = 0;
 constexpr int RGBA_GREEN_SHIFT = 8;
@@ -539,8 +540,9 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Wide_Surface_Test_1)
 {
 #ifdef ROSEN_OHOS
     auto surfaceNode = CreateSurfaceNodeWithBuffer("Hwc_Wide_Surface", 100, 100, 1000, 100, 0xFF800000);
+    ASSERT_NE(surfaceNode, nullptr);
     GetRootNode()->SetTestSurface(surfaceNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_TRUE(RSGraphicTestDirector::Instance().FlushMessageAndWait(SOURCE_COMMIT_TIMEOUT_MS));
     usleep(SLEEP_TIME_FOR_PROXY);
     RegisterNode(surfaceNode);
 #endif
@@ -1700,9 +1702,10 @@ GRAPHIC_TEST(HwcTest, CONTENT_DISPLAY_TEST, Hwc_Rotation_45_Disable_Test_1)
 {
 #ifdef ROSEN_OHOS
     auto surfaceNode = CreateSurfaceNodeWithBuffer("Hwc_Rot45_Disable", 200, 200, 400, 300, 0xFF20B2AA);
+    ASSERT_NE(surfaceNode, nullptr);
     surfaceNode->SetRotation(45.0f);  // Non-90 degree rotation
     GetRootNode()->SetTestSurface(surfaceNode);
-    RSTransactionProxy::GetInstance()->FlushImplicitTransaction();
+    ASSERT_TRUE(RSGraphicTestDirector::Instance().FlushMessageAndWait(SOURCE_COMMIT_TIMEOUT_MS));
     usleep(SLEEP_TIME_FOR_PROXY);
     RegisterNode(surfaceNode);
 #endif
