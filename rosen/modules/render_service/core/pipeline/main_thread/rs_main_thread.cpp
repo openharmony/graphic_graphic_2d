@@ -3177,8 +3177,8 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (receiver_) {
         receiver_->GetVSyncPeriod(rsPeriod);
     }
-    rsVsyncRateReduceManager_.ResetFrameValues(impl::CalculateRefreshRate(rsPeriod));
     uint32_t refreshRate = impl::CalculateRefreshRate(rsPeriod);
+    rsVsyncRateReduceManager_.ResetFrameValues(refreshRate);
     RS_TRACE_NAME_FMT("RSMainThread::UniRender refreshRate -> %u", refreshRate);
     RSCacheUpdateManager::SetCurrentVsyncRefreshRate(refreshRate);
 
