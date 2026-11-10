@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <charconv>
 #include "rs_render_pipeline_agent.h"
 #include "common/rs_background_thread.h"
 #include "common/rs_special_layer_manager.h"
@@ -95,6 +96,7 @@ constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
 constexpr uint32_t PIDLIST_SIZE_MAX = 128;
 constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
+constexpr int MAX_VALID_RATE = 120;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 
 }
