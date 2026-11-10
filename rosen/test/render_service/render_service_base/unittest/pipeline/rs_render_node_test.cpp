@@ -29,6 +29,7 @@
 #include "drawable/rs_property_drawable_foreground.h"
 #include "effect/rs_render_effect_common_def.h"
 #include "effect/rs_render_shader_base.h"
+#include "feature/filter_cache_manager/rs_cache_update_manager.h"
 #include "modifier_ng/custom/rs_custom_modifier.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
@@ -3716,7 +3717,7 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags001, TestSize.Level1)
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     filterDrawable->MarkFilterForceUseCache(true);
     filterDrawable->MarkFilterForceClearCache();
-    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->pendingPurge_ = true;
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
@@ -3739,7 +3740,7 @@ HWTEST_F(RSRenderNodeTest, MarkFilterCacheFlags002, TestSize.Level1)
     filterDrawable->MarkFilterForceUseCache(true);
     filterDrawable->MarkFilterForceClearCache();
     filterDrawable->MarkFilterRegionInteractWithDirty();
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
@@ -3894,7 +3895,7 @@ HWTEST_F(RSRenderNodeTest, MarkForceClearFilterCacheWithInvisible, TestSize.Leve
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
     node.MarkForceClearFilterCacheWithInvisible();
-    ASSERT_TRUE(filterDrawable->stagingCacheManager_->stagingForceClearCache_);
+    ASSERT_TRUE(filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_);
 }
 
 /**
@@ -4234,7 +4235,7 @@ HWTEST_F(RSRenderNodeTest, UpdateFilterCacheForceClearWithBackgroundAndAlphaDirt
     renderNode->UpdateFilterCacheWithBackgroundDirty();
 
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
-    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_, true);
 }
 
 /**
@@ -4265,9 +4266,9 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackgroundDirtyTest, T
     renderNode->MarkForceClearFilterCacheWithInvisible();
     renderNode->UpdateFilterCacheWithBackgroundDirty();
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
-    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_, true);
     EXPECT_NE(filterDrawable->stagingCacheManager_, nullptr);
-    EXPECT_EQ(filterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+    EXPECT_EQ(filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_, true);
 }
 
 /**
@@ -4294,7 +4295,7 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutAlphaDirtyTest, TestSi
     renderNode->UpdateFilterCacheWithBackgroundDirty();
 
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
-    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_, false);
 }
 
 /**
@@ -4321,7 +4322,7 @@ HWTEST_F(RSRenderNodeTest, NotForceClearFilterCacheWithoutBackBackgoundImageDirt
     renderNode->UpdateFilterCacheWithBackgroundDirty();
 
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
-    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_, false);
 }
 
 /**
@@ -4345,7 +4346,7 @@ HWTEST_F(RSRenderNodeTest, ForceClearFilterCacheWhenBackgroundDirty, TestSize.Le
     renderNode->CheckBlurFilterCacheNeedForceClearOrSave();
 
     EXPECT_NE(backgroundFilterDrawable->stagingCacheManager_, nullptr);
-    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_, true);
 }
 
 /**
@@ -4456,7 +4457,7 @@ HWTEST_F(RSRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestSize.Le
     renderNode->CheckBlurFilterCacheNeedForceClearOrSave();
 
     EXPECT_NE(compositingFilterDrawable->stagingCacheManager_, nullptr);
-    EXPECT_EQ(compositingFilterDrawable->stagingCacheManager_->stagingForceClearCache_, true);
+    EXPECT_EQ(compositingFilterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_, true);
 }
 
 /**

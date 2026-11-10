@@ -381,9 +381,9 @@ HWTEST_F(RSPropertyDrawableTest, CheckAndUpdateAIBarCacheStatusTest009, TestSize
     EXPECT_FALSE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
 
     if (filterDrawable->stagingCacheManager_ != nullptr) {
-        filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
-        filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
-        filterDrawable->stagingCacheManager_->stagingForceClearCacheForLastFrame_ = false;
+        filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->filterType_ = RSFilter::AIBAR;
+        filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->cacheUpdateInterval_ = 1;
+        filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCacheForLastFrame_ = false;
         EXPECT_TRUE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
     }
 
@@ -404,8 +404,8 @@ HWTEST_F(RSPropertyDrawableTest, ForceReduceAIBarCacheInterval, TestSize.Level1)
     EXPECT_FALSE(filterDrawable->CheckAndUpdateAIBarCacheStatus(false));
 
     if (filterDrawable->stagingCacheManager_ != nullptr) {
-        filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
-        filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
+        filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->filterType_ = RSFilter::AIBAR;
+        filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->cacheUpdateInterval_ = 1;
         EXPECT_TRUE(filterDrawable->ForceReduceAIBarCacheInterval(true));
         EXPECT_FALSE(filterDrawable->ForceReduceAIBarCacheInterval(false));
     }
