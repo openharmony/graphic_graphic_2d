@@ -31,6 +31,7 @@
 #include "consumer_surface.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "ipc_callbacks/rs_frame_stability_callback_stub.h"
+#include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_surface_render_node.h"
 #include "rs_render_pipeline_agent.h"
@@ -90,6 +91,13 @@ public:
     RSFrameStabilityCallbackStubMock() = default;
     virtual ~RSFrameStabilityCallbackStubMock() = default;
     void OnFrameStabilityChanged(bool isStable) override {};
+};
+
+class RSSurfaceOcclusionChangeCallbackStubMock : public RSSurfaceOcclusionChangeCallbackStub {
+public:
+    RSSurfaceOcclusionChangeCallbackStubMock() = default;
+    virtual ~RSSurfaceOcclusionChangeCallbackStubMock() = default;
+    void OnSurfaceOcclusionVisibleChanged(float visibleAreaRatio) override {}
 };
 
 class RSRenderPipelineAgentTest : public testing::Test {
@@ -2710,5 +2718,74 @@ HWTEST_F(RSRenderPipelineAgentTest, GetMemoryGraphics_FiltersPid0AndSelfPid, Tes
 
     std::set<pid_t> exitedPids = {0, selfPid, normalPid};
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallback003
+ * @tc.desc: Verify RegisterSurfaceOcclusionChangeCallback rejects invalid arguments
+ * @tc.type: FUNC
+ * @tc.require: issue26722
+ */
+HWTEST_F(RSRenderPipelineAgentTest, RegisterSurfaceOcclusionChangeCallback003, TestSize.Level1)
+{
+    constexpr pid_t pid = 2001;
+    NodeId id = 0;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = new RSSurfaceOcclusionChangeCallbackStubMock();
+    std::vector<float> partitionPoints;
+
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> nullAgent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+    ASSERT_NE(nullAgent, nullptr);
+    EXPECT_EQ(nullAgent->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints),
+        static_cast<int32_t>(StatusCode::INVALID_ARGUMENTS));
+
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    sptr<RSISurfaceOcclusionChangeCallback> nullCallback = nullptr;
+    EXPECT_EQ(agent->RegisterSurfaceOcclusionChangeCallback(id, pid, nullCallback, partitionPoints),
+        static_cast<int32_t>(StatusCode::INVALID_ARGUMENTS));
+
+    std::vector<float> tooManyPoints(MAX_PARTITION_POINTS + 1, 0.5f);
+    EXPECT_EQ(agent->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, tooManyPoints),
+        static_cast<int32_t>(StatusCode::INVALID_ARGUMENTS));
+    EXPECT_EQ(mainThread_->surfaceOcclusionListeners_.size(), 0);
+}
+
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallback004
+ * @tc.desc: Verify RegisterSurfaceOcclusionChangeCallback reports the per-pid quota to IPC callers
+ * @tc.type: FUNC
+ * @tc.require: issue26722
+ */
+HWTEST_F(RSRenderPipelineAgentTest, RegisterSurfaceOcclusionChangeCallback004, TestSize.Level1)
+{
+    constexpr pid_t fullPid = 2002;
+    constexpr pid_t otherPid = 2003;
+    constexpr size_t perPidLimit = 256;
+    NodeId id = 0;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = new RSSurfaceOcclusionChangeCallbackStubMock();
+    std::vector<float> partitionPoints;
+
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    renderPipeline->mainThread_ = mainThread_;
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    for (size_t i = 0; i < perPidLimit; ++i) {
+        EXPECT_EQ(agent->RegisterSurfaceOcclusionChangeCallback(id++, fullPid, callback, partitionPoints),
+            static_cast<int32_t>(StatusCode::SUCCESS));
+    }
+    EXPECT_EQ(agent->RegisterSurfaceOcclusionChangeCallback(id++, fullPid, callback, partitionPoints),
+        static_cast<int32_t>(StatusCode::INVALID_ARGUMENTS));
+    EXPECT_EQ(agent->RegisterSurfaceOcclusionChangeCallback(id++, otherPid, callback, partitionPoints),
+        static_cast<int32_t>(StatusCode::SUCCESS));
+
+    mainThread_->ClearSurfaceOcclusionChangeCallback(fullPid);
+    mainThread_->ClearSurfaceOcclusionChangeCallback(otherPid);
+    EXPECT_EQ(mainThread_->surfaceOcclusionListeners_.size(), 0);
+    EXPECT_TRUE(mainThread_->surfaceOcclusionListenerCount_.empty());
 }
 } // namespace OHOS::Rosen

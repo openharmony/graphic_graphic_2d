@@ -994,6 +994,77 @@ HWTEST_F(RSPropertyTest, SetAffectsRendering001, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SetAffectsRendering002
+ * @tc.desc: RSProperty Set marks the node as a draw node only when affectsRendering is true (template)
+ * @tc.type: FUNC
+ * @tc.require: issue26722
+ */
+HWTEST_F(RSPropertyTest, SetAffectsRendering002, TestSize.Level1)
+{
+    // default argument value is true, so the node becomes a draw node
+    auto defaultNode = RSCanvasNode::Create();
+    auto defaultProp = std::make_shared<RSProperty<float>>(1.0f);
+    defaultProp->target_ = defaultNode;
+    EXPECT_FALSE(defaultNode->GetIsDrawn());
+    defaultProp->Set(2.0f);
+    EXPECT_TRUE(defaultNode->GetIsDrawn());
+    EXPECT_EQ(defaultNode->GetDrawNodeType(), DrawNodeType::DrawPropertyType);
+    EXPECT_EQ(defaultProp->Get(), 2.0f);
+
+    // affectsRendering false keeps the node undrawn but still updates the value
+    auto containerNode = RSCanvasNode::Create();
+    auto containerProp = std::make_shared<RSProperty<float>>(1.0f);
+    containerProp->target_ = containerNode;
+    EXPECT_FALSE(containerNode->GetIsDrawn());
+    containerProp->Set(2.0f, false);
+    EXPECT_FALSE(containerNode->GetIsDrawn());
+    EXPECT_EQ(containerNode->GetDrawNodeType(), DrawNodeType::PureContainerType);
+    EXPECT_EQ(containerProp->Get(), 2.0f);
+
+    // a later call with affectsRendering true still marks the undrawn node
+    containerProp->Set(3.0f, true);
+    EXPECT_TRUE(containerNode->GetIsDrawn());
+    EXPECT_EQ(containerNode->GetDrawNodeType(), DrawNodeType::DrawPropertyType);
+    EXPECT_EQ(containerProp->Get(), 3.0f);
+}
+
+/**
+ * @tc.name: SetAffectsRendering003
+ * @tc.desc: RSAnimatableProperty Set marks the node as a draw node only when affectsRendering is true
+ * @tc.type: FUNC
+ * @tc.require: issue26722
+ */
+HWTEST_F(RSPropertyTest, SetAffectsRendering003, TestSize.Level1)
+{
+    // affectsRendering true marks the node as a draw node
+    auto drawNode = RSCanvasNode::Create();
+    auto drawProp = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    drawProp->target_ = drawNode;
+    EXPECT_FALSE(drawNode->GetIsDrawn());
+    drawProp->Set(2.0f, true);
+    EXPECT_TRUE(drawNode->GetIsDrawn());
+    EXPECT_EQ(drawNode->GetDrawNodeType(), DrawNodeType::DrawPropertyType);
+    EXPECT_EQ(drawProp->Get(), 2.0f);
+
+    // affectsRendering false keeps the node undrawn but still updates the value
+    auto containerNode = RSCanvasNode::Create();
+    auto containerProp = std::make_shared<RSAnimatableProperty<float>>(1.0f);
+    containerProp->target_ = containerNode;
+    EXPECT_FALSE(containerNode->GetIsDrawn());
+    containerProp->Set(2.0f, false);
+    EXPECT_FALSE(containerNode->GetIsDrawn());
+    EXPECT_EQ(containerNode->GetDrawNodeType(), DrawNodeType::PureContainerType);
+    EXPECT_EQ(containerProp->Get(), 2.0f);
+
+    // affectsRendering false on an already drawn node keeps it drawn
+    containerProp->Set(3.0f, true);
+    EXPECT_TRUE(containerNode->GetIsDrawn());
+    containerProp->Set(4.0f, false);
+    EXPECT_TRUE(containerNode->GetIsDrawn());
+    EXPECT_EQ(containerProp->Get(), 4.0f);
+}
+
+/**
  * @tc.name: RSNGShaderBaseGetRenderPropertyTest
  * @tc.desc: Test GetRenderPropertyTest for RSProperty<std::shared_ptr<RSNGShaderBase>>
  * @tc.type:FUNC

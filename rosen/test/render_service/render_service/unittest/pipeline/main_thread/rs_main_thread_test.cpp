@@ -4059,7 +4059,7 @@ HWTEST_F(RSMainThreadTest, RegisterSurfaceOcclusionChangeCallBack001, TestSize.L
     std::vector<float> partitionPoints = {};
     mainThread->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
     ASSERT_NE(mainThread->surfaceOcclusionListeners_.size(), 0);
-    mainThread->surfaceOcclusionListeners_.clear();
+    mainThread->ClearSurfaceOcclusionChangeCallback(pid);
 }
 
 /**
@@ -4078,7 +4078,7 @@ HWTEST_F(RSMainThreadTest, RegisterSurfaceOcclusionChangeCallBack002, TestSize.L
     std::vector<float> partitionPoints = {1.0f};
     mainThread->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
     ASSERT_NE(mainThread->surfaceOcclusionListeners_.size(), 0);
-    mainThread->surfaceOcclusionListeners_.clear();
+    mainThread->ClearSurfaceOcclusionChangeCallback(pid);
 }
 
 /**
@@ -4091,18 +4091,192 @@ HWTEST_F(RSMainThreadTest, RegisterSurfaceOcclusionChangeCallBack003, TestSize.L
 {
     auto mainThread = RSMainThread::Instance();
     ASSERT_NE(mainThread, nullptr);
-    NodeId id = 0;
+    std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>, std::vector<float>, uint8_t> info(
+        0, nullptr, {}, 0);
+    for (size_t i = 0; i < std::numeric_limits<uint16_t>::max(); ++i) {
+        mainThread->surfaceOcclusionListeners_.emplace(i, info);
+    }
+    NodeId id = std::numeric_limits<uint16_t>::max();
     pid_t pid = 0;
     sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
     std::vector<float> partitionPoints;
-    mainThread->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
-    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 1);
-    for (; id <= std::numeric_limits<uint16_t>::max(); ++id) {
-        mainThread->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
-    }
-    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), std::numeric_limits<uint16_t>::max());
-    mainThread->surfaceOcclusionListeners_.clear();
+    EXPECT_FALSE(mainThread->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints));
+    mainThread->ClearSurfaceOcclusionChangeCallback(pid);
     EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 0);
+}
+
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallBack004
+ * @tc.desc: Test RegisterSurfaceOcclusionChangeCallBack with the per-pid listener limit
+ * @tc.type: FUNC
+ * @tc.require: issue26722
+ */
+HWTEST_F(RSMainThreadTest, RegisterSurfaceOcclusionChangeCallBack004, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    constexpr pid_t pid = TEST_PID_1;
+    constexpr size_t perPidLimit = 256;
+    NodeId id = 0;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
+    std::vector<float> partitionPoints;
+    for (size_t i = 0; i < perPidLimit; ++i) {
+        EXPECT_TRUE(mainThread->RegisterSurfaceOcclusionChangeCallback(id++, pid, callback, partitionPoints));
+    }
+    EXPECT_FALSE(mainThread->RegisterSurfaceOcclusionChangeCallback(id++, pid, callback, partitionPoints));
+    // Another pid is not affected by the exhausted quota.
+    EXPECT_TRUE(mainThread->RegisterSurfaceOcclusionChangeCallback(id++, TEST_PID_2, callback, partitionPoints));
+    // Releasing one listener frees a quota slot.
+    mainThread->UnRegisterSurfaceOcclusionChangeCallback(0);
+    EXPECT_TRUE(mainThread->RegisterSurfaceOcclusionChangeCallback(id++, pid, callback, partitionPoints));
+    mainThread->ClearSurfaceOcclusionChangeCallback(pid);
+    mainThread->ClearSurfaceOcclusionChangeCallback(TEST_PID_2);
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 0);
+    EXPECT_TRUE(mainThread->surfaceOcclusionListenerCount_.empty());
+}
+
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallBack005
+ * @tc.desc: Test re-registering an existing id updates the listener without changing the count
+ * @tc.type: FUNC
+ * @tc.require: issue26722
+ */
+HWTEST_F(RSMainThreadTest, RegisterSurfaceOcclusionChangeCallBack005, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    constexpr NodeId id = 9001;
+    constexpr pid_t pid = TEST_PID_1;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
+    std::vector<float> partitionPoints;
+    EXPECT_TRUE(mainThread->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints));
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 1);
+    EXPECT_EQ(mainThread->surfaceOcclusionListenerCount_[pid], 1);
+    EXPECT_EQ(std::get<3>(mainThread->surfaceOcclusionListeners_[id]), 1);
+
+    // Re-registering an existing id updates the entry in place and keeps the per-pid count.
+    partitionPoints = {0.2f, 0.5f};
+    EXPECT_TRUE(mainThread->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints));
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 1);
+    EXPECT_EQ(mainThread->surfaceOcclusionListenerCount_[pid], 1);
+    EXPECT_EQ(std::get<3>(mainThread->surfaceOcclusionListeners_[id]), static_cast<uint8_t>(partitionPoints.size()));
+
+    mainThread->ClearSurfaceOcclusionChangeCallback(pid);
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 0);
+    EXPECT_TRUE(mainThread->surfaceOcclusionListenerCount_.empty());
+}
+
+/**
+ * @tc.name: RegisterSurfaceOcclusionChangeCallBack006
+ * @tc.desc: Test a new id is rejected by the max-size branch when surfaceOcclusionListeners_ is full
+ * @tc.type: FUNC
+ * @tc.require: issue26722
+ */
+HWTEST_F(RSMainThreadTest, RegisterSurfaceOcclusionChangeCallBack006, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    // Keep this case independent from listener state left by other cases in the suite.
+    mainThread->ClearSurfaceOcclusionChangeCallback(0);
+    mainThread->ClearSurfaceOcclusionChangeCallback(TEST_PID_1);
+    mainThread->ClearSurfaceOcclusionChangeCallback(TEST_PID_2);
+    ASSERT_EQ(mainThread->surfaceOcclusionListeners_.size(), 0);
+    std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>, std::vector<float>, uint8_t> info(
+        TEST_PID_1, nullptr, {}, 0);
+    for (NodeId i = 0; i < std::numeric_limits<uint16_t>::max(); ++i) {
+        mainThread->surfaceOcclusionListeners_.emplace(i, info);
+    }
+    constexpr NodeId newId = 70000;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
+    std::vector<float> partitionPoints;
+
+    ASSERT_EQ(mainThread->surfaceOcclusionListeners_.size(), std::numeric_limits<uint16_t>::max());
+    // newId is absent, and the per-pid count map is empty, so only the max-size branch can reject the register.
+    EXPECT_FALSE(mainThread->RegisterSurfaceOcclusionChangeCallback(newId, TEST_PID_1, callback, partitionPoints));
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), std::numeric_limits<uint16_t>::max());
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.count(newId), 0);
+    EXPECT_TRUE(mainThread->surfaceOcclusionListenerCount_.empty());
+
+    mainThread->ClearSurfaceOcclusionChangeCallback(TEST_PID_1);
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 0);
+}
+
+/**
+ * @tc.name: UnRegisterSurfaceOcclusionChangeCallback001
+ * @tc.desc: Test UnRegisterSurfaceOcclusionChangeCallback for missing id, existing id and count-missing pid
+ * @tc.type: FUNC
+ * @tc.require: issue26722
+ */
+HWTEST_F(RSMainThreadTest, UnRegisterSurfaceOcclusionChangeCallback001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    constexpr NodeId missingId = 9100;
+    constexpr NodeId id = 9101;
+    constexpr pid_t pid = TEST_PID_1;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
+    std::vector<float> partitionPoints;
+
+    // Unregistering an id which was never registered is a no-op.
+    mainThread->UnRegisterSurfaceOcclusionChangeCallback(missingId);
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 0);
+    EXPECT_TRUE(mainThread->surfaceOcclusionListenerCount_.empty());
+
+    // Unregistering the last listener of a pid erases its count entry.
+    EXPECT_TRUE(mainThread->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints));
+    EXPECT_EQ(mainThread->surfaceOcclusionListenerCount_[pid], 1);
+    mainThread->UnRegisterSurfaceOcclusionChangeCallback(id);
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 0);
+    EXPECT_TRUE(mainThread->surfaceOcclusionListenerCount_.empty());
+
+    // A listener whose pid has no count entry is removed without touching the count map.
+    std::tuple<pid_t, sptr<RSISurfaceOcclusionChangeCallback>, std::vector<float>, uint8_t> info(
+        TEST_PID_2, nullptr, {}, 0);
+    mainThread->surfaceOcclusionListeners_.emplace(id, info);
+    mainThread->UnRegisterSurfaceOcclusionChangeCallback(id);
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 0);
+    EXPECT_TRUE(mainThread->surfaceOcclusionListenerCount_.empty());
+}
+
+/**
+ * @tc.name: UnRegisterSurfaceOcclusionChangeCallback002
+ * @tc.desc: Test the per-pid count entry is decremented and erased only after the last listener is removed
+ * @tc.type: FUNC
+ * @tc.require: issue26722
+ */
+HWTEST_F(RSMainThreadTest, UnRegisterSurfaceOcclusionChangeCallback002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    // Keep this case independent from listener state left by other cases in the suite.
+    mainThread->ClearSurfaceOcclusionChangeCallback(0);
+    mainThread->ClearSurfaceOcclusionChangeCallback(TEST_PID_1);
+    mainThread->ClearSurfaceOcclusionChangeCallback(TEST_PID_2);
+    ASSERT_EQ(mainThread->surfaceOcclusionListeners_.size(), 0);
+    ASSERT_TRUE(mainThread->surfaceOcclusionListenerCount_.empty());
+
+    constexpr NodeId firstId = 9200;
+    constexpr NodeId secondId = 9201;
+    constexpr pid_t pid = TEST_PID_1;
+    sptr<RSISurfaceOcclusionChangeCallback> callback = nullptr;
+    std::vector<float> partitionPoints;
+    ASSERT_TRUE(mainThread->RegisterSurfaceOcclusionChangeCallback(firstId, pid, callback, partitionPoints));
+    ASSERT_TRUE(mainThread->RegisterSurfaceOcclusionChangeCallback(secondId, pid, callback, partitionPoints));
+    ASSERT_EQ(mainThread->surfaceOcclusionListeners_.size(), 2);
+    ASSERT_EQ(mainThread->surfaceOcclusionListenerCount_[pid], 2);
+
+    // Removing one of two listeners only decrements the count entry, so it must still exist.
+    mainThread->UnRegisterSurfaceOcclusionChangeCallback(firstId);
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 1);
+    ASSERT_EQ(mainThread->surfaceOcclusionListenerCount_.count(pid), 1);
+    EXPECT_EQ(mainThread->surfaceOcclusionListenerCount_[pid], 1);
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.count(firstId), 0);
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.count(secondId), 1);
+
+    // Removing the last listener of the pid erases the count entry.
+    mainThread->UnRegisterSurfaceOcclusionChangeCallback(secondId);
+    EXPECT_EQ(mainThread->surfaceOcclusionListeners_.size(), 0);
+    EXPECT_TRUE(mainThread->surfaceOcclusionListenerCount_.empty());
 }
 
 /**

@@ -278,6 +278,7 @@ constexpr uint64_t ONE_SECOND_TIMESTAMP = 1e9;
 constexpr int SKIP_FIRST_FRAME_DRAWING_NUM = 1;
 constexpr uint32_t MAX_ANIMATED_SCENES_NUM = 0xFFFF;
 constexpr size_t MAX_SURFACE_OCCLUSION_LISTENERS_SIZE = std::numeric_limits<uint16_t>::max();
+constexpr int MAX_SURFACE_OCCLUSION_LISTENERS_PER_PID = 256;
 constexpr uint32_t MAX_DROP_FRAME_PID_LIST_SIZE = 1024;
 const std::string  FORCE_REFRESH_ONE_FRAME_TASK_NAME = "ForceRefreshOneFrameIfNoRNV";
 constexpr uint32_t MAX_BUFFER_RECLAIM_NUMS_IN_SINGLE_FRAME = 1;
@@ -4761,7 +4762,7 @@ void RSMainThread::UnRegisterOcclusionChangeCallback(pid_t pid)
     occlusionListeners_.erase(pid);
 }
 
-void RSMainThread::RegisterSurfaceOcclusionChangeCallback(
+bool RSMainThread::RegisterSurfaceOcclusionChangeCallback(
     NodeId id, pid_t pid, sptr<RSISurfaceOcclusionChangeCallback> callback, std::vector<float>& partitionPoints)
 {
     std::lock_guard<std::mutex> lock(surfaceOcclusionMutex_);
@@ -4772,17 +4773,39 @@ void RSMainThread::RegisterSurfaceOcclusionChangeCallback(
     auto it = surfaceOcclusionListeners_.find(id);
     if (it != surfaceOcclusionListeners_.end()) {
         it->second = std::make_tuple(pid, callback, partitionPoints, level);
-    } else if (surfaceOcclusionListeners_.size() < MAX_SURFACE_OCCLUSION_LISTENERS_SIZE) {
-        surfaceOcclusionListeners_.emplace(id, std::make_tuple(pid, callback, partitionPoints, level));
-    } else {
-        RS_LOGW("%{public}s: register failed because surfaceOcclusionListeners_ reached max size", __func__);
+        return true;
     }
+    if (surfaceOcclusionListeners_.size() >= MAX_SURFACE_OCCLUSION_LISTENERS_SIZE) {
+        RS_LOGW("%{public}s: register failed because surfaceOcclusionListeners_ reached max size", __func__);
+        return false;
+    }
+    auto countIt = surfaceOcclusionListenerCount_.find(pid);
+    if (countIt != surfaceOcclusionListenerCount_.end() &&
+        countIt->second >= MAX_SURFACE_OCCLUSION_LISTENERS_PER_PID) {
+        RS_LOGW("%{public}s: register failed because pid:%{public}d reached the per-pid limit %{public}d",
+            __func__, pid, MAX_SURFACE_OCCLUSION_LISTENERS_PER_PID);
+        return false;
+    }
+    surfaceOcclusionListeners_.emplace(id, std::make_tuple(pid, callback, partitionPoints, level));
+    if (countIt != surfaceOcclusionListenerCount_.end()) {
+        ++countIt->second;
+    } else {
+        surfaceOcclusionListenerCount_.emplace(pid, 1);
+    }
+    return true;
 }
 
 void RSMainThread::UnRegisterSurfaceOcclusionChangeCallback(NodeId id)
 {
     std::lock_guard<std::mutex> lock(surfaceOcclusionMutex_);
-    surfaceOcclusionListeners_.erase(id);
+    auto it = surfaceOcclusionListeners_.find(id);
+    if (it != surfaceOcclusionListeners_.end()) {
+        auto countIt = surfaceOcclusionListenerCount_.find(std::get<0>(it->second));
+        if (countIt != surfaceOcclusionListenerCount_.end() && --countIt->second <= 0) {
+            surfaceOcclusionListenerCount_.erase(countIt);
+        }
+        surfaceOcclusionListeners_.erase(it);
+    }
     savedAppWindowNode_.erase(id);
 }
 
@@ -4799,6 +4822,7 @@ void RSMainThread::ClearSurfaceOcclusionChangeCallback(pid_t pid)
             it++;
         }
     }
+    surfaceOcclusionListenerCount_.erase(pid);
 }
 
 void RSMainThread::SurfaceOcclusionChangeCallback(VisibleData& dstCurVisVec)

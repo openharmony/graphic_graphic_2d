@@ -1672,7 +1672,9 @@ int32_t RSRenderPipelineAgent::RegisterSurfaceOcclusionChangeCallback(
         RS_LOGE("RegisterSurfaceOcclusionChangeCallback: callback is nullptr");
         return StatusCode::INVALID_ARGUMENTS;
     }
-    pipeline->GetMainThread()->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints);
+    if (!pipeline->GetMainThread()->RegisterSurfaceOcclusionChangeCallback(id, pid, callback, partitionPoints)) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     return StatusCode::SUCCESS;
 }
 
