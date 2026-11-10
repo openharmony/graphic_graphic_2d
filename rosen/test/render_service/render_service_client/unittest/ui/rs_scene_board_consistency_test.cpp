@@ -146,8 +146,8 @@ HWTEST_F(RSSceneBoardConsistencyTest, ProcessFallbackConsistency001, TestSize.Le
     ASSERT_NE(contextA, nullptr);
     ASSERT_NE(contextB, nullptr);
 
-    // Before any mark: no process-level flag and the unmarked context is not SCB.
-    EXPECT_FALSE(RSUIContextManager::Instance().HasSceneBoardInstance());
+    // The context manager is a process-wide singleton, so earlier test cases may already
+    // have marked a context; only the post-mark state is deterministic here.
     EXPECT_FALSE(contextB->IsSceneBoard());
 
     auto directorA = MarkClientInstance(contextA);
@@ -176,8 +176,7 @@ HWTEST_F(RSSceneBoardConsistencyTest, CreateConsistency002, TestSize.Level1)
     MarkServerInstance(serverContext, contextA);
 
     NodeId idCreate = MakeClientNodeId(4);
-    SurfaceNodeCommandHelper::Create(serverContext, idCreate, RSSurfaceNodeType::DEFAULT, false,
-        contextA->GetToken());
+    SurfaceNodeCommandHelper::Create(serverContext, idCreate, false, contextA->GetToken());
     auto surfaceCreate = serverContext.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(idCreate);
     ASSERT_NE(surfaceCreate, nullptr);
     EXPECT_TRUE(surfaceCreate->IsSceneBoard());
@@ -259,7 +258,14 @@ HWTEST_F(RSSceneBoardConsistencyTest, CommandMarshallingConsistency001, TestSize
 
     // Server-side decoding restores the command; the round-trip proves the trailing token
     // did not desync the stream (a size mismatch would fail decoding).
+    // Marshalling writes the type/subType header before the params, so the direct
+    // Unmarshalling entry must skip it exactly like the service does.
     parcel.RewindRead(0);
+    uint16_t headerType = 0;
+    uint16_t headerSubType = 0;
+    ASSERT_TRUE(parcel.ReadUint16(headerType));
+    ASSERT_TRUE(parcel.ReadUint16(headerSubType));
+    EXPECT_EQ(headerType, static_cast<uint16_t>(RSCommandType::CANVAS_NODE));
     auto decoded = RSCanvasNodeCreate::Unmarshalling(parcel);
     ASSERT_NE(decoded, nullptr);
     EXPECT_EQ(decoded->GetNodeId(), id);

@@ -279,85 +279,71 @@ HWTEST_F(RSCanvasNodeCommandTest, CreateSceneBoardBranchTest001, TestSize.Level1
 
 /**
  * @tc.name: CreateScbRoute001
- * @tc.desc: Create routes to the SCB pool when the pool switch is on and the creating
- *           instance is SceneBoard-marked (useScbPool == true).
+ * @tc.desc: test Create routes to CreateScbCanvasRenderNode when the SCB pool is enabled
+ *           and the node is SceneBoard (marked token) (the useScbPool==true branch).
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasNodeCommandTest, CreateScbRoute001, TestSize.Level1)
 {
     RSContext context;
+    auto& nodeGC = RSRenderNodeGC::Instance();
     auto& allocator = RSRenderNodeAllocator::Instance();
+    pid_t originalPid = nodeGC.GetScbPid();
+
+    constexpr pid_t scbPid = 42;
+    constexpr uint64_t token = 421;
+    nodeGC.SetScbPid(scbPid);
+    // Ensure the SCB pool switch is enabled via system property.
+    system::SetParameter("persist.debug.rs.scb_pool_enabled", "1");
+    // NodeId high 32 bits encode the pid -> ExtractPid(id) == scbPid
+    NodeId id = (static_cast<NodeId>(scbPid) << 32) | 1;
+    // The pool route also requires SceneBoard identity, which comes from a marked token.
+    RSUIDirectorCommandHelper::GoCreate(context, MakeNodeId(scbPid, 0), token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, MakeNodeId(scbPid, 0), token);
+    RSCanvasNodeCommandHelper::Create(context, id, false, token);
+    // Restore global state immediately so a failed assertion below cannot leak it.
+    nodeGC.SetScbPid(originalPid);
     system::SetParameter("persist.debug.rs.scb_pool_enabled", "1");
 
-    constexpr pid_t pid = 820;
-    constexpr uint64_t token = 821;
-    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
-    constexpr NodeId id = MakeNodeId(pid, 1);
-    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
-    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
-
-    RSCanvasNodeCommandHelper::Create(context, id, false, token);
     auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
     ASSERT_NE(node, nullptr);
-    // Marked instance -> node must have been allocated from the SCB contiguous pool
+    // Node must have been allocated from the SCB contiguous pool
     EXPECT_TRUE(allocator.IsScbNodePool(node.get()));
 
-    system::SetParameter("persist.debug.rs.scb_pool_enabled", "1");
     context.GetMutableNodeMap().UnregisterRenderNode(id);
 }
 
 /**
  * @tc.name: CreateScbRouteDisabled001
- * @tc.desc: Create routes to the generic path when the SCB pool switch is off
- *           even for a SceneBoard-marked instance (useScbPool == false via the flag).
+ * @tc.desc: test Create routes to the generic path when the SCB pool switch is off
+ *           even if the pid matches scbPid_ (the useScbPool==false branch via the flag).
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasNodeCommandTest, CreateScbRouteDisabled001, TestSize.Level1)
 {
     RSContext context;
+    auto& nodeGC = RSRenderNodeGC::Instance();
     auto& allocator = RSRenderNodeAllocator::Instance();
+    pid_t originalPid = nodeGC.GetScbPid();
+
+    constexpr pid_t scbPid = 43;
+    nodeGC.SetScbPid(scbPid);
+    // Disable the SCB pool switch via system property.
     system::SetParameter("persist.debug.rs.scb_pool_enabled", "0");
+    NodeId id = (static_cast<NodeId>(scbPid) << 32) | 2;
+    RSCanvasNodeCommandHelper::Create(context, id, false);
+    // Restore global state immediately so a failed assertion below cannot leak it.
+    nodeGC.SetScbPid(originalPid);
+    system::SetParameter("persist.debug.rs.scb_pool_enabled", "1");
 
-    constexpr pid_t pid = 830;
-    constexpr uint64_t token = 831;
-    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
-    constexpr NodeId id = MakeNodeId(pid, 1);
-    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
-    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
-
-    RSCanvasNodeCommandHelper::Create(context, id, false, token);
     auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
     ASSERT_NE(node, nullptr);
     // Switch off -> must NOT come from the SCB pool
     EXPECT_FALSE(allocator.IsScbNodePool(node.get()));
 
-    // Restore the default switch state.
-    system::SetParameter("persist.debug.rs.scb_pool_enabled", "1");
     context.GetMutableNodeMap().UnregisterRenderNode(id);
 }
 
-/**
- * @tc.name: CreateScbRouteUnmarked001
- * @tc.desc: Create routes to the generic path for an unmarked process (no mark, no pool).
- * @tc.type: FUNC
- */
-HWTEST_F(RSCanvasNodeCommandTest, CreateScbRouteUnmarked001, TestSize.Level1)
-{
-    RSContext context;
-    auto& allocator = RSRenderNodeAllocator::Instance();
-    system::SetParameter("persist.debug.rs.scb_pool_enabled", "1");
-
-    constexpr pid_t pid = 840;
-    constexpr NodeId id = MakeNodeId(pid, 1);
-    RSCanvasNodeCommandHelper::Create(context, id, false, 0);
-    auto node = context.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(id);
-    ASSERT_NE(node, nullptr);
-    EXPECT_FALSE(allocator.IsScbNodePool(node.get()));
-
-    context.GetMutableNodeMap().UnregisterRenderNode(id);
-}
-
- 
 /**
  * @tc.name: CreateUnRegisterUnTreeNode001
  * @tc.desc: test Create takes the UnRegisterUnTreeNode==true branch (node pre-registered

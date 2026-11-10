@@ -109,10 +109,15 @@ void RSRenderNodeGCTest::ClearBgBucket()
 void RSRenderNodeGCTest::ClearScbFreeQueue()
 {
     auto& allocator = RSRenderNodeAllocator::Instance();
-    // Drain the SCB free queue by creating nodes (each create pulls one entry)
+    // Drain the SCB free queue by creating nodes (each create pulls one entry).
+    // Each drained node is destroyed on scope exit, so its NodeDestructor enqueues the raw
+    // pointer into the GC buckets. Those pointers would dangle once the pool is shrunk, so
+    // the buckets must be cleared as part of draining.
     while (allocator.GetScbFreeQueueSize() > 0) {
         allocator.CreateScbCanvasRenderNode(0);
     }
+    ClearNodeBucket();
+    ClearBgBucket();
 }
  
 void RSRenderNodeGCTest::AddNodes(uint32_t nums, pid_t pid, NodeId startId,
@@ -1676,32 +1681,34 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucket_ScbQueueFull001, TestSize.Level1)
 {
     RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
     RSRenderNodeAllocator& allocator = RSRenderNodeAllocator::Instance();
-    ClearNodeBucket();
+    // Drain first: draining creates nodes whose NodeDestructor re-enqueues them into the
+    // buckets, so the buckets must be cleared afterwards to start from a clean state.
     ClearScbFreeQueue();
+    ClearNodeBucket();
+    ClearBgBucket();
     gc.isEnable_.store(true);
 
-    // Fill the SCB free queue to its limit (SCB_NODE_FREE_QUEUE_LIMIT=32)
+    // Fill the SCB free queue to its limit (SCB_NODE_FREE_QUEUE_LIMIT=32).
+    // Allocate the slots straight from the pool: CreateScbCanvasRenderNode reuses free-queue
+    // entries and falls back to the heap once the pool is exhausted (earlier test cases leak
+    // slots), which would make AddScbNodeToPool fail on Owns()==false.
     constexpr uint32_t queueLimit = 32;
-    std::vector<RSCanvasRenderNode*> recycledHolders;
+    std::vector<RSCanvasRenderNode*> fillers;
+    fillers.reserve(queueLimit + 1);
+    for (uint32_t i = 0; i <= queueLimit; ++i) {
+        void* mem = RSScbNodeMemoryPool::Instance().Allocate();
+        ASSERT_NE(mem, nullptr);
+        fillers.push_back(new (mem) RSCanvasRenderNode(7100 + i));
+    }
     for (uint32_t i = 0; i < queueLimit; ++i) {
-        auto node = allocator.CreateScbCanvasRenderNode(7100 + i);
-        ASSERT_NE(node, nullptr);
-        RSCanvasRenderNode* raw = node.get();
-        node = std::shared_ptr<RSCanvasRenderNode>(raw, [](RSCanvasRenderNode*) {});
-        ASSERT_TRUE(allocator.AddScbNodeToPool(raw));
-        node.reset(); // no-op deleter won't fire, already destructed by AddScbNodeToPool
-        recycledHolders.push_back(raw);
+        ASSERT_TRUE(allocator.AddScbNodeToPool(fillers[i]));
     }
     ASSERT_EQ(allocator.GetScbFreeQueueSize(), queueLimit);
 
-    // Create one more SCB-pool node and route it through ReleaseNodeBucket.
-    // AddScbNodeToPool will fail (queue full), so it should fall back to Deallocate.
-    auto extraNode = allocator.CreateScbCanvasRenderNode(7199);
-    ASSERT_NE(extraNode, nullptr);
-    ASSERT_TRUE(allocator.IsScbNodePool(extraNode.get()));
-    RSCanvasRenderNode* extraRaw = extraNode.get();
-    extraNode = std::shared_ptr<RSCanvasRenderNode>(extraRaw, [](RSCanvasRenderNode*) {});
-    extraNode.reset(); // no-op deleter won't fire
+    // Route the extra SCB-pool node through ReleaseNodeBucket. AddScbNodeToPool will fail
+    // (queue full), so it should fall back to Deallocate.
+    RSCanvasRenderNode* extraRaw = fillers[queueLimit];
+    ASSERT_TRUE(allocator.IsScbNodePool(extraRaw));
     auto& pool = RSScbNodeMemoryPool::Instance();
     size_t poolFreeBefore = pool.GetFreeSlotCount();
 
@@ -1770,9 +1777,12 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseNodeOnBgThread_ScbRecycle001, TestSize.Level
     ASSERT_TRUE(allocator.IsScbNodePool(scbNode.get()));
     size_t queueBefore = allocator.GetScbFreeQueueSize();
     RSCanvasRenderNode* raw = scbNode.get();
-    // Replace deleter with no-op: ReleaseNodeOnBgThread recycles (destructs) the node
+    // Replacing the shared_ptr drops the original control block, whose deleter is
+    // NodeDestructor and therefore auto-enqueues raw into the bg bucket. Clear that
+    // entry so the node is enqueued exactly once by the explicit call below.
     scbNode = std::shared_ptr<RSCanvasRenderNode>(raw, [](RSCanvasRenderNode*) {});
     scbNode.reset(); // no-op deleter won't fire
+    ClearBgBucket();
 
     // Place the SCB node into the bg bucket
     gc.AddNodeToBgBucket(raw);
@@ -1797,27 +1807,31 @@ HWTEST_F(RSRenderNodeGCTest, ReleaseNodeOnBgThread_ScbQueueFull001, TestSize.Lev
     RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
     RSRenderNodeAllocator& allocator = RSRenderNodeAllocator::Instance();
     auto& pool = RSScbNodeMemoryPool::Instance();
-    ClearBgBucket();
+    // Drain first: draining creates nodes whose NodeDestructor re-enqueues them into the
+    // buckets, so both buckets must be cleared afterwards to start from a clean state.
     ClearScbFreeQueue();
+    ClearBgBucket();
+    ClearNodeBucket();
 
-    // Fill the SCB free queue to its limit
+    // Fill the SCB free queue to its limit. Take the slots straight from the pool:
+    // CreateScbCanvasRenderNode reuses free-queue entries and falls back to the heap once the
+    // pool is exhausted (earlier test cases leak slots), breaking AddScbNodeToPool's Owns().
     constexpr uint32_t queueLimit = 32;
+    std::vector<RSCanvasRenderNode*> fillers;
+    fillers.reserve(queueLimit + 1);
+    for (uint32_t i = 0; i <= queueLimit; ++i) {
+        void* mem = pool.Allocate();
+        ASSERT_NE(mem, nullptr);
+        fillers.push_back(new (mem) RSCanvasRenderNode(7400 + i));
+    }
     for (uint32_t i = 0; i < queueLimit; ++i) {
-        auto node = allocator.CreateScbCanvasRenderNode(7400 + i);
-        ASSERT_NE(node, nullptr);
-        RSCanvasRenderNode* raw = node.get();
-        node = std::shared_ptr<RSCanvasRenderNode>(raw, [](RSCanvasRenderNode*) {});
-        ASSERT_TRUE(allocator.AddScbNodeToPool(raw));
-        node.reset(); // no-op deleter won't fire, already destructed by AddScbNodeToPool
+        ASSERT_TRUE(allocator.AddScbNodeToPool(fillers[i]));
     }
     ASSERT_EQ(allocator.GetScbFreeQueueSize(), queueLimit);
 
-    auto extraNode = allocator.CreateScbCanvasRenderNode(7499);
-    ASSERT_NE(extraNode, nullptr);
-    ASSERT_TRUE(allocator.IsScbNodePool(extraNode.get()));
-    RSCanvasRenderNode* extraRaw = extraNode.get();
-    extraNode = std::shared_ptr<RSCanvasRenderNode>(extraRaw, [](RSCanvasRenderNode*) {});
-    extraNode.reset(); // no-op deleter won't fire
+    // The extra node was allocated before the queue filled, so it is a genuine pool slot.
+    RSCanvasRenderNode* extraRaw = fillers[queueLimit];
+    ASSERT_TRUE(allocator.IsScbNodePool(extraRaw));
     size_t poolFreeBefore = pool.GetFreeSlotCount();
 
     gc.AddNodeToBgBucket(extraRaw);
@@ -1896,6 +1910,251 @@ HWTEST_F(RSRenderNodeGCTest, TryRecycleScbPoolNode_Nullptr001, TestSize.Level1)
 {
     RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
     EXPECT_FALSE(gc.TryRecycleScbPoolNode(nullptr));
+}
+
+/**
+ * @tc.name: JudgeGCLevel001
+ * @tc.desc: Test JudgeGCLevel returns correct level for all 4 threshold ranges
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, JudgeGCLevel001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    EXPECT_EQ(gc.JudgeGCLevel(0), GCLevel::IDLE);
+    EXPECT_EQ(gc.JudgeGCLevel(GC_LEVEL_THR_LOW - 1), GCLevel::IDLE);
+    EXPECT_EQ(gc.JudgeGCLevel(GC_LEVEL_THR_LOW), GCLevel::LOW);
+    EXPECT_EQ(gc.JudgeGCLevel(GC_LEVEL_THR_HIGH - 1), GCLevel::LOW);
+    EXPECT_EQ(gc.JudgeGCLevel(GC_LEVEL_THR_HIGH), GCLevel::HIGH);
+    EXPECT_EQ(gc.JudgeGCLevel(GC_LEVEL_THR_IMMEDIATE - 1), GCLevel::HIGH);
+    EXPECT_EQ(gc.JudgeGCLevel(GC_LEVEL_THR_IMMEDIATE), GCLevel::IMMEDIATE);
+    EXPECT_EQ(gc.JudgeGCLevel(GC_LEVEL_THR_IMMEDIATE + 100), GCLevel::IMMEDIATE);
+}
+
+/**
+ * @tc.name: ReleaseNodeBucket_VsyncInterruptHighRemain001
+ * @tc.desc: Test ReleaseNodeBucket with isEnable_==false and remain buckets >= GC_LEVEL_THR_HIGH:
+ *           nodes are force-deleted instead of being re-added (the !vsync-guard branch).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucket_VsyncInterruptHighRemain001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearNodeBucket();
+    gc.isEnable_.store(false);
+
+    // One bucket holds the node to release; GC_LEVEL_THR_HIGH more buckets remain behind it,
+    // so the "< GC_LEVEL_THR_HIGH" re-add condition is false and the node must be deleted.
+    auto* rawPtr = new RSCanvasRenderNode(0);
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    tempQueue.push({rawPtr});
+    for (uint32_t i = 0; i < GC_LEVEL_THR_HIGH; ++i) {
+        tempQueue.push({}); // empty placeholder buckets, skipped by the nullptr loop
+    }
+    gc.nodeBucket_.swap(tempQueue);
+    ASSERT_EQ(gc.nodeBucket_.size(), GC_LEVEL_THR_HIGH + 1);
+
+    gc.ReleaseNodeBucket();
+    // Front bucket consumed; the released node was deleted, not re-queued:
+    // no new bucket may appear and remaining count must equal the placeholders.
+    EXPECT_EQ(gc.nodeBucket_.size(), GC_LEVEL_THR_HIGH);
+
+    gc.isEnable_.store(true);
+    ClearNodeBucket();
+}
+
+/**
+ * @tc.name: ReleaseFromTree_IdlePriority001
+ * @tc.desc: Test ReleaseFromTree with IDLE priority does not cascade ReleaseNodeMemory
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseFromTree_IdlePriority001, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearOffTreeBucket();
+    ClearOffTreeBucketMap();
+    ClearNodeBucket();
+    nodeGC.isEnable_.store(true);
+
+    // Off-tree bucket non-empty so ReleaseFromTree enters the task; IDLE priority must
+    // skip the "priority != IDLE -> ReleaseNodeMemory" cascade.
+    AddNodes(1, 50000);
+    ASSERT_EQ(nodeGC.offTreeBucket_.size(), 1u);
+
+    // Seed main bucket: a node here would be released only if ReleaseNodeMemory cascaded.
+    auto* ptr = new RSRenderNode(0);
+    nodeGC.AddNodeToBucket(ptr);
+    ASSERT_EQ(nodeGC.nodeBucket_.size(), 1u);
+
+    nodeGC.ReleaseFromTree(AppExecFwk::EventQueue::Priority::IDLE);
+    EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0u);
+    // Main bucket untouched: IDLE priority skipped ReleaseNodeMemory.
+    EXPECT_EQ(nodeGC.nodeBucket_.size(), 1u);
+    ClearNodeBucket();
+}
+
+/**
+ * @tc.name: ReleaseFromTree_NoMainTask001
+ * @tc.desc: Test ReleaseFromTree with mainTask_ == nullptr releases the bucket synchronously
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseFromTree_NoMainTask001, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearOffTreeBucket();
+    ClearOffTreeBucketMap();
+    AddNodes(1, 50000);
+    ASSERT_EQ(nodeGC.offTreeBucket_.size(), 1u);
+
+    MainTaskGuard guard(nullptr);
+    nodeGC.ReleaseFromTree(AppExecFwk::EventQueue::Priority::LOW);
+    EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0u);
+}
+
+/**
+ * @tc.name: SetAbilityState_Background001
+ * @tc.desc: Test SetAbilityState with isBackground == true inserts pid into backgroundPidSet_
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, SetAbilityState_Background001, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    pid_t pid = 5555;
+    nodeGC.backgroundPidSet_.erase(pid);
+    nodeGC.scbPid_ = 1; // ensure pid != scbPid_
+    nodeGC.SetAbilityState(pid, true);
+    EXPECT_NE(nodeGC.backgroundPidSet_.end(), nodeGC.backgroundPidSet_.find(pid));
+    // repeat insert is idempotent for a set
+    nodeGC.SetAbilityState(pid, true);
+    EXPECT_EQ(nodeGC.backgroundPidSet_.count(pid), 1u);
+    nodeGC.backgroundPidSet_.erase(pid);
+}
+
+/**
+ * @tc.name: ReleaseOffTreeNodeForBucketMap_DisabledAboveThreshold001
+ * @tc.desc: Test ReleaseOffTreeNodeForBucketMap keeps releasing when isEnable_ is false but
+ *           offTreeBucketMap_.size() >= OFFTREE_BUCKET_THR_HIGH (threshold-breakthrough branch).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeForBucketMap_DisabledAboveThreshold001, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearOffTreeBucketMap();
+    nodeGC.isEnable_.store(false);
+
+    // Fill the bucket map beyond the high threshold so the break condition
+    // "isEnable_==false && size < OFFTREE_BUCKET_THR_HIGH" is false and nodes keep releasing.
+    uint32_t mapSize = OFFTREE_BUCKET_THR_HIGH + 2;
+    for (uint32_t j = 0; j < mapSize; ++j) {
+        std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodeMap;
+        renderNodeMap[90000 + j] = std::make_shared<RSBaseRenderNode>(90000 + j);
+        nodeGC.AddToOffTreeNodeBucket(2, renderNodeMap); // pid 2: same pid for all entries
+    }
+    ASSERT_EQ(nodeGC.offTreeBucketMap_.size(), mapSize);
+
+    size_t before = nodeGC.offTreeBucketMap_.size();
+    nodeGC.ReleaseOffTreeNodeBucket();
+    // At least the front bucket was fully released and popped despite isEnable_ == false.
+    EXPECT_LT(nodeGC.offTreeBucketMap_.size(), before);
+
+    nodeGC.isEnable_.store(true);
+    ClearOffTreeBucketMap();
+}
+
+/**
+ * @tc.name: ReleaseOffTreeNodeForBucket_ParentNull001
+ * @tc.desc: Test ReleaseOffTreeNodeForBucket with a node having no parent (parent.lock() null branch)
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeForBucket_ParentNull001, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearOffTreeBucket();
+    nodeGC.isEnable_.store(true);
+
+    // Node without parent: RemoveChildFromFulllist must be skipped, no crash.
+    auto orphan = std::make_shared<RSBaseRenderNode>(60000);
+    ASSERT_EQ(orphan->GetParent().lock(), nullptr);
+    nodeGC.AddToOffTreeNodeBucket(orphan);
+    nodeGC.ReleaseOffTreeNodeBucket();
+    EXPECT_EQ(nodeGC.offTreeBucket_.size(), 0u);
+}
+
+/**
+ * @tc.name: ReleaseOffTreeNodeForBucketMap_NullAnimManager001
+ * @tc.desc: Test ReleaseOffTreeNodeForBucketMap with nodes whose animation manager is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseOffTreeNodeForBucketMap_NullAnimManager001, TestSize.Level1)
+{
+    RSRenderNodeGC& nodeGC = RSRenderNodeGC::Instance();
+    ClearOffTreeBucketMap();
+    nodeGC.isEnable_.store(true);
+
+    // RSBaseRenderNode created directly: GetAnimationManager may be null for these nodes;
+    // the null-manager branch must be skipped without crash.
+    std::unordered_map<NodeId, std::shared_ptr<RSBaseRenderNode>> renderNodeMap;
+    renderNodeMap[60001] = std::make_shared<RSBaseRenderNode>(60001);
+    renderNodeMap[60002] = std::make_shared<RSBaseRenderNode>(60002);
+    nodeGC.AddToOffTreeNodeBucket(3, renderNodeMap);
+    nodeGC.ReleaseOffTreeNodeBucket();
+    EXPECT_EQ(nodeGC.offTreeBucketMap_.size(), 0u);
+}
+
+/**
+ * @tc.name: ReleaseNodeOnBgThread_GenericHeapFallback001
+ * @tc.desc: Test ReleaseNodeOnBgThread deletes a non-canvas node when AddNodeToAllocator fails
+ *           (type != CANVAS_NODE -> generic delete path, incl. MemoryHook on aarch64).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeOnBgThread_GenericHeapFallback001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearBgBucket();
+    gc.isEnable_.store(true);
+
+    // RSRenderNode base type: AddNodeToAllocator rejects non-CANVAS_NODE, AddScbNodeToPool
+    // rejects it too (pool Owns fails), so the node goes through the delete path.
+    auto* rawPtr = new RSRenderNode(61000);
+    gc.AddNodeToBgBucket(rawPtr);
+    ASSERT_EQ(gc.nodeBgBucket_.size(), 1u);
+    gc.ReleaseNodeOnBgThread();
+    EXPECT_TRUE(gc.nodeBgBucket_.empty());
+}
+
+/**
+ * @tc.name: ReleaseNodeBucket_GenericHeapFallback001
+ * @tc.desc: Test ReleaseNodeBucket deletes a non-canvas node when all recycle paths fail
+ *           (type != CANVAS_NODE -> MemoryHook::Protect + delete path on aarch64).
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseNodeBucket_GenericHeapFallback001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    ClearNodeBucket();
+    gc.isEnable_.store(true);
+
+    auto* rawPtr = new RSRenderNode(62000);
+    std::queue<std::vector<RSRenderNode*>> tempQueue;
+    tempQueue.push({rawPtr});
+    gc.nodeBucket_.swap(tempQueue);
+    gc.ReleaseNodeBucket();
+    EXPECT_EQ(gc.nodeBucket_.size(), 0u);
+}
+
+/**
+ * @tc.name: ReleaseDrawableBucket_EmptySkip001
+ * @tc.desc: Test ReleaseDrawableBucket early-returns on an empty drawable bucket
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderNodeGCTest, ReleaseDrawableBucket_EmptySkip001, TestSize.Level1)
+{
+    RSRenderNodeGC& gc = RSRenderNodeGC::Instance();
+    std::queue<std::vector<DrawableV2::RSRenderNodeDrawableAdapter*>> empty;
+    gc.drawableBucket_.swap(empty);
+    gc.ReleaseDrawableBucket();
+    EXPECT_TRUE(gc.drawableBucket_.empty());
+    gc.ReleaseDrawableMemory(false);
+    EXPECT_TRUE(gc.drawableBucket_.empty());
 }
 
 } // namespace Rosen

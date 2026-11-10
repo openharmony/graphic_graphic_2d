@@ -255,23 +255,27 @@ HWTEST_F(RSRenderNodeAllocatorTest, AddScbNodeToPoolTest005, TestSize.Level1)
     while (nodeAllocator.GetScbFreeQueueSize() > 0) {
         holders.push_back(nodeAllocator.CreateScbCanvasRenderNode(0));
     }
-    // Now create and recycle nodes until the queue is full
+    // Now create and recycle nodes until the queue is full.
+    // Construct the nodes directly in pool memory: wrapping them in a shared_ptr and then
+    // handing the raw pointer to AddScbNodeToPool would let the shared_ptr's NodeDestructor
+    // fire on the already-destructed object (double destruct -> deferred GC recycle).
     constexpr uint32_t queueLimit = 32; // SCB_NODE_FREE_QUEUE_LIMIT
-    std::vector<RSCanvasRenderNode*> recycled;
+    auto& pool = RSScbNodeMemoryPool::Instance();
     for (uint32_t i = 0; i < queueLimit; ++i) {
-        auto node = nodeAllocator.CreateScbCanvasRenderNode(4000 + i);
-        ASSERT_NE(node, nullptr);
-        RSCanvasRenderNode* raw = node.get();
-        node = std::shared_ptr<RSCanvasRenderNode>(raw, [](RSCanvasRenderNode*) {});
+        void* mem = pool.Allocate();
+        ASSERT_NE(mem, nullptr);
+        auto* raw = new (mem) RSCanvasRenderNode(4000 + i);
         ASSERT_TRUE(nodeAllocator.AddScbNodeToPool(raw));
-        node.reset(); // no-op deleter won't fire, already destructed by AddScbNodeToPool
-        recycled.push_back(raw);
     }
     EXPECT_EQ(nodeAllocator.GetScbFreeQueueSize(), queueLimit);
     // One more recycle should fail (queue full)
-    auto extra = nodeAllocator.CreateScbCanvasRenderNode(4999);
-    ASSERT_NE(extra, nullptr);
-    EXPECT_FALSE(nodeAllocator.AddScbNodeToPool(extra.get()));
+    void* extraMem = pool.Allocate();
+    ASSERT_NE(extraMem, nullptr);
+    auto* extra = new (extraMem) RSCanvasRenderNode(4999);
+    EXPECT_FALSE(nodeAllocator.AddScbNodeToPool(extra));
+    // Queue full -> the node was not destructed by AddScbNodeToPool; return its slot.
+    extra->~RSCanvasRenderNode();
+    pool.Deallocate(extra);
     // Cleanup: drain the queue by creating nodes (which pulls from the free queue)
     while (nodeAllocator.GetScbFreeQueueSize() > 0) {
         nodeAllocator.CreateScbCanvasRenderNode(0);

@@ -828,5 +828,130 @@ HWTEST_F(RSClientToRenderConnectionProxyTest, TransactionDataIndexSeed002, TestS
     ASSERT_FALSE(mockProxy->SeedTransactionDataIndex(otherIndex));
     ASSERT_EQ(mockProxy->GetTransactionDataIndex(), ownIndex);
 }
+
+namespace {
+// Fields of a CreateDisplayNode request parcel, in wire order after the interface token.
+struct DisplayNodeRequestFields {
+    uint64_t nodeId = 0;
+    uint64_t mirrorNodeId = 0;
+    uint64_t screenId = 0;
+    uint8_t displayMode = 0;
+    uint32_t mirrorSourceRotation = 0;
+    float positionZ = 0.f;
+    bool isSceneBoard = false;
+};
+
+// Reads the fields written by RSClientToRenderConnectionProxy::CreateDisplayNode in wire
+// order. ReadInterfaceToken consumes the strictModePolicy + workSource + string16 block
+// written by WriteInterfaceToken; reading positionZ followed by isSceneBoard proves the
+// new flag is marshalled after positionZ.
+bool ParseDisplayNodeRequest(MessageParcel& data, DisplayNodeRequestFields& fields)
+{
+    if (data.ReadInterfaceToken().empty()) {
+        return false;
+    }
+    return data.ReadUint64(fields.nodeId) && data.ReadUint64(fields.mirrorNodeId) &&
+        data.ReadUint64(fields.screenId) && data.ReadUint8(fields.displayMode) &&
+        data.ReadUint32(fields.mirrorSourceRotation) && data.ReadFloat(fields.positionZ) &&
+        data.ReadBool(fields.isSceneBoard);
+}
+} // namespace
+
+/**
+ * @tc.name: CreateDisplayNodeIsSceneBoard001
+ * @tc.desc: SendRequest succeeds and the isSceneBoard=true flag is marshalled after positionZ
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, CreateDisplayNodeIsSceneBoard001, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    constexpr uint64_t testNodeId = 1;
+    constexpr uint64_t testScreenId = 2;
+    constexpr float testPositionZ = 3.5f;
+    config.screenId = testScreenId;
+    config.positionZ = testPositionZ;
+    bool success = false;
+    DisplayNodeRequestFields parsed;
+    uint32_t capturedCode = 0;
+    sptr<IRemoteObjectMock> mockRemote = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(mockRemote);
+    EXPECT_CALL(*mockRemote, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption&) {
+            capturedCode = code;
+            EXPECT_TRUE(ParseDisplayNodeRequest(data, parsed));
+            EXPECT_TRUE(reply.WriteBool(true));
+            return NO_ERROR;
+        });
+    ASSERT_EQ(mockProxy->CreateDisplayNode(config, testNodeId, success, true), ERR_OK);
+    ASSERT_TRUE(success);
+    constexpr uint32_t expectedCode =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_DISPLAY_NODE);
+    ASSERT_EQ(capturedCode, expectedCode);
+    ASSERT_EQ(parsed.nodeId, testNodeId);
+    ASSERT_EQ(parsed.mirrorNodeId, config.mirrorNodeId);
+    ASSERT_EQ(parsed.screenId, testScreenId);
+    ASSERT_EQ(parsed.displayMode, static_cast<uint8_t>(config.displayMode));
+    ASSERT_EQ(parsed.mirrorSourceRotation, config.mirrorSourceRotation);
+    ASSERT_FLOAT_EQ(parsed.positionZ, testPositionZ);
+    // isSceneBoard is read last, right after positionZ, so a successful sequential parse
+    // proves the flag sits after positionZ on the wire and carries the requested value.
+    ASSERT_TRUE(parsed.isSceneBoard);
+}
+
+/**
+ * @tc.name: CreateDisplayNodeIsSceneBoard002
+ * @tc.desc: Default isSceneBoard argument is marshalled as false after positionZ
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, CreateDisplayNodeIsSceneBoard002, TestSize.Level1)
+{
+    RSDisplayNodeConfig config;
+    constexpr uint64_t testNodeId = 1;
+    constexpr float testPositionZ = 1.5f;
+    config.positionZ = testPositionZ;
+    bool success = false;
+    DisplayNodeRequestFields parsed;
+    sptr<IRemoteObjectMock> mockRemote = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(mockRemote);
+    EXPECT_CALL(*mockRemote, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t, MessageParcel& data, MessageParcel& reply, MessageOption&) {
+            EXPECT_TRUE(ParseDisplayNodeRequest(data, parsed));
+            EXPECT_TRUE(reply.WriteBool(true));
+            return NO_ERROR;
+        });
+    // Omit isSceneBoard to exercise the default false value declared in the proxy header.
+    ASSERT_EQ(mockProxy->CreateDisplayNode(config, testNodeId, success), ERR_OK);
+    ASSERT_TRUE(success);
+    ASSERT_FLOAT_EQ(parsed.positionZ, testPositionZ);
+    ASSERT_FALSE(parsed.isSceneBoard);
+}
+
+/**
+ * @tc.name: CreateNodeAndSurfaceEmptyReply001
+ * @tc.desc: SendRequest succeeds with an empty reply, ReadRemoteObject yields null and
+ *           CreateNodeAndSurface returns ERR_INVALID_VALUE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSClientToRenderConnectionProxyTest, CreateNodeAndSurfaceEmptyReply001, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config;
+    sptr<Surface> surface = nullptr;
+    uint32_t capturedCode = 0;
+    sptr<IRemoteObjectMock> mockRemote = new IRemoteObjectMock();
+    auto mockProxy = std::make_shared<RSClientToRenderConnectionProxy>(mockRemote);
+    EXPECT_CALL(*mockRemote, SendRequest(_, _, _, _))
+        .WillOnce([&](uint32_t code, MessageParcel&, MessageParcel&, MessageOption&) {
+            capturedCode = code;
+            return NO_ERROR;
+        });
+    ASSERT_EQ(mockProxy->CreateNodeAndSurface(config, surface, false, true), ERR_INVALID_VALUE);
+    constexpr uint32_t expectedCode =
+        static_cast<uint32_t>(RSIClientToRenderConnectionInterfaceCode::CREATE_NODE_AND_SURFACE);
+    ASSERT_EQ(capturedCode, expectedCode);
+    ASSERT_TRUE(surface == nullptr);
+}
 } // namespace Rosen
 } // namespace OHOS

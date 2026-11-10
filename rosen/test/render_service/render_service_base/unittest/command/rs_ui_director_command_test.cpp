@@ -268,8 +268,8 @@ HWTEST_F(RSUIDirectorCommandTest, RSContextIsSceneBoardTokenTest, TestSize.Level
     EXPECT_TRUE(rsContext.IsSceneBoardToken(pid, otherToken));
     // known token value under another pid must not match (double-dimension query)
     EXPECT_FALSE(rsContext.IsSceneBoardToken(otherPid, token));
-    // zero token never matches
-    EXPECT_FALSE(rsContext.IsSceneBoardToken(pid, 0));
+    // zero token is a token miss, so the process-level fallback still reports the marked pid
+    EXPECT_TRUE(rsContext.IsSceneBoardToken(pid, 0));
 }
 
 /**

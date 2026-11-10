@@ -5977,6 +5977,5 @@ HWTEST_F(RSClientToRenderConnectionStubTest, SceneBoardSyncIpcStubTest001, TestS
     int res = connectionStub_->OnRemoteRequest(code, data, reply, option);
     EXPECT_TRUE(res == ERR_NONE || res == ERR_NULL_OBJECT);
 }
-
 } // namespace OHOS::Rosen
 #endif

@@ -274,7 +274,9 @@ HWTEST_F(RSScbNodeMemoryPoolTest, GetSlotInfoTest003, TestSize.Level1)
 
 /**
  * @tc.name: GetSlotInfoTest004
- * @tc.desc: test GetSlotInfo slotInChunk advances across sequential allocations within a chunk
+ * @tc.desc: test GetSlotInfo reports distinct slots for two live allocations. The pool is a
+ *           singleton whose free list is LIFO for reclaimed slots, so slot indices are not
+ *           necessarily adjacent even for back-to-back Allocate calls.
  * @tc.type: FUNC
  */
 HWTEST_F(RSScbNodeMemoryPoolTest, GetSlotInfoTest004, TestSize.Level1)
@@ -288,8 +290,11 @@ HWTEST_F(RSScbNodeMemoryPoolTest, GetSlotInfoTest004, TestSize.Level1)
     auto info2 = pool.GetSlotInfo(ptr2);
     EXPECT_TRUE(info1.found);
     EXPECT_TRUE(info2.found);
-    EXPECT_EQ(info2.slotInChunk, info1.slotInChunk + 1);
-    EXPECT_EQ(info2.globalSlot, info1.globalSlot + 1);
+    // Two live allocations must never resolve to the same slot.
+    EXPECT_NE(info1.globalSlot, info2.globalSlot);
+    // globalSlot is the chunk base plus the in-chunk offset, so it is never below the offset.
+    EXPECT_GE(info1.globalSlot, info1.slotInChunk);
+    EXPECT_GE(info2.globalSlot, info2.slotInChunk);
     pool.Deallocate(ptr1);
     pool.Deallocate(ptr2);
 }
