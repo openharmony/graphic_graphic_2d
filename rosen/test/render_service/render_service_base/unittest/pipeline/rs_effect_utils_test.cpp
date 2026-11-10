@@ -18,9 +18,6 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
-#include "drawable/rs_property_drawable.h"
-#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
-#include "feature/filter_cache_manager/rs_cache_update_manager.h"
 #include "pipeline/rs_canvas_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_effect_utils.h"
@@ -297,68 +294,6 @@ HWTEST_F(RSEffectUtilsTest, HasValidEffectTest001, TestSize.Level1)
     testNode->SetGlobalAlpha(1.0f);
     rootSurfaceNode->RemoveChild(effectNode);
     EXPECT_FALSE(RSEffectUtils::HasValidEffect(rootSurfaceNode.get()));
-}
-
-/**
- * @tc.name: UpdateNodeFilterRateToDrawableTest001
- * @tc.desc: test UpdateNodeFilterApsRateToDrawable and UpdateNodeFilterAppRateToDrawable on node without filter
- * @tc.type: FUNC
- */
-HWTEST_F(RSEffectUtilsTest, UpdateNodeFilterRateToDrawableTest001, TestSize.Level1)
-{
-    RSRenderNode node(id, context);
-    // node without any filter properties should not crash
-    RSEffectUtils::UpdateNodeFilterApsRateToDrawable(node, 30);
-    RSEffectUtils::UpdateNodeFilterAppRateToDrawable(node, 60);
-}
-
-/**
- * @tc.name: UpdateNodeFilterRateToDrawableTest002
- * @tc.desc: test UpdateNodeFilterApsRateToDrawable and UpdateNodeFilterAppRateToDrawable with filter properties but
- *           no filter drawable
- * @tc.type: FUNC
- */
-HWTEST_F(RSEffectUtilsTest, UpdateNodeFilterRateToDrawableTest002, TestSize.Level1)
-{
-    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
-    node->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ =
-        std::make_shared<RSFilter>();
-    node->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
-    node->GetMutableRenderProperties().GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
-
-    // filter properties are set but no filter drawable exists, should not crash
-    RSEffectUtils::UpdateNodeFilterApsRateToDrawable(*node, 30);
-    RSEffectUtils::UpdateNodeFilterAppRateToDrawable(*node, 60);
-}
-
-/**
- * @tc.name: UpdateNodeFilterRateToDrawableTest003
- * @tc.desc: test UpdateNodeFilterApsRateToDrawable and UpdateNodeFilterAppRateToDrawable write rates into filter
- *           drawables through InvokeFilterDrawable and GetFilterDrawable
- * @tc.type: FUNC
- */
-HWTEST_F(RSEffectUtilsTest, UpdateNodeFilterRateToDrawableTest003, TestSize.Level1)
-{
-    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
-    node->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ =
-        std::make_shared<RSFilter>();
-    node->GetMutableRenderProperties().GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
-
-    auto materialDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    materialDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    auto compositingDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    compositingDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    node->drawableVec_ = std::make_unique<RSDrawable::Vec>();
-    (*node->drawableVec_)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = materialDrawable;
-    (*node->drawableVec_)[static_cast<int8_t>(RSDrawableSlot::COMPOSITING_FILTER)] = compositingDrawable;
-
-    RSEffectUtils::UpdateNodeFilterApsRateToDrawable(*node, 30);
-    EXPECT_EQ(materialDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterApsRate(), 30);
-    EXPECT_EQ(compositingDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterApsRate(), 30);
-
-    RSEffectUtils::UpdateNodeFilterAppRateToDrawable(*node, 60);
-    EXPECT_EQ(materialDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterAppRate(), 60);
-    EXPECT_EQ(compositingDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterAppRate(), 60);
 }
 } // namespace Rosen
 } // namespace OHOS

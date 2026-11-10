@@ -1005,32 +1005,5 @@ HWTEST_F(RSNodeCommandModifierTest, NodeTargetRateTest001, TestSize.Level1)
     expiredMod->UpdateToRender();
 }
 
-/**
- * @tc.name: NodeTargetRateTest002
- * @tc.desc: Test AppSetNodeRate creates and updates the node target rate modifier
- * @tc.type: FUNC
- */
-HWTEST_F(RSNodeCommandModifierTest, NodeTargetRateTest002, TestSize.Level1)
-{
-    auto node = RSCanvasNode::Create();
-    ASSERT_NE(node, nullptr);
-
-    node->AppSetNodeRate(60);
-    auto modifier = node->GetRSCmdModifier(RSCmdModifierType::NODE_TARGET_RATE);
-    ASSERT_NE(modifier, nullptr);
-    auto rateModifier = std::static_pointer_cast<NodeTargetRateCmdModifier>(modifier);
-    EXPECT_EQ(rateModifier->GetParam().nodeTargetRate_, 60);
-
-    // setting the same rate should reuse the modifier without change
-    node->AppSetNodeRate(60);
-    EXPECT_EQ(node->GetRSCmdModifier(RSCmdModifierType::NODE_TARGET_RATE), modifier);
-
-    // setting a different rate should update the param
-    node->AppSetNodeRate(30);
-    auto updatedModifier = node->GetRSCmdModifier(RSCmdModifierType::NODE_TARGET_RATE);
-    ASSERT_NE(updatedModifier, nullptr);
-    auto updatedRateModifier = std::static_pointer_cast<NodeTargetRateCmdModifier>(updatedModifier);
-    EXPECT_EQ(updatedRateModifier->GetParam().nodeTargetRate_, 30);
-}
 } // namespace Rosen
 } // namespace OHOS

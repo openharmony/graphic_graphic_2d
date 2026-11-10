@@ -21,7 +21,6 @@
 #include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "feature/filter_cache_manager/rs_filter_cache_manager.h"
-#include "feature/filter_cache_manager/rs_cache_update_manager.h"
 #include "ge_visual_effect_container.h"
 #include "pipeline/rs_simple_draw_cmd_list.h"
 #include "pipeline/rs_recording_canvas.h"
@@ -990,39 +989,5 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnSyncRRectTest,
     EXPECT_FLOAT_EQ(syncedRect.GetWidth(), SHAPE_WIDTH);
     EXPECT_FLOAT_EQ(syncedRect.GetHeight(), SHAPE_HEIGHT);
     EXPECT_EQ(drawable->isClipRRectOptimization_, drawable->stagingIsClipRRectOptimization_);
-}
-
-/**
- * @tc.name: UpdateNodeFilterRateToCacheManagerTest001
- * @tc.desc: test UpdateNodeFilterApsRateToCacheManager and UpdateNodeFilterAppRateToCacheManager without cache
- *           manager
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableTest, UpdateNodeFilterRateToCacheManagerTest001, TestSize.Level1)
-{
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    ASSERT_NE(filterDrawable, nullptr);
-    filterDrawable->stagingCacheManager_ = nullptr;
-    // null staging cache manager should not crash
-    filterDrawable->UpdateNodeFilterApsRateToCacheManager(30);
-    filterDrawable->UpdateNodeFilterAppRateToCacheManager(60);
-}
-
-/**
- * @tc.name: UpdateNodeFilterRateToCacheManagerTest002
- * @tc.desc: test UpdateNodeFilterApsRateToCacheManager and UpdateNodeFilterAppRateToCacheManager write rates into
- *           cache update manager
- * @tc.type: FUNC
- */
-HWTEST_F(RSPropertyDrawableTest, UpdateNodeFilterRateToCacheManagerTest002, TestSize.Level1)
-{
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    ASSERT_NE(filterDrawable, nullptr);
-    filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
-
-    filterDrawable->UpdateNodeFilterApsRateToCacheManager(30);
-    EXPECT_EQ(filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterApsRate(), 30);
-    filterDrawable->UpdateNodeFilterAppRateToCacheManager(60);
-    EXPECT_EQ(filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterAppRate(), 60);
 }
 } // namespace OHOS::Rosen
