@@ -340,6 +340,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco
     config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetVisibleRegion(Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000}));
     rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
 
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
@@ -366,6 +367,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco
     config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetVisibleRegion(Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000}));
     rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
 
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
@@ -392,6 +394,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco
     config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetVisibleRegion(Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000}));
     rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
 
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
@@ -418,6 +421,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco
     config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetVisibleRegion(Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000}));
     rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
 
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
@@ -444,6 +448,7 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco
     config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
     auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
     surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetVisibleRegion(Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000}));
     rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
 
     hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
