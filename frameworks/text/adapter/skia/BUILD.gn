@@ -150,7 +150,7 @@ ohos_static_library("font_asset") {
   subsystem_name = "graphic"
 
   public_configs = [ "$rosen_text_root:rosen_text_config" ]
-  defines = []
+  defines = [ "TEXT_SYSTEM_OHOS" ]
   if (is_arkui_x) {
     deps = [
       "//base/hiviewdfx/hilog/interfaces/native/innerkits:libhilog_$platform",
@@ -165,10 +165,6 @@ ohos_static_library("font_asset") {
       "hilog:libhilog",
       "skia:skia_canvaskit",
     ]
-    # Keep the seeding policy of the single platform.cpp copy aligned with
-    # skia_libtxt: TEXT_SYSTEM_OHOS selects the HarmonyOS-Sans seed, while
-    # arkui-x keeps the sans-serif/PingFang SC seed.
-    defines += [ "TEXT_SYSTEM_OHOS" ]
   }
 
   include_dirs = [
