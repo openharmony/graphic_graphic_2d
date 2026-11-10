@@ -1062,4 +1062,25 @@ HWTEST_F(RSNodeCommandTest, UpdateAtlasFrameIndexSuccess001, TestSize.Level1)
     EXPECT_EQ(typedProp->Get().mode, 1);
     EXPECT_EQ(typedProp->Get().totalFrame, 6);
 }
+
+/**
+ * @tc.name: SetNodeTargetRateTest001
+ * @tc.desc: test RSNodeCommandHelper::SetNodeTargetRate with registered and missing nodes
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSNodeCommandTest, SetNodeTargetRateTest001, TestSize.Level1)
+{
+    RSContext context;
+    constexpr NodeId nodeId = 930001;
+    RSCanvasNodeCommandHelper::Create(context, nodeId, false);
+    auto node = context.GetNodeMap().GetRenderNode<RSRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+
+    // registered node dispatches app rate to filter drawables without crash
+    RSNodeCommandHelper::SetNodeTargetRate(context, nodeId, 60);
+
+    // unregistered node id should not crash
+    RSNodeCommandHelper::SetNodeTargetRate(context, 930099, 30);
+}
 } // namespace OHOS::Rosen
