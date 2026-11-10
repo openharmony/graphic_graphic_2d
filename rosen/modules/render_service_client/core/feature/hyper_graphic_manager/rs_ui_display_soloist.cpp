@@ -26,7 +26,6 @@ constexpr float SECOND_IN_NANO = 1000000000.0f;
 const std::string TIME_OUT_TASK = "vsync_time_out_task_";
 const std::vector<int32_t> REFRESH_RATE_LIST{ 90, 120, 144 };
 std::vector<int32_t> REFRESH_RATE_FACTORS;
-std::unordered_map<int32_t, std::vector<int32_t>> RATE_TO_FACTORS;
 std::once_flag COMPUTE_FACTORS_FLAG;
 }
 // class RSC_EXPORT SoloistId
@@ -289,11 +288,11 @@ int32_t RSDisplaySoloist::FindMatchedRefreshRate(int32_t vsyncRate, int32_t targ
         return targetRate;
     }
 
-    if (!RATE_TO_FACTORS.count(vsyncRate)) {
-        RATE_TO_FACTORS[vsyncRate] = FindRefreshRateFactors(vsyncRate);
+    auto mapIt = rateToFactors_.find(vsyncRate);
+    if (mapIt == rateToFactors_.end()) {
+        mapIt = rateToFactors_.emplace(vsyncRate, FindRefreshRateFactors(vsyncRate)).first;
     }
-
-    std::vector<int32_t> refreshRateFactors = RATE_TO_FACTORS[vsyncRate];
+    const std::vector<int32_t>& refreshRateFactors = mapIt->second;
     if (refreshRateFactors.empty()) {
         return 0;
     }
