@@ -62,7 +62,7 @@ private:
     mutable std::shared_mutex lock_;
 };
 
-std::shared_ptr<Drawing::FontMgr> GetDefaultFontManager();
+TEXTING_API std::shared_ptr<Drawing::FontMgr> GetDefaultFontManager();
 } // namespace SPText
 } // namespace Rosen
 } // namespace OHOS
