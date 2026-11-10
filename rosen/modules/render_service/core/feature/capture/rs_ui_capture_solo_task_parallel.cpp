@@ -15,6 +15,7 @@
 
 #include "feature/capture/rs_ui_capture_solo_task_parallel.h"
 
+#include <chrono>
 #include <memory>
 #include <parameters.h>
 #include <sys/mman.h>
@@ -54,6 +55,8 @@
 namespace OHOS {
 namespace Rosen {
 
+constexpr auto CAPTURE_SOLO_NODE_TIMEOUT = std::chrono::seconds(10);
+
 std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSUiCaptureSoloTaskParallel::CaptureSoloNode(
     NodeId id, const RSSurfaceCaptureConfig& captureConfig)
 {
@@ -69,7 +72,12 @@ std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSUiCaptureSolo
     RS_LOGD("RSUiCaptureSoloTaskParallel::CaptureSoloNode RootNodeId:[%{public}" PRIu64 "], RootPid:[%{public}d]",
         id, rootPid);
     instanceRootNode->CollectAllChildren(instanceRootNode, nodeIdVec);
+    const auto startTime = std::chrono::steady_clock::now();
     for (auto nodeId : nodeIdVec) {
+        if (std::chrono::steady_clock::now() - startTime > CAPTURE_SOLO_NODE_TIMEOUT) {
+            RS_LOGW("RSUiCaptureSoloTaskParallel::CaptureSoloNode timeout, return partial results");
+            return pixelMapIdPairVector;
+        }
         if (ExtractPid(nodeId) != rootPid) {
             RS_LOGE("RSUiCaptureSoloTaskParallel::CaptureSoloNode discarded. nodeId:[%{public}" PRIu64
                 "] due to process mismatch, nodePid:[%{public}d], rootPid:[%{public}d]",
