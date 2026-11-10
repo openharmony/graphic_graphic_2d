@@ -72,14 +72,6 @@ template("skia_libtxt") {
       "txt/paragraph_builder.cpp",
       "txt/paragraph_style.cpp",
       "txt/placeholder_run.cpp",
-      # NOTE: txt/platform.cpp is NOT compiled here on purpose.
-      # DefaultFamilyNameMgr is a stateful Meyers singleton and must have
-      # exactly one instance per process. Its only definition lives in the
-      # font_asset static library linked into lib2d_graphics.z.so, and
-      # rosen_text resolves the symbols from there at dynamic link time.
-      # A second copy here would give each so its own static instance and
-      # init guard while both export the member functions, so symbol
-      # interposition can bind reads and writes to different instances.
       "txt/sp_convert.cpp",
       "txt/text_bundle_config_parser.cpp",
       "txt/text_style.cpp",
