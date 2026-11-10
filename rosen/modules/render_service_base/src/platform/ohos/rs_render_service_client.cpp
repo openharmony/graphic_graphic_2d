@@ -662,17 +662,6 @@ void RSRenderServiceClient::SyncFrameRateRange(FrameRateLinkerId id,
     return clientToService->SyncFrameRateRange(id, range, animatorExpectedFrameRate);
 }
 
-void RSRenderServiceClient::SetThermalFrameRateLimit(uint32_t frameRate)
-{
-    auto clientToService = RSConnectHub::GetClientToServiceConnection();
-    if (clientToService == nullptr) {
-        ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
-        return;
-    }
- 
-    clientToService->SetThermalFrameRateLimit(frameRate);
-}
-
 void RSRenderServiceClient::UnregisterFrameRateLinker(FrameRateLinkerId id)
 {
     auto clientToService = RSConnectHub::GetClientToServiceConnection();
@@ -1800,6 +1789,17 @@ void RSRenderServiceClient::NotifyTouchEvent(int32_t touchStatus, int32_t touchC
     if (clientToService != nullptr) {
         clientToService->NotifyTouchEvent(touchStatus, touchCnt, sourceType);
     }
+}
+
+void RSRenderServiceClient::SetThermalFrameRateLimit(uint32_t frameRate)
+{
+    auto clientToService = RSConnectHub::GetClientToServiceConnection();
+    if (clientToService == nullptr) {
+        ROSEN_LOGW("RSRenderServiceClient clientToService == nullptr!");
+        return;
+    }
+ 
+    clientToService->SetThermalFrameRateLimit(frameRate);
 }
 #ifndef ENABLE_RS_PROXY
 void RSRenderServiceClient::NotifyDynamicModeEvent(bool enableDynamicMode)
