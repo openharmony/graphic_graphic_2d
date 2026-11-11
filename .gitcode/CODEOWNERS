@@ -373,6 +373,9 @@ rosen/modules/render_service/core/drawable/dfx/rs_dirty_rects_dfx.cpp @chenlushe
 rosen/modules/render_service/core/feature/capture/rs_ui_capture_solo_task_parallel.cpp @chuchengcheng
 rosen/modules/render_service/core/feature/capture/rs_surface_capture_task_parallel.cpp @chuchengcheng
 rosen/modules/render_service/core/feature/capture/rs_ui_capture_task_parallel.cpp @chuchengcheng
+rosen/modules/render_service/core/feature/capture/rs_blur_pixelmap.cpp @chuchengcheng
+rosen/modules/render_service/core/feature/capture/rs_blur_pixelmap.h @chuchengcheng
+rosen/test/render_service/render_service/unittest/feature/capture/ @gao_yufan
 
 [ut_test_2d_framework]
 rosen/test/render_service/render_service_base/unittest/pipeline/rs_render_node_map_test.cpp @gao_yufan
@@ -400,6 +403,20 @@ rosen/test/render_service/render_service_base/unittest/transaction/ @gao_yufan
 rosen/test/render_service/render_service/unittest/pipeline/main_thread/rs_uni_render_visitor_test.cpp @gao_yufan
 rosen/test/render_service/render_service/unittest/pipeline/main_thread/rs_render_pipeline_agent_test.cpp @gao_yufan
 rosen/test/render_service/render_process/unittest/transaction/ipc_persistence/rs_ipc_persistence_data_test.cpp @gao_yufan
+rosen/test/render_service/render_service_client/unittest/ui/rs_ui_director_test.cpp @gao_yufan
+
+[IPC-render]
+rosen/modules/render_service_client/core/transaction/rs_render_interface.cpp @chuchengcheng
+rosen/modules/render_service_client/core/transaction/rs_render_interface.h @chuchengcheng
+rosen/test/render_service/render_service_client/unittest/transaction/rs_render_interface_test.cpp @gao_yufan
+rosen/test/render_service/render_service/unittest/transaction/ @gao_yufan
+rosen/test/render_service/render_service_base/unittest/pipeline/rs_render_node_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/platform/ohos/rs_render_service_connect_hub_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/platform/ohos/rs_render_service_client_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/platform/ohos/rs_render_pipeline_client_test.cpp @gao_yufan
+rosen/test/render_service/render_service_base/unittest/platform/ohos/rs_marshalling_helper_test.cpp @gao_yufan
+rosen/test/render_service/render_service/fuzztest/rsclienttorenderconnection_fuzzer/ @zhangzhichao0091
+rosen/test/render_service/render_service/fuzztest/rsrenderserviceconnection*_fuzzer/ @zhangzhichao0091
 
 [rs_render_context]
 rosen/modules/render_service_base/src/vulkan_context/rs_vulkan_context.cpp @zhouhuan31
