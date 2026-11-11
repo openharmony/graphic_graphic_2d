@@ -21,7 +21,7 @@
 #include <condition_variable>
 #include <cstdint>
 #include <functional>
-#include <map>
+#include <set>
 #include <memory>
 #include <mutex>
 #include "EGL/egl.h"
@@ -75,7 +75,7 @@ private:
     uint32_t defaultThreadIndex_ = 0;
     std::mutex parallelRenderMutex_;
     std::condition_variable cvParallelRender_;
-    std::map<uint64_t, uint8_t> nodeTaskState_;
+    std::set<uint64_t> renderingNodes_;
     std::vector<std::shared_ptr<RSSubThread>> threadList_;
     std::unordered_map<pid_t, uint32_t> threadIndexMap_;
     std::unordered_map<uint32_t, pid_t> reThreadIndexMap_;

@@ -114,9 +114,9 @@ bool UIFirstParam::IsUIFirstLeashAllEnable()
     return isUIFirstLeashAllEnable_;
 }
 
-void UIFirstParam::SetUIFirstLeashAllEnable(bool isEnable)
+void UIFirstParam::SetUIFirstLeashAllEnable(bool isEnabled)
 {
-    isUIFirstLeashAllEnable_ = isEnable;
+    isUIFirstLeashAllEnable_ = isEnabled;
 }
 
 uint32_t UIFirstParam::GetSubThreadFrameRateControlByScene()

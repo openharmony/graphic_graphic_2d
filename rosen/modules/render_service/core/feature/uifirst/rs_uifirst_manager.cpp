@@ -491,10 +491,10 @@ bool RSUifirstManager::UifirstCacheUpdated(std::shared_ptr<RSSurfaceRenderNode>&
         auto leashNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(node->GetParent().lock());
         if ((leashNode != nullptr) && leashNode->IsLeashWindow() &&
             leashNode->GetLastFrameUifirstCacheType() != MultiThreadCacheType::NONE) {
-                return UifirstCacheUpdate(leashNode->GetId());
-            }
-        return true;
+            return UifirstCacheUpdate(leashNode->GetId());
         }
+        return true;
+    }
     return true;
 }
 

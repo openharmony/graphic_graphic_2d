@@ -47,7 +47,7 @@ protected:
     static void SetClearCacheThreshold(int threshold);
     static void SetSizeChangedThreshold(float threshold);
     static void SetOcclusionEnabled(bool isEnable);
-    static void SetUIFirstLeashAllEnable(bool isEnable);
+    static void SetUIFirstLeashAllEnable(bool isEnabled);
     static void SetUIFirstFrameControlEnable(bool isEnabled);
     static void SetSubThreadFrameRateControlByScene(uint32_t value);
 
@@ -60,7 +60,7 @@ private:
     inline static int uiFirstType_ = 1;
     inline static int clearCacheThreshold_ = 0;
     inline static float sizeChangedThreshold_ = 0.1f;
-    inline static bool isOcclusionEnabled_ = true;
+    inline static bool isOcclusionEnabled_ = false;
     inline static bool isUIFirstLeashAllEnable_ = false;
     inline static bool isUIFirstFrameControlEnable_ = false;
     inline static std::atomic<uint32_t> subThreadFrameRateControlByScene_ = 0xFF;

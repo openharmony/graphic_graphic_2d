@@ -91,7 +91,7 @@ int32_t UIFirstParamParse::ParseUIFirstInternal(xmlNode &node)
                 break;
             case UIFirstSwitchType::LEASH_ALL_ENABLED:
                 UIFirstParam::SetUIFirstLeashAllEnable(isEnabled);
-                RS_LOGI("UIFirstParamParse parse UIFirstShadowEnable %{public}d",
+                RS_LOGI("UIFirstParamParse parse UIFirstLeashAllEnable %{public}d",
                     UIFirstParam::IsUIFirstLeashAllEnable());
                 break;
             case UIFirstSwitchType::FRAME_CONTROL_ENABLED:

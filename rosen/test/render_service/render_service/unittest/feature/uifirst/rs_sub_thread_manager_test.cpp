@@ -184,8 +184,9 @@ HWTEST_F(RsSubThreadManagerTest, WaitNodeTaskTest001, TestSize.Level1)
 HWTEST_F(RsSubThreadManagerTest, NodeTaskNotifyTest001, TestSize.Level1)
 {
     auto rsSubThreadManager = RSSubThreadManager::Instance();
+    rsSubThreadManager->renderingNodes_.insert(1);
     rsSubThreadManager->NodeTaskNotify(1);
-    EXPECT_FALSE(rsSubThreadManager->nodeTaskState_.empty());
+    EXPECT_TRUE(rsSubThreadManager->renderingNodes_.find(1) == rsSubThreadManager->renderingNodes_.end());
 }
 
 /**
@@ -210,8 +211,9 @@ HWTEST_F(RsSubThreadManagerTest, ResetSubThreadGrContextTest001, TestSize.Level1
     rsSubThreadManager->threadList_.push_back(curThreadf);
     rsSubThreadManager->threadList_.push_back(curThreads);
     rsSubThreadManager->threadList_.push_back(curThreadt);
+    rsSubThreadManager->renderingNodes_.insert(1);
     rsSubThreadManager->ResetSubThreadGrContext();
-    EXPECT_FALSE(rsSubThreadManager->nodeTaskState_.empty());
+    EXPECT_FALSE(rsSubThreadManager->renderingNodes_.empty());
 
     rsSubThreadManager->needResetContext_ = true;
     rsSubThreadManager->ResetSubThreadGrContext();
