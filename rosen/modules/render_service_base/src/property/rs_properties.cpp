@@ -18,6 +18,7 @@
 #include <algorithm>
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <math.h>
 #include <memory>
 #include <mutex>
@@ -4940,10 +4941,10 @@ void RSProperties::CalculateFrameOffset()
 {
     frameOffsetX_ = frameGeo_.GetX() - boundsGeo_->GetX();
     frameOffsetY_ = frameGeo_.GetY() - boundsGeo_->GetY();
-    if (isinf(frameOffsetX_)) {
+    if (std::isinf(frameOffsetX_)) {
         frameOffsetX_ = 0.f;
     }
-    if (isinf(frameOffsetY_)) {
+    if (std::isinf(frameOffsetY_)) {
         frameOffsetY_ = 0.f;
     }
     if (frameOffsetX_ != 0.f || frameOffsetY_ != 0.f) {

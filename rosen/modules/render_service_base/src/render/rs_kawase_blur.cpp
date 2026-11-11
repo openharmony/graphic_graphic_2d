@@ -14,6 +14,7 @@
  */
 
 #include "render/rs_kawase_blur.h"
+#include <cmath>
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "common/rs_optional_trace.h"
@@ -288,7 +289,7 @@ bool KawaseBlurFilter::ApplyKawaseBlur(Drawing::Canvas& canvas, const std::share
     RS_OPTIONAL_TRACE_BEGIN("ApplyKawaseBlur " + GetDescription());
     int maxPasses = supportLargeRadius ? kMaxPassesLargeRadius : kMaxPasses;
     float dilatedConvolutionFactor = supportLargeRadius ? kDilatedConvolutionLargeRadius : kDilatedConvolution;
-    if (abs(dilatedConvolutionFactor) <= 1e-6) {
+    if (std::abs(dilatedConvolutionFactor) <= 1e-6) {
         dilatedConvolutionFactor = 4.6f; // 4.6 : radio between gauss and kawase
     }
     float tmpRadius = static_cast<float>(blurRadius_) / dilatedConvolutionFactor;
@@ -411,7 +412,7 @@ bool KawaseBlurFilter::ApplyBlur(Drawing::Canvas& canvas, const std::shared_ptr<
         mixBuilder.SetChild("blurredInput", blurShader);
         mixBuilder.SetChild("originalInput", Drawing::ShaderEffect::CreateImageShader(*image, Drawing::TileMode::CLAMP,
             Drawing::TileMode::CLAMP, linear, inputMatrix));
-        float mixFactor = (abs(kMaxCrossFadeRadius) <= 1e-6) ? 1.f : (blurRadius_ / kMaxCrossFadeRadius);
+        float mixFactor = (std::abs(kMaxCrossFadeRadius) <= 1e-6) ? 1.f : (blurRadius_ / kMaxCrossFadeRadius);
         mixBuilder.SetUniform("mixFactor", std::min(1.0f, mixFactor));
         static auto factor = RSSystemProperties::GetKawaseRandomColorFactor();
         mixBuilder.SetUniform("inColorFactor", factor);

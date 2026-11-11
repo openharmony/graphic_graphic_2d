@@ -1905,8 +1905,8 @@ bool RSEffectProperties::CalculatePixelStretch(float boundsWidth, float boundsHe
     constexpr static float EPS = 1e-5f;
     const auto& pixelStretch = GetPixelStretch();
     // parameter check: near zero
-    if (abs(pixelStretch.x_) < EPS && abs(pixelStretch.y_) < EPS && abs(pixelStretch.z_) < EPS &&
-        abs(pixelStretch.w_) < EPS) {
+    if (std::abs(pixelStretch.x_) < EPS && std::abs(pixelStretch.y_) < EPS &&
+        std::abs(pixelStretch.z_) < EPS && std::abs(pixelStretch.w_) < EPS) {
         ResetPixelStretchPara();
         return false;
     }

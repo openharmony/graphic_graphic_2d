@@ -14,6 +14,7 @@
  */
 
 #include <chrono>
+#include <cmath>
 #include <fstream>
 #include <thread>
 
@@ -341,7 +342,7 @@ std::shared_ptr<Drawing::Image> RSImageDetailEnhancerThread::EnhanceImageAsync(b
     float realDstWidth = RSImageParams.mDst.GetWidth() * RSImageParams.mMatrixScaleX;
     float newScaleRatio = realDstWidth / static_cast<float>(dstImage->GetWidth());
     float originScaleRatio = realDstWidth / static_cast<float>(RSImageParams.mImage->GetWidth());
-    if (abs(originScaleRatio - 1.0f) < abs(newScaleRatio - 1.0f)) {
+    if (std::abs(originScaleRatio - 1.0f) < std::abs(newScaleRatio - 1.0f)) {
         isScaledImageAsync = false;
         return nullptr;
     }
