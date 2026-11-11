@@ -19,12 +19,12 @@
 #include <cstdlib>
 #include <malloc.h>
 #include <new>
-#include "securec.h"
 
 #include "common/rs_optional_trace.h"
 #include "pipeline/rs_render_node_allocator.h"
 #include "platform/common/rs_log.h"
 #include "rs_trace.h"
+#include "string_utils.h"
 
 namespace OHOS {
 namespace Rosen {
@@ -256,49 +256,29 @@ void RSScbNodeMemoryPool::Shrink()
 
 void RSScbNodeMemoryPool::Dump(std::string& result) const
 {
-    char buf[256];
-    int len;
-
     result.append("=== SCB Memory Pool Status ===\n");
 
-    len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "Slot Size: %zu bytes\n", slotSize_);
-    result.append(buf, len);
-
-    len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "Total Slots: %u\n", totalSlots_);
-    result.append(buf, len);
+    AppendFormat(result, "Slot Size: %zu bytes\n", slotSize_);
+    AppendFormat(result, "Total Slots: %u\n", totalSlots_);
 
     uint32_t usedSlots = totalSlots_ - static_cast<uint32_t>(freeSlots_.size());
-    len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "Used Slots: %u\n", usedSlots);
-    result.append(buf, len);
-
-    len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "Free Slots: %zu\n", freeSlots_.size());
-    result.append(buf, len);
+    AppendFormat(result, "Used Slots: %u\n", usedSlots);
+    AppendFormat(result, "Free Slots: %zu\n", freeSlots_.size());
 
     float usageRate = totalSlots_ > 0 ? (float)usedSlots / totalSlots_ * 100 : 0.0f;
-    len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "Usage Rate: %.2f%%\n", usageRate);
-    result.append(buf, len);
-
-    len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "Chunks Count: %zu\n", chunks_.size());
-    result.append(buf, len);
+    AppendFormat(result, "Usage Rate: %.2f%%\n", usageRate);
+    AppendFormat(result, "Chunks Count: %zu\n", chunks_.size());
 
     size_t freeQueueSize = RSRenderNodeAllocator::Instance().GetScbFreeQueueSize();
     uint32_t liveNodes = (usedSlots >= static_cast<uint32_t>(freeQueueSize))
         ? usedSlots - static_cast<uint32_t>(freeQueueSize) : 0;
-    len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "Free Queue: %zu (destructed nodes waiting for reuse)\n",
-        freeQueueSize);
-    result.append(buf, len);
-
-    len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "Live Nodes: %u (actual alive nodes in pool)\n", liveNodes);
-    result.append(buf, len);
+    AppendFormat(result, "Free Queue: %zu (destructed nodes waiting for reuse)\n", freeQueueSize);
+    AppendFormat(result, "Live Nodes: %u (actual alive nodes in pool)\n", liveNodes);
 
     // Fragmentation analysis
     if (chunks_.size() > 1) {
-        len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "Fragmentation: %zu chunks for %u slots\n",
-            chunks_.size(), totalSlots_);
-        result.append(buf, len);
-        len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "Avg Slots Per Chunk: %.1f\n",
-            (float)totalSlots_ / chunks_.size());
-        result.append(buf, len);
+        AppendFormat(result, "Fragmentation: %zu chunks for %u slots\n", chunks_.size(), totalSlots_);
+        AppendFormat(result, "Avg Slots Per Chunk: %.1f\n", (float)totalSlots_ / chunks_.size());
     }
 
     // Per-chunk detail
@@ -313,11 +293,9 @@ void RSScbNodeMemoryPool::Dump(std::string& result) const
                 ++usedInChunk;
             }
         }
-        len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1,
-            "Chunk[%u]: base=%u, count=%u, used=%u, free=%u, addr=%p\n",
+        AppendFormat(result, "Chunk[%u]: base=%u, count=%u, used=%u, free=%u, addr=%p\n",
             chunkIndex++, chunk.baseSlot, chunk.slotCount, usedInChunk,
             chunk.slotCount - usedInChunk, chunk.memory.get());
-        result.append(buf, len);
     }
     result.append("==============================\n");
 }

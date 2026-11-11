@@ -2862,4 +2862,48 @@ HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_CanvasDrawingNodeHybridRender, TestS
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(baseId | 2);
 }
 #endif
+
+/*
+ * @tc.name: DumpAllRenderNodes_CsvRowAppendBranch
+ * @tc.desc: Covers the `if (len > 0)` success branch of the guarded snprintf_s in
+ *           DumpAllRenderNodes (rs_pipeline_dumper.cpp): the formatted CSV row must be
+ *           appended into dumpString. If snprintf_s ever fails (len <= 0), the row is
+ *           skipped and only surfaceName would be appended; this test detects that by
+ *           requiring the full comma-separated field prefix to be present.
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_CsvRowAppendBranch, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    constexpr pid_t csvPid = 7777;
+    constexpr uint32_t seq = 60;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+ 
+    auto node = allocator.CreateScbCanvasRenderNode(MakeNodeIdForTopo(csvPid, seq), {}, false);
+    ASSERT_NE(node, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(node));
+    node->SetIsOnTheTree(true);
+ 
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+ 
+    // Success branch of snprintf_s guard: the complete 9-field CSV prefix (ending with
+    // a trailing comma before surfaceName) must be present for this node.
+    std::string rowPrefix = std::to_string(MakeNodeIdForTopo(csvPid, seq)) + "," +
+        std::to_string(csvPid) + ",0,";
+    auto pos = dumpString.find(rowPrefix);
+    ASSERT_NE(pos, std::string::npos) << "CSV row (snprintf_s success branch) not appended";
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    // Fields 3..8 (isScb..globalSlot) plus trailing comma:
+    // "<isScb>,<type>,<onTree>,<inPool>,<chunk>,<slot>,<globalSlot>," => 7 commas after pid.
+    size_t commaCount = std::count(row.begin(), row.end(), ',');
+    EXPECT_GE(commaCount, 9u) << "incomplete CSV row, row: " << row;
+ 
+    node->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(node->GetId());
+}
 } // namespace OHOS::Rosen

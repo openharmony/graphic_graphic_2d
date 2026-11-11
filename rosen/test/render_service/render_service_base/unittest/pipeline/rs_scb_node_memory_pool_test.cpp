@@ -1087,6 +1087,50 @@ HWTEST_F(RSScbNodeMemoryPoolTest, DumpTest005, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DumpTest006
+ * @tc.desc: test Dump per-chunk detail line is well-formed after switching to the
+ *           return-value-guarded AppendFormat helper (snprintf_s retval handled inside
+ *           string_utils.h). Verifies each Chunk line carries the full key=value set so
+ *           a silently-dropped or partially-formatted append is detected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSScbNodeMemoryPoolTest, DumpTest006, TestSize.Level1)
+{
+    auto& pool = RSScbNodeMemoryPool::Instance();
+    void* ptr = pool.Allocate();
+    ASSERT_NE(ptr, nullptr);
+    pool.Deallocate(ptr);
+    std::string result;
+    pool.Dump(result);
+    ASSERT_FALSE(result.empty());
+ 
+    // Every chunk line must contain all formatted fields (guard against snprintf_s
+    // failure being swallowed and an empty/garbled line entering the dump).
+    const std::string chunkMarker = "Chunk[";
+    const std::vector<std::string> requiredFields = {
+        "base=", ", count=", ", used=", ", free=", ", addr=0x"
+    };
+    size_t pos = 0;
+    uint32_t checkedLines = 0;
+    while ((pos = result.find(chunkMarker, pos)) != std::string::npos) {
+        auto lineEnd = result.find('\n', pos);
+        ASSERT_NE(lineEnd, std::string::npos);
+        std::string line = result.substr(pos, lineEnd - pos);
+        for (const auto& field : requiredFields) {
+            EXPECT_NE(line.find(field), std::string::npos)
+                << "field '" << field << "' missing in chunk line: " << line;
+        }
+        pos = lineEnd + 1;
+        ++checkedLines;
+    }
+    EXPECT_GE(checkedLines, pool.GetChunkCount());
+ 
+    // Address field must parse as a pointer value (addr=0x...), not be empty.
+    // Non-zero pool must also expose the pool status header.
+    EXPECT_NE(result.find("=== SCB Memory Pool Status ==="), std::string::npos);
+}
+
+/**
  * @tc.name: GetSlotInfoTest005
  * @tc.desc: test GetSlotInfo returns correct chunkIndex and globalSlot for a pointer
  *           in an expansion chunk (multi-chunk branch, L330-340). The globalSlot must

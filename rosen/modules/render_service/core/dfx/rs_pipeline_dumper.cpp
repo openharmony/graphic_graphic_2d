@@ -976,7 +976,11 @@ void RSPipelineDumper::DumpAllRenderNodes(std::string& dumpString) const
             slotInfo.found ? slotInfo.chunkIndex : 0,
             slotInfo.found ? slotInfo.slotInChunk : 0,
             slotInfo.found ? slotInfo.globalSlot : 0);
-        dumpString.append(buf, len);
+        if (len > 0) {
+            dumpString.append(buf, len);
+        } else {
+            RS_LOGE("RSPipelineDumper::DumpAllRenderNodes snprintf_s failed, nodeId:%{public}" PRIu64, nodeId);
+        }
         dumpString.append(surfaceName);
         dumpString.append("\n");
     });
