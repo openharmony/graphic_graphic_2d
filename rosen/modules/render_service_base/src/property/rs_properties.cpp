@@ -137,11 +137,11 @@ void NoticePointLight(RSProperties& prop, const std::shared_ptr<RSNGRenderShader
     SetLightPoint<&RSProperties::NoticeLightColor, PointLightLightColorRenderTag>(prop, *rsNGShader);
 }
 
-void NoticeCoverage(RSProperties& prop, const std::shared_ptr<RSNGRenderShaderBase>& shader)
+bool NoticeCoverage(RSProperties& prop, const std::shared_ptr<RSNGRenderShaderBase>& shader)
 {
     auto pointLightShader = DrawableV2::RSEffectDrawableUtils::FindShader(shader, RSNGEffectType::POINT_LIGHT);
     if (pointLightShader == nullptr) {
-        return;
+        return false;
     }
     RS_LOGD_IF(DEBUG_PIPELINE, "NoticeCoverage drawLight");
     auto rsNGShader = std::static_pointer_cast<RSNGRenderPointLight>(pointLightShader);
@@ -152,6 +152,7 @@ void NoticeCoverage(RSProperties& prop, const std::shared_ptr<RSNGRenderShaderBa
     SetLightPoint<&RSProperties::SetIlluminatedType, PointLightIlluminatedTypeRenderTag>(prop, *rsNGShader);
     SetLightPoint<&RSProperties::SetBloom, PointLightBloomRenderTag>(prop, *rsNGShader);
     SetLightPoint<&RSProperties::SetLightColor, PointLightLightColorRenderTag>(prop, *rsNGShader);
+    return true;
 }
 } // namespace
 
@@ -4035,7 +4036,9 @@ void RSProperties::SetBloom(float bloomIntensity)
 
 void RSProperties::SetCoverageNGShader(const std::shared_ptr<RSNGRenderShaderBase>& coverageShader)
 {
-    NoticeCoverage(*this, coverageShader);
+    if (!NoticeCoverage(*this, coverageShader)) {
+        GetEffectProperties().SetCoverageNGShader(coverageShader);
+    }
     isDrawn_ = true;
     SetDirty();
     contentDirty_ = true;

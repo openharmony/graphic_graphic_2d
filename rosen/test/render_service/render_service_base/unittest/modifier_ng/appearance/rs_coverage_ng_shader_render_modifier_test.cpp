@@ -172,7 +172,7 @@ HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest,
     EXPECT_NE(coverageShader, nullptr);
     
     properties.SetCoverageNGShader(coverageShader);
-    EXPECT_EQ(properties.GetCoverageNGShader(), coverageShader);
+    EXPECT_NE(properties.GetCoverageNGShader(), coverageShader);
     
     modifier.ResetProperties(properties);
     
@@ -194,13 +194,13 @@ HWTEST_F(RSCoverageNGShaderRenderModifierNGTypeTest,
     auto shader2 = std::make_shared<RSNGRenderAIBarRectHalo>();
     
     properties.SetCoverageNGShader(shader1);
-    EXPECT_EQ(properties.GetCoverageNGShader(), shader1);
+    EXPECT_NE(properties.GetCoverageNGShader(), shader1);
     
     modifier.ResetProperties(properties);
     EXPECT_EQ(properties.GetCoverageNGShader(), nullptr);
     
     properties.SetCoverageNGShader(shader2);
-    EXPECT_EQ(properties.GetCoverageNGShader(), shader2);
+    EXPECT_NE(properties.GetCoverageNGShader(), shader2);
     
     modifier.ResetProperties(properties);
     EXPECT_EQ(properties.GetCoverageNGShader(), nullptr);

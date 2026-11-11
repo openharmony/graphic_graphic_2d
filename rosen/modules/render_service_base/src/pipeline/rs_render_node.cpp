@@ -5155,7 +5155,7 @@ void RSRenderNode::UpdatePointLightDirtySlot()
             return;
         }
         drawablePtr->OnUpdate(*shared_from_this());
-        UpdateDirtySlotsAndPendingNodes(RSDrawableSlot::COVERAGE_NG_SHADER);
+        UpdateDirtySlotsAndPendingNodes(slot);
         enableHdrEffect = enableHdrEffect || drawablePtr->GetEnableEDR();
         hasPointLightDrawable = true;
     }
