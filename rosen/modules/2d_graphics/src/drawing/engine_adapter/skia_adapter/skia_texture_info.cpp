@@ -145,6 +145,7 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendTexture(const TextureInfo& i
     if (SystemProperties::IsUseVulkan()) {
         return ConvertToGrBackendVKTexture(info);
     } else {
+#ifndef ACE_DISABLE_GL
         GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
 #ifdef USE_M133_SKIA
         GrBackendTexture backendTexture = GrBackendTextures::MakeGL(info.GetWidth(), info.GetHeight(),
@@ -155,8 +156,12 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendTexture(const TextureInfo& i
             static_cast<GrMipMapped>(info.GetIsMipMapped()), grGLTextureInfo);
 #endif
         return backendTexture;
+#else
+        return GrBackendTexture();
+#endif
     }
 #else
+#ifndef ACE_DISABLE_GL
     GrGLTextureInfo grGLTextureInfo = { info.GetTarget(), info.GetID(), info.GetFormat() };
 #ifdef USE_M133_SKIA
     GrBackendTexture backendTexture = GrBackendTextures::MakeGL(info.GetWidth(), info.GetHeight(),
@@ -167,11 +172,15 @@ GrBackendTexture SkiaTextureInfo::ConvertToGrBackendTexture(const TextureInfo& i
         static_cast<GrMipMapped>(info.GetIsMipMapped()), grGLTextureInfo);
 #endif
     return backendTexture;
+#else
+    return GrBackendTexture();
+#endif
 #endif
 }
 
 TextureInfo SkiaTextureInfo::ConvertToTextureInfo(const GrBackendTexture& grBackendTexture)
 {
+#ifndef ACE_DISABLE_GL
     GrGLTextureInfo* grGLTextureInfo = new GrGLTextureInfo();
 #ifdef USE_M133_SKIA
     GrBackendTextures::GetGLTextureInfo(grBackendTexture, grGLTextureInfo);
@@ -187,6 +196,10 @@ TextureInfo SkiaTextureInfo::ConvertToTextureInfo(const GrBackendTexture& grBack
     textureInfo.SetFormat(grGLTextureInfo->fFormat);
     delete grGLTextureInfo;
     return textureInfo;
+#else
+    (void)grBackendTexture;
+    return TextureInfo();
+#endif
 }
 } // namespace Drawing
 } // namespace Rosen

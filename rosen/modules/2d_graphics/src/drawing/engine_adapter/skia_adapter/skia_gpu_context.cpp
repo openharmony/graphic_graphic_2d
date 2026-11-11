@@ -89,6 +89,7 @@ static CommonPoolExecutor g_defaultExecutor;
 
 bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
 {
+#ifndef ACE_DISABLE_GL
 #ifdef USE_M133_SKIA
     sk_sp<const GrGLInterface> glInterface(GrGLMakeNativeInterface());
 #else
@@ -116,6 +117,10 @@ bool SkiaGPUContext::BuildFromGL(const GPUContextOptions& options)
     grContext_ = GrDirectContext::MakeGL(std::move(glInterface), grOptions);
 #endif
     return grContext_ != nullptr ? true : false;
+#else
+    (void)options;
+    return false;
+#endif
 }
 
 #ifdef RS_ENABLE_VK

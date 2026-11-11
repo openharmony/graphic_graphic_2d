@@ -402,6 +402,9 @@ template("graphics2d_source_set") {
 
       deps += [ "$graphic_2d_root/utils:sandbox_utils" ]
       defines += [ "MODULE_DRAWING" ]
+      if (is_linux && (sdk_platform == "arm64" || ndk_platform == "arm64")) {
+        defines += [ "ACE_DISABLE_GL" ]
+      }
       if (is_arkui_x) {
         defines += [ "CROSS_PLATFORM" ]
         deps += [ "//third_party/icu/icu4c:static_icuuc" ]
