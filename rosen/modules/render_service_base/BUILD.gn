@@ -19,7 +19,7 @@ import(
 
 enable_compiler_rust = !ohos_indep_compiler_enable &&
                        ((!is_mingw && !is_mac && !is_cross_platform &&
-                        !(host_os == "linux" && host_cpu == "arm64")))
+                        !(current_os == "linux" && current_cpu == "arm64")))
 
 config("export_config") {
   include_dirs = [
