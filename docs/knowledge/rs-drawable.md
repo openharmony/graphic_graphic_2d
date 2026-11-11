@@ -293,7 +293,7 @@ RSPropertyDrawable 的绘制链路分为三阶段：
    ```
    
    - 直接回放录制好的 `DrawCmdList`。
-   - 对于 `RSFilterDrawable`，会调用 `RSEffectDrawableUtils::DrawFilter` 处理滤镜缓存。
+   - 对于 `RSFilterDrawable`，会调用 `RSPropertyDrawableUtils::DrawFilter` 处理滤镜缓存。
 
 #### 滤镜绘制链路
 
@@ -311,7 +311,7 @@ OnSync()
 
 OnDraw(canvas, rect)
   → GetAbsRenderEffectRect() 计算 snapshot 和 draw 区域
-  → RSEffectDrawableUtils::DrawFilter(canvas, filter_, cacheManager_, ...)
+  → RSPropertyDrawableUtils::DrawFilter(canvas, filter_, cacheManager_, ...)
     → cacheManager_->IsFilterCacheValid() 检查缓存
     → 若缓存有效：直接使用缓存图像
     → 若缓存失效：重新绘制滤镜效果并更新缓存
