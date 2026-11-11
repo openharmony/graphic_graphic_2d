@@ -25,6 +25,7 @@
 #include "effect/rs_render_shape_base.h"
 #include "offscreen_render/rs_offscreen_render_thread.h"
 #include "params/rs_render_params.h"
+#include "feature/filter_cache_manager/rs_cache_update_manager.h"
 #include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_context.h"
@@ -1106,7 +1107,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterStatusChanged, TestSize.Level1)
     isForeground = true;
     filterDrawable = std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
     node.MarkFilterStatusChanged(filterDrawable, isForeground, isFilterRegionChanged);
-    EXPECT_EQ(filterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
+    EXPECT_EQ(filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_, false);
 }
 
 /**
@@ -1257,11 +1258,11 @@ HWTEST_F(RSRenderNodeTest2, UpdateFilterCacheWithSelfDirty003, TestSize.Level1)
     filterDrawable->stagingVisibleRectInfo_->snapshotRect_ = snapshotRect;
 
     node.UpdateFilterCacheWithSelfDirty();
-    EXPECT_FALSE(filterDrawable->stagingCacheManager_->stagingFilterRegionChanged_);
+    EXPECT_FALSE(filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterRegionChanged_);
 
     filterDrawable->lastStagingVisibleSnapshotRect_ = std::make_unique<RectI>(20, 20, 30, 30);
     node.UpdateFilterCacheWithSelfDirty();
-    EXPECT_TRUE(filterDrawable->stagingCacheManager_->stagingFilterRegionChanged_);
+    EXPECT_TRUE(filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterRegionChanged_);
 }
 
 /**
@@ -1327,8 +1328,8 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect002, TestSize.Level
     auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
     filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
-    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->pendingPurge_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterInteractWithDirty_ = false;
 
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     rsDirtyManager->GetFilterCollector().AddPendingPurgeFilterRegion(Occlusion::Region(Occlusion::Rect(0, 0, 60, 60)));
@@ -1360,14 +1361,14 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect003, TestSize.Level
     slot = RSDrawableSlot::COMPOSITING_FILTER;
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
     filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceUseCache_ = true;
 
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     rsDirtyManager->GetFilterCollector().AddPendingPurgeFilterRegion(Occlusion::Region(Occlusion::Rect(0, 0, 60, 60)));
     node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
     EXPECT_FALSE(node.backgroundFilterInteractWithDirty_);
 
-    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceUseCache_ = false;
     node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::COMPOSITING_FILTER);
     EXPECT_FALSE(node.backgroundFilterInteractWithDirty_);
 
@@ -1392,8 +1393,8 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect005, TestSize.Level
     auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
     filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
-    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->pendingPurge_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterInteractWithDirty_ = false;
     node.lastFilterRegion_ = RectI(80, 80, 100, 100);
 
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
@@ -1420,8 +1421,8 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect006, TestSize.Level
     auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     node.GetDrawableVec(__func__)[static_cast<uint32_t>(slot)] = filterDrawable;
     filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    filterDrawable->stagingCacheManager_->pendingPurge_ = false;
-    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->pendingPurge_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterInteractWithDirty_ = false;
 
     auto filterRegion = Occlusion::Region(node.GetFilterRect());
     node.lastFilterRegion_ = node.GetFilterRect();
@@ -1437,7 +1438,7 @@ HWTEST_F(RSRenderNodeTest2, UpdatePendingPurgeFilterDirtyRect006, TestSize.Level
     const auto& pendingPurgeFilterRegion2 = rsDirtyManager->GetFilterCollector().GetPendingPurgeFilterRegion();
     EXPECT_TRUE(filterRegion.Sub(pendingPurgeFilterRegion2).IsEmpty());
 
-    filterDrawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->filterType_ = RSFilter::AIBAR;
     node.UpdatePendingPurgeFilterDirtyRect(*rsDirtyManager, RSDrawableSlot::BACKGROUND_FILTER);
 }
 
@@ -2912,7 +2913,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags01, TestSize.Level1)
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     filterDrawable->MarkFilterForceUseCache(true);
     filterDrawable->MarkFilterForceClearCache();
-    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->pendingPurge_ = true;
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
@@ -2932,10 +2933,10 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags02, TestSize.Level1)
     bool needRequestNextVsync = false;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->stagingCacheManager_->stagingForceClearCache_ = true;
-    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = true;
-    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = true;
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceUseCache_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterInteractWithDirty_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
@@ -2955,9 +2956,9 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags03, TestSize.Level1)
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->stagingCacheManager_->stagingForceClearCache_ = false;
-    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = true;
-    filterDrawable->stagingCacheManager_->pendingPurge_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceUseCache_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->pendingPurge_ = true;
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
@@ -2977,10 +2978,10 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags04, TestSize.Level1)
     bool needRequestNextVsync = false;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->stagingCacheManager_->stagingForceClearCache_ = true;
-    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
-    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = true;
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceUseCache_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterInteractWithDirty_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
@@ -3000,10 +3001,10 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags05, TestSize.Level1)
     bool needRequestNextVsync = false;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->stagingCacheManager_->stagingForceClearCache_ = true;
-    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = true;
-    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceUseCache_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterInteractWithDirty_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
@@ -3023,10 +3024,10 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags06, TestSize.Level1)
     bool needRequestNextVsync = false;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->stagingCacheManager_->stagingForceClearCache_ = true;
-    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
-    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceUseCache_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterInteractWithDirty_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
@@ -3046,10 +3047,10 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags07, TestSize.Level1)
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->stagingCacheManager_->stagingForceClearCache_ = true;
-    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = true;
-    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceUseCache_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterInteractWithDirty_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
@@ -3069,10 +3070,10 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags08, TestSize.Level1)
     bool needRequestNextVsync = true;
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
-    filterDrawable->stagingCacheManager_->stagingForceClearCache_ = true;
-    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
-    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
-    filterDrawable->stagingCacheManager_->cacheUpdateInterval_ = 1;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_ = true;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceUseCache_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterInteractWithDirty_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->cacheUpdateInterval_ = 1;
     auto& properties = node.GetMutableRenderProperties();
     properties.GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     properties.GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
@@ -3091,17 +3092,17 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterCacheFlags009, TestSize.Level1)
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
     std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
     filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    filterDrawable->stagingCacheManager_->stagingForceClearCache_ = false;
-    filterDrawable->stagingCacheManager_->stagingForceUseCache_ = false;
-    filterDrawable->stagingCacheManager_->stagingFilterInteractWithDirty_ = false;
-    filterDrawable->stagingCacheManager_->pendingPurge_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceUseCache_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingFilterInteractWithDirty_ = false;
+    filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->pendingPurge_ = false;
     filterDrawable->stagingVisibleRectInfo_ = std::make_unique<DrawableV2::RSFilterDrawable::FilterVisibleRectInfo>();
     filterDrawable->stagingVisibleRectInfo_->snapshotRect_ = RectI(0, 0, 10, 10);
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, true);
-    EXPECT_FALSE(filterDrawable->stagingCacheManager_->stagingIsLargeArea_);
+    EXPECT_FALSE(filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingIsLargeArea_);
     filterDrawable->stagingVisibleRectInfo_->snapshotRect_ = RectI(0, 0, 500, 500);
     node.MarkFilterCacheFlags(filterDrawable, *rsDirtyManager, true);
-    EXPECT_TRUE(filterDrawable->stagingCacheManager_->stagingIsLargeArea_);
+    EXPECT_TRUE(filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingIsLargeArea_);
 }
 
 /**
@@ -3510,7 +3511,7 @@ HWTEST_F(RSRenderNodeTest2, MarkFilterInForegroundFilterAndCheckNeedForceClearCa
     auto filterDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     backgroundNode.GetDrawableVec(__func__)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = filterDrawable;
     backgroundNode.MarkFilterInForegroundFilterAndCheckNeedForceClearCache(id);
-    EXPECT_EQ(filterDrawable->stagingCacheManager_->stagingForceClearCache_, false);
+    EXPECT_EQ(filterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_, false);
 }
 
 /**
