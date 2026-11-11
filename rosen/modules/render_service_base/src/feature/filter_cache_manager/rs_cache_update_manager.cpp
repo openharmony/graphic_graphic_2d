@@ -135,8 +135,8 @@ void RSCacheUpdateManager::UpdateFlags(FilterCacheType type, bool cacheValid)
     cacheUpdateInterval_tmp = (nodeFilterRate_ > 0 && !isGradientBlur) ?
         CalApsCacheUpdateInterval(cacheUpdateInterval_tmp, nodeFilterRate_) : cacheUpdateInterval_tmp;
     if (!cacheValid) {
-        cacheUpdateInterval_ = stagingRotationChanged_ ? ROTATION_CACHE_UPDATE_INTERVAL : 
-            (filterType_ == RSFilter::AIBAR ? AIBAR_CACHE_UPDATE_INTERVAL : (((stagingIsLargeArea_ && canSkipFrame_) 
+        cacheUpdateInterval_ = stagingRotationChanged_ ? ROTATION_CACHE_UPDATE_INTERVAL :
+            (filterType_ == RSFilter::AIBAR ? AIBAR_CACHE_UPDATE_INTERVAL : (((stagingIsLargeArea_ && canSkipFrame_)
                 || (nodeFilterRate_ > 0 && !isGradientBlur)) ? cacheUpdateInterval_tmp : 0));
         pendingPurge_ = false;
         return;
