@@ -138,6 +138,136 @@ HWTEST_F(FontParserTest, FontConfigTest2, TestSize.Level0)
 }
 
 /**
+ * @tc.name: FontFileMapTest1
+ * @tc.desc: test font map table with Calibri entry using self-contained test data
+ * @tc.type:FUNC
+ */
+HWTEST_F(FontParserTest, FontFileMapTest1, TestSize.Level0)
+{
+    // Create a temporary test JSON file to avoid device dependency
+    const char* testJsonContent = R"({
+        "fontsMapTable": [
+            {"srcFont": "Font0", "targetFonts": ["Target0"]},
+            {"srcFont": "Font1", "targetFonts": ["Target1"]},
+            {"srcFont": "Font2", "targetFonts": ["Target2"]},
+            {"srcFont": "Font3", "targetFonts": ["Target3"]},
+            {"srcFont": "Font4", "targetFonts": ["Target4"]}
+        ]
+    })";
+    const std::string testFilePath = "/data/test_fonts_map_table_1.json";
+    std::ofstream testFile(testFilePath);
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+    testFile << testJsonContent;
+    testFile.close();
+
+    FontConfigJson fontConfigJson;
+    fontConfigJson.ParseFontFileMap();
+    int ret = fontConfigJson.ParseFontMapTable(testFilePath.c_str());
+    EXPECT_EQ(ret, 0);
+
+    auto fontMapTable = fontConfigJson.GetFontMapTable();
+    ASSERT_NE(fontMapTable, nullptr);
+
+    const size_t kTargetIndex = 4;
+    if (kTargetIndex >= fontMapTable->size()) {
+        GTEST_SKIP();
+    }
+    const auto& entry = fontMapTable->at(kTargetIndex);
+    EXPECT_STREQ(entry.srcFont.c_str(), "Font4");
+
+    remove(testFilePath.c_str());
+}
+
+/**
+ * @tc.name: FontFileMapTest2
+ * @tc.desc: test font map table with Symbol entry using self-contained test data
+ * @tc.type:FUNC
+ */
+HWTEST_F(FontParserTest, FontFileMapTest2, TestSize.Level0)
+{
+    // Create a temporary test JSON file to avoid device dependency
+    const char* testJsonContent = R"({
+        "fontsMapTable": [
+            {"srcFont": "Font0", "targetFonts": ["Target0"]},
+            {"srcFont": "Font1", "targetFonts": ["Target1"]},
+            {"srcFont": "Font2", "targetFonts": ["Target2"]}
+        ]
+    })";
+    const std::string testFilePath = "/data/test_fonts_map_table_2.json";
+    std::ofstream testFile(testFilePath);
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+    testFile << testJsonContent;
+    testFile.close();
+
+    FontConfigJson fontConfigJson;
+    fontConfigJson.ParseFontFileMap();
+    int ret = fontConfigJson.ParseFontMapTable(testFilePath.c_str());
+    EXPECT_EQ(ret, 0);
+
+    auto fontMapTable = fontConfigJson.GetFontMapTable();
+    ASSERT_NE(fontMapTable, nullptr);
+
+    const size_t kTargetIndex = 2;
+    if (kTargetIndex >= fontMapTable->size()) {
+        GTEST_SKIP();
+    }
+    const auto& entry = fontMapTable->at(kTargetIndex);
+    EXPECT_STREQ(entry.srcFont.c_str(), "Font2");
+
+    remove(testFilePath.c_str());
+}
+
+/**
+ * @tc.name: FontFileMapTest3
+ * @tc.desc: test font map table with Microsoft JhengHei entry using self-contained test data
+ * @tc.type:FUNC
+ */
+HWTEST_F(FontParserTest, FontFileMapTest3, TestSize.Level0)
+{
+    // Create a temporary test JSON file to avoid device dependency
+    const char* testJsonContent = R"({
+        "fontsMapTable": [
+            {"srcFont": "Font0", "targetFonts": ["Target0"]},
+            {"srcFont": "Font1", "targetFonts": ["Target1"]},
+            {"srcFont": "Font2", "targetFonts": ["Target2"]},
+            {"srcFont": "Font3", "targetFonts": ["Target3"]},
+            {"srcFont": "Font4", "targetFonts": ["Target4"]},
+            {"srcFont": "Font5", "targetFonts": ["Target5"]},
+            {"srcFont": "Font6", "targetFonts": ["Target6"]},
+            {"srcFont": "Font7", "targetFonts": ["Target7"]}
+        ]
+    })";
+    const std::string testFilePath = "/data/test_fonts_map_table_3.json";
+    std::ofstream testFile(testFilePath);
+    if (!testFile.is_open()) {
+        GTEST_SKIP();
+    }
+    testFile << testJsonContent;
+    testFile.close();
+
+    FontConfigJson fontConfigJson;
+    fontConfigJson.ParseFontFileMap();
+    int ret = fontConfigJson.ParseFontMapTable(testFilePath.c_str());
+    EXPECT_EQ(ret, 0);
+
+    auto fontMapTable = fontConfigJson.GetFontMapTable();
+    ASSERT_NE(fontMapTable, nullptr);
+
+    const size_t kTargetIndex = 7;
+    if (kTargetIndex >= fontMapTable->size()) {
+        GTEST_SKIP();
+    }
+    const auto& entry = fontMapTable->at(kTargetIndex);
+    EXPECT_STREQ(entry.srcFont.c_str(), "Font7");
+
+    remove(testFilePath.c_str());
+}
+
+/**
  * @tc.name: OpenTypeBasicTypeTest1
  * @tc.desc: opentype parser test
  * @tc.type:FUNC

@@ -20,6 +20,7 @@
 
 #include "font_descriptor_cache.h"
 #include "font_parser.h"
+#include "font_config.h"
 
 namespace OHOS::Rosen {
 using FontDescSharedPtr = std::shared_ptr<TextEngine::FontParser::FontDescriptor>;
@@ -41,6 +42,8 @@ public:
     void GetSystemFontFullNamesByType(const int32_t& systemFontType, std::unordered_set<std::string>& fontList);
     void GetFontPathsByType(const int32_t& fontType, std::unordered_set<std::string>& fontPaths);
     void ClearFontFileCache();
+    void SetFontMapTable(std::shared_ptr<TextEngine::FontMapTable> mapTable);
+    std::shared_ptr<TextEngine::FontMapTable> GetFontMapTable();
 
     void CacheDynamicTypeface(std::shared_ptr<Drawing::Typeface> typeface, const std::string &familyName);
     void DeleteDynamicTypefaceFromCache(const std::string &familyName);
@@ -49,6 +52,7 @@ private:
     FontDescriptorMgr() = default;
     FontDescriptorCache descCache_;
     std::shared_mutex parserMtx_;
+    std::shared_ptr<TextEngine::FontMapTable> fontMapTable_ = nullptr;
 };
 } // namespace OHOS::Rosen
 #define FontDescriptorMgrInstance OHOS::Rosen::FontDescriptorMgr::GetInstance()
