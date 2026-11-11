@@ -48,6 +48,7 @@ public:
     MOCK_METHOD(float, GetDisplayNits, (ScreenId screenId), (override));
     MOCK_METHOD(double, GetNonlinearRatio, (ScreenId screenId, uint32_t mode), (override));
     MOCK_METHOD(bool, IsHdrPictureOn, (), (override));
+    MOCK_METHOD(bool, IsHdrPicEnable, (ScreenId screenId), (override));
     MOCK_METHOD(bool, IsForceCloseHdr, (), (override, const));
     MOCK_METHOD(void, ForceCloseHdr, (uint32_t closeHdrSceneId, bool forceCloseHdr), (override));
     MOCK_METHOD(bool, IsCloseHdrWhenMultiDisplaysOn, (), (override, const));
@@ -237,6 +238,29 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl005, TestSize.Level1)
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
     ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
     ASSERT_EQ(luminCtrl.IsForceCloseHdr(), false);
+}
+
+/**
+ * @tc.name: LuminanceControl006
+ * @tc.desc: Test IsCloseHdrWhenMultiDisplaysOn returns false when interface is null and delegates when set
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSLuminanceControlTest, LuminanceControl006, TestSize.Level1)
+{
+    auto& luminCtrl = RSLuminanceControl::Get();
+    // interface is null, returns false
+    luminCtrl.rSLuminanceControlInterface_ = nullptr;
+    ASSERT_EQ(luminCtrl.IsCloseHdrWhenMultiDisplaysOn(), false);
+
+    // inject mock and verify delegation
+    auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
+    luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
+    ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
+    EXPECT_CALL(*mockRSLuminanceControl, IsCloseHdrWhenMultiDisplaysOn()).WillOnce(testing::Return(true));
+    ASSERT_EQ(luminCtrl.IsCloseHdrWhenMultiDisplaysOn(), true);
+    EXPECT_CALL(*mockRSLuminanceControl, IsCloseHdrWhenMultiDisplaysOn()).WillOnce(testing::Return(false));
+    ASSERT_EQ(luminCtrl.IsCloseHdrWhenMultiDisplaysOn(), false);
 }
 
 /**
@@ -482,31 +506,25 @@ HWTEST_F(RSLuminanceControlTest, LuminanceControl021, TestSize.Level1)
     auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
     ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
- 
+
     ScreenId screenId{};
     ASSERT_NE(luminCtrl.GetPanelName(screenId), "");
 }
 
 /**
- * @tc.name: LuminanceControl006
- * @tc.desc: Test IsCloseHdrWhenMultiDisplaysOn returns false when interface is null and delegates when set
+ * @tc.name: LuminanceControl022
+ * @tc.desc: Test LuminanceControl IsHdrPicEnable
  * @tc.type: FUNC
  * @tc.require:
  */
-HWTEST_F(RSLuminanceControlTest, LuminanceControl006, TestSize.Level1)
+HWTEST_F(RSLuminanceControlTest, LuminanceControl022, TestSize.Level1)
 {
     auto& luminCtrl = RSLuminanceControl::Get();
-    // interface is null, returns false
-    luminCtrl.rSLuminanceControlInterface_ = nullptr;
-    ASSERT_EQ(luminCtrl.IsCloseHdrWhenMultiDisplaysOn(), false);
-
-    // inject mock and verify delegation
     auto mockRSLuminanceControl = MockRSLuminanceControl::GetInstance();
     luminCtrl.rSLuminanceControlInterface_ = mockRSLuminanceControl.get();
     ASSERT_NE(luminCtrl.rSLuminanceControlInterface_, nullptr);
-    EXPECT_CALL(*mockRSLuminanceControl, IsCloseHdrWhenMultiDisplaysOn()).WillOnce(testing::Return(true));
-    ASSERT_EQ(luminCtrl.IsCloseHdrWhenMultiDisplaysOn(), true);
-    EXPECT_CALL(*mockRSLuminanceControl, IsCloseHdrWhenMultiDisplaysOn()).WillOnce(testing::Return(false));
-    ASSERT_EQ(luminCtrl.IsCloseHdrWhenMultiDisplaysOn(), false);
+ 
+    ScreenId screenId{};
+    ASSERT_EQ(luminCtrl.IsHdrPicEnable(screenId), false);
 }
 } // namespace OHOS::Rosen

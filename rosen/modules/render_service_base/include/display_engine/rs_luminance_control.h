@@ -105,6 +105,7 @@ public:
         const std::vector<uint8_t>& dynamicMetadata, const float& ratio, HdrStatus hdrStatus) = 0;
     virtual float GetSurfaceNodeMaxScaler(RSSurfaceRenderNode& surfaceNode, ScreenId screenId, HdrStatus hdrstatus) = 0;
     virtual bool IsHdrPictureOn() = 0;
+    virtual bool IsHdrPicEnable(ScreenId screenId) = 0;
     virtual bool IsForceCloseHdr() const = 0;
     virtual void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr) = 0;
     virtual bool IsCloseHdrWhenMultiDisplaysOn() const = 0;
@@ -160,6 +161,7 @@ public:
         const float& ratio = 1.0f, HdrStatus hdrStatus = HdrStatus::NO_HDR);
     RSB_EXPORT float GetSurfaceNodeMaxScaler(RSSurfaceRenderNode& surfaceNode, ScreenId screenId, HdrStatus hdrstatus);
     RSB_EXPORT bool IsHdrPictureOn();
+    RSB_EXPORT bool IsHdrPicEnable(ScreenId screenId);
     RSB_EXPORT bool IsForceCloseHdr();
     RSB_EXPORT void ForceCloseHdr(uint32_t closeHdrSceneId, bool forceCloseHdr);
     RSB_EXPORT bool IsCloseHdrWhenMultiDisplaysOn();
