@@ -55,7 +55,7 @@
 namespace OHOS {
 namespace Rosen {
 
-constexpr auto CAPTURE_SOLO_NODE_TIMEOUT = std::chrono::seconds(10);
+constexpr auto CAPTURE_SOLO_NODE_TIMEOUT = std::chrono::seconds(8);
 
 std::vector<std::pair<NodeId, std::shared_ptr<Media::PixelMap>>> RSUiCaptureSoloTaskParallel::CaptureSoloNode(
     NodeId id, const RSSurfaceCaptureConfig& captureConfig)
