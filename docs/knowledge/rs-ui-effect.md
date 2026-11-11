@@ -25,7 +25,8 @@
 | `…/include/drawable/rs_property_drawable.h` | RSPropertyDrawable, RSFilterDrawable | 属性 Drawable 基类；滤镜 Drawable 基类（缓存管理、脏区域标记） |
 | `…/include/drawable/rs_property_drawable_background.h` | RSShadowDrawable, RSMaskDrawable, RSBackgroundColorDrawable, RSBackgroundShaderDrawable, RSBackgroundNGShaderDrawable, RSBackgroundFilterDrawable, RSBackgroundEffectDrawable, RSUseEffectDrawable, RSDynamicLightUpDrawable, RSMaterialFilterDrawable, RSBackgroundImageDrawable | 背景侧全部视效 Drawable |
 | `…/include/drawable/rs_property_drawable_foreground.h` | RSBinarizationDrawable, RSColorFilterDrawable, RSLightUpEffectDrawable, RSDynamicDimDrawable, RSCompositingFilterDrawable, RSForegroundFilterDrawable, RSForegroundFilterRestoreDrawable, RSForegroundShaderDrawable, RSSpatialEffectDrawable, RSPixelStretchDrawable, RSBorderDrawable, RSOutlineDrawable, RSParticleDrawable | 前景侧全部视效 Drawable |
-| `…/include/drawable/rs_property_drawable_utils.h` | RSPropertyDrawableUtils | 静态绘制工具：DrawFilter / DrawBackgroundEffect / DrawColorFilter / 各 RuntimeShader & Blender 构造 / 颜色拾取辅助 / SDF Shape 应用 |
+| `…/include/drawable/rs_property_drawable_utils.h` | RSPropertyDrawableUtils | 静态绘制工具：DrawColorFilter / 各 RuntimeShader & Blender 构造 / 颜色拾取辅助 |
+| `…/include/drawable/rs_effect_drawable_utils.h` | RSEffectDrawableUtils | 滤镜/视效绘制工具：DrawFilter / DrawBackgroundEffect / 窗后模糊滤镜构造 / SDF Shape 应用 / NG Shader 辅助 |
 | `…/include/drawable/rs_coverage_ng_shader_drawable.h` | RSCoverageNGShaderDrawable | 光照覆盖 NG Shader：最多 12 光源、Phong/FeatheringBorder/Normal/SDF 多种光照模式、EDR 支持 |
 | `…/include/drawable/rs_material_shader_drawable.h` | RSMaterialShaderDrawable | 材质 NG Shader Drawable |
 | `…/include/drawable/rs_overlay_ng_shader_drawable.h` | RSOverlayNGShaderDrawable | 叠加 NG Shader Drawable |
@@ -201,7 +202,7 @@ OnDraw 时将 shader 和 container 提交给 Canvas。
    - `UpdateCacheStateWithFilterRegion()`：滤镜区域超出缓存区域时失效。
    - `UpdateCacheStateWithDirtyRegion()`：脏区域与缓存区域重叠时失效。
 
-3. **绘制流程**（通过 `RSPropertyDrawableUtils::DrawFilter` / `DrawBackgroundEffect`）：
+3. **绘制流程**（通过 `RSEffectDrawableUtils::DrawFilter` / `DrawBackgroundEffect`）：
    ```
    DrawFilter(canvas, filter, cacheManager, nodeId)
      → 检查缓存状态

@@ -90,13 +90,6 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest002, TestSiz
     renderNodeTest5.renderProperties_.decoration_ = std::move(decorationTest);
     EXPECT_NE(foregroundColorDrawable->OnGenerate(renderNodeTest5), nullptr);
 
-    RSRenderNode renderNodeTest6(0);
-    std::shared_ptr<DrawableV2::RSCompositingFilterDrawable> compositingFilterDrawable =
-        std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
-    EXPECT_NE(compositingFilterDrawable, nullptr);
-    renderNodeTest6.renderProperties_.GetEffectProperties().SetCompositingFilter(nullptr);
-    EXPECT_EQ(compositingFilterDrawable->OnGenerate(renderNodeTest6), nullptr);
-
     RSRenderNode renderNodeTest7(0);
     std::shared_ptr<DrawableV2::RSForegroundFilterDrawable> foregroundFilterDrawable =
         std::make_shared<DrawableV2::RSForegroundFilterDrawable>();

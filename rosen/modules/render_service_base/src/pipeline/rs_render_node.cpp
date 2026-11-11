@@ -2641,7 +2641,7 @@ bool RSRenderNode::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage) const
     if (filterDrawable == nullptr) {
         return false;
     }
-    return filterDrawable->CheckAndUpdateAIBarCacheStatus(intersectHwcDamage);
+    return filterDrawable->MarkAIBarCacheStatus(intersectHwcDamage);
 #endif
 return false;
 }
@@ -2659,7 +2659,7 @@ bool RSRenderNode::ForceReduceAIBarCacheInterval(bool intersectHwcDamage)
     if (filterDrawable == nullptr) {
         return false;
     }
-    return filterDrawable->ForceReduceAIBarCacheInterval(intersectHwcDamage);
+    return filterDrawable->MarkForceReduceAIBarCacheInterval(intersectHwcDamage);
 #else
     return false;
 #endif
@@ -3022,14 +3022,14 @@ void RSRenderNode::UpdatePendingPurgeFilterDirtyRect(RSDirtyRegionManager& dirty
 
         RS_OPTIONAL_TRACE_NAME_FMT("UpdatePendingPurgeFilterDirtyRect:node[%llu],"
             " needPendingPurge:%d, lastHpaeClearCache: %d, pendingPurgeFilterRegion: %s",
-            GetId(), filterDrawable->NeedPendingPurge(), filterDrawable->LastHpaeClearCache(),
+            GetId(), filterDrawable->IsPendingPurge(), filterDrawable->IsLastHpaeClearCache(),
             pendingPurgeFilterRegion.GetRegionInfo().c_str());
-        // mainly based on the pendingPurge_ within NeedPendingPurge().
+        // mainly based on the pendingPurge_ within IsPendingPurge().
         // because stagingFilterInteractWithDirty_ (whether filter intersects with the dirty region)
         // also AddPendingPurgeFilterRegion if HpaeBlur clear cache
         // may become true later in CheckMergeFilterDirtyWithPreDirty().
         if (!filterDrawable->IsAIBarFilter() &&
-            (filterDrawable->NeedPendingPurge() || filterDrawable->LastHpaeClearCache())) {
+            (filterDrawable->IsPendingPurge() || filterDrawable->IsLastHpaeClearCache())) {
             dirtyManager.GetFilterCollector().AddPendingPurgeFilterRegion(
                 Occlusion::Region(Occlusion::Rect(lastFilterRegion_)));
         }
@@ -3088,16 +3088,16 @@ void RSRenderNode::MarkFilterCacheFlags(std::shared_ptr<DrawableV2::RSFilterDraw
     auto snapshotRegion = filterDrawable->GetVisibleSnapshotRegion(GetFilterRegion());
     RS_OPTIONAL_TRACE_NAME_FMT("MarkFilterCacheFlags:node[%llu], NeedPendingPurge:%d,"
         " forceClearWithoutNextVsync:%d, filterRegion: %s, filterDrawable snapshotRegion: %s",
-        GetId(), filterDrawable->NeedPendingPurge(), (!needRequestNextVsync && filterDrawable->IsSkippingFrame()),
+        GetId(), filterDrawable->IsPendingPurge(), (!needRequestNextVsync && filterDrawable->IsSkippingFrame()),
         filterRegion.ToString().c_str(), snapshotRegion.ToString().c_str());
     // force update if last frame hpae-blur clear cache
-    if (filterDrawable->LastHpaeClearCache()) {
+    if (filterDrawable->IsLastHpaeClearCache()) {
         dirtyManager.MergeDirtyRect(filterRegion);
         isDirtyRegionUpdated_ = true;
     }
 
     // force update if last frame use cache because skip-frame and current frame background is not dirty
-    if (filterDrawable->NeedPendingPurge()) {
+    if (filterDrawable->IsPendingPurge()) {
         dirtyManager.MergeDirtyRect(filterRegion);
         isDirtyRegionUpdated_ = true;
         return;
@@ -4919,8 +4919,8 @@ void RSRenderNode::NodeDrawLargeAreaBlur(std::pair<bool, bool>& nodeDrawLargeAre
     for (auto slotType : drawableSlotTypes) {
         auto drawable = GetFilterDrawable(slotType);
         if (drawable) {
-            flagPredict = flagPredict || drawable->WouldDrawLargeAreaBlur();
-            flagCurrent = flagCurrent || drawable->WouldDrawLargeAreaBlurPrecisely();
+            flagPredict = flagPredict || drawable->IsDrawLargeAreaBlur();
+            flagCurrent = flagCurrent || drawable->IsDrawLargeAreaBlurPrecisely();
         }
     }
     nodeDrawLargeAreaBlur.first = flagPredict;
@@ -5109,12 +5109,12 @@ void RSRenderNode::MarkBlurIntersectWithDRM(bool intersectWithDRM, bool isDark)
     const auto& properties = GetRenderProperties();
     if (properties.GetMaterialFilter()) {
         if (auto filterDrawable = GetFilterDrawable(RSDrawableSlot::MATERIAL_FILTER)) {
-            filterDrawable->MarkBlurIntersectWithDRM(intersectWithDRM, isDark);
+            filterDrawable->SetBlurIntersectWithDRM(intersectWithDRM, isDark);
         }
     }
     if (properties.GetBackgroundFilter()) {
         if (auto filterDrawable = GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER)) {
-            filterDrawable->MarkBlurIntersectWithDRM(intersectWithDRM, isDark);
+            filterDrawable->SetBlurIntersectWithDRM(intersectWithDRM, isDark);
         }
     }
 #endif

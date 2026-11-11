@@ -20,12 +20,10 @@
 #include <optional>
 #include <string>
 
-#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
-#include "recording/draw_cmd_list.h"
-
 #include "common/rs_common_def.h"
 #include "common/rs_rect.h"
 #include "drawable/rs_drawable.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_filter.h"
@@ -33,6 +31,7 @@
 namespace OHOS::Rosen {
 class RSRenderNode;
 class RSFilter;
+class RSFilterCacheManager;
 namespace DrawableV2 {
 class RSFilterDrawable : public RSDrawable {
 public:
@@ -102,42 +101,30 @@ public:
     const RectI GetFilterCachedRegion() const;
 protected:
     virtual std::shared_ptr<RSFilter> GetFilter(const RSRenderNode& node) const = 0;
-    // Called on the main thread from OnUpdate; lets each derived class apply its own updates to
-    // the filter (e.g. the SDF shape and the EDR check) before the filter is staged.
-    virtual void ApplyFilterOnUpdate(const RSRenderNode& node, const std::shared_ptr<RSFilter>& filter) {}
-    // Called on the render thread from OnSync after the filter commits and the render state is
-    // published; lets each derived class apply its own render-side updates to the filter
-    // (e.g. the EDR display headroom).
-    virtual void ApplyFilterOnSync() {}
-    // Called on the render thread from OnDraw; applies the adaptive frosted glass params and the
-    // geometry to the filter, resolves the effect rects and draws the filter.
-    virtual void DrawFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect) const;
-    // DRM bypass on the render thread from OnDraw: draws the flat mask color, or the nearly
-    // opaque SDF shape color if the filter carries the frosted glass effect.
-    virtual void DrawFilterWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect) const;
-    // Shared tail for drawing filters: checks the filter chain and stages enableEDREffect_.
+    virtual bool RenderWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect) const = 0;
+    virtual void RenderFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect,
+        const Drawing::RectI& snapshotRect, const Drawing::RectI& drawRect) const;
+    virtual void SetFilterGeometry(Drawing::Canvas* canvas, const Drawing::Rect* rect,
+        const Drawing::RectI& snapshotRect, const Drawing::RectI& drawRect) const;
+
     void CheckAndEnableEDR(const std::shared_ptr<RSFilter>& filter);
-    void ReportBlur(const Drawing::Rect* rect, int64_t startBlurTime) const;
+
     bool needSync_ = false;
 
+    NodeId stagingScreenNodeId_ = INVALID_NODEID;
     NodeId stagingNodeId_ = INVALID_NODEID;
     std::string stagingNodeName_ = "invalid0";
-    NodeId stagingScreenNodeId_ = INVALID_NODEID;
     std::shared_ptr<RSFilter> stagingFilter_;
-
+    NodeId renderScreenNodeId_ = INVALID_NODEID;
     NodeId renderNodeId_ = INVALID_NODEID;
     std::string renderNodeName_ = "invalid0";
-    NodeId renderScreenNodeId_ = INVALID_NODEID;
     std::shared_ptr<RSFilter> renderFilter_;
-
     // -------------------- special adapter -------------------- //
     bool stagingIntersectWithDRM_ = false;
     bool stagingIsDarkColorMode_ = false;
     bool renderIntersectWithDRM_ = false;
     bool renderIsDarkColorMode_ = false;
-
     bool enableEDREffect_ = false;
-
     // -------------------- render rect -------------------- //
     struct FilterRectInfo {
         RectF snapshotRect_;
@@ -145,11 +132,8 @@ protected:
     };
     static RectF GetRelativeRect(
         const std::unique_ptr<FilterRectInfo>& rectInfo, EffectRectType type, const RectF& defaultValue);
-    virtual Drawing::RectI GetAbsRenderEffectRect(
-        const Drawing::Canvas& canvas, EffectRectType type, const RectF& bound) const;
     std::unique_ptr<FilterRectInfo> stagingRelativeRectInfo_;
     std::unique_ptr<FilterRectInfo> renderRelativeRectInfo_;
-
     // -------------------- dirty rect -------------------- //
     struct FilterVisibleRectInfo {
         RectI snapshotRect_;
@@ -158,10 +142,20 @@ protected:
     };
     std::unique_ptr<FilterVisibleRectInfo> stagingVisibleRectInfo_;
     std::unique_ptr<FilterVisibleRectInfo> lastStagingVisibleRectInfo_;
-
     // -------------------- filter cache  -------------------- //
     std::unique_ptr<RSFilterCacheManager> stagingCacheManager_;
     std::unique_ptr<RSFilterCacheManager> cacheManager_;
+
+private:
+    virtual RectF GetSnapshotBound(const RectF& bound) const;
+    virtual RectF GetDrawBound(const RectF& bound) const;
+    virtual Drawing::RectI GetClipBound(const Drawing::Canvas& canvas) const;
+    virtual void OnFilterUpdated(const RSRenderNode& node, const std::shared_ptr<RSFilter>& filter) {};
+    void CalcFilterRects(Drawing::Canvas* canvas, const Drawing::Rect* rect,
+        Drawing::RectI& snapshotRect, Drawing::RectI& drawRect) const;
+    void ReportBlur(const Drawing::Rect* rect, int64_t startBlurTime) const;
+    Drawing::RectI GetAbsRenderEffectRect(const Drawing::Canvas& canvas, EffectRectType type,
+        const RectF& bound, const Drawing::RectI& clipBound) const;
 };
 
 // BACKGROUND_FILTER slot (RSEffectRenderNode uses RSBackgroundEffectDrawable instead, see
@@ -183,10 +177,11 @@ public:
 
 protected:
     std::shared_ptr<RSFilter> GetFilter(const RSRenderNode& node) const override;
-    void ApplyFilterOnUpdate(const RSRenderNode& node, const std::shared_ptr<RSFilter>& filter) override;
-    void ApplyFilterOnSync() override;
+    bool RenderWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
+    void OnFilterUpdated(const RSRenderNode& node, const std::shared_ptr<RSFilter>& filter) override;
+
     static std::shared_ptr<RSFilter> GetBehindWindowFilter(const RSRenderNode& node);
     template<typename T>
     static bool GetBehindWindowFilterProperty(const RSRenderNode& node, ModifierNG::RSPropertyType type, T& property);
@@ -200,22 +195,22 @@ private:
     RectI stagingDrawBehindWindowRegion_;
 };
 
-// BACKGROUND_FILTER slot variant for RSEffectRenderNode (effect merging path). Keeps the
-// historical behavior: no SDF shape application and no EDR check (no ApplyFilterOnUpdate override).
+// BACKGROUND_FILTER slot variant for RSEffectRenderNode (effect merging path).
 class RSBackgroundEffectDrawable : public RSFilterDrawable {
 public:
     RSBackgroundEffectDrawable() = default;
     ~RSBackgroundEffectDrawable() override = default;
 
-    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-
 protected:
     std::shared_ptr<RSFilter> GetFilter(const RSRenderNode& node) const override;
-    void DrawFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
+    bool RenderWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
+    void RenderFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect,
+        const Drawing::RectI& snapshotRect, const Drawing::RectI& drawRect) const override;
+    void SetFilterGeometry(Drawing::Canvas* canvas, const Drawing::Rect* rect,
+        const Drawing::RectI& snapshotRect, const Drawing::RectI& drawRect) const override;
 
 private:
-    Drawing::RectI GetAbsRenderEffectRect(
-        const Drawing::Canvas& canvas, EffectRectType type, const RectF& bound) const override;
+    Drawing::RectI GetClipBound(const Drawing::Canvas& canvas) const override;
 };
 
 // MATERIAL_FILTER slot.
@@ -229,16 +224,14 @@ public:
     void OnSync() override;
     void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
-    Drawing::RectI GetAbsRenderEffectRect(
-        const Drawing::Canvas& canvas, EffectRectType type, const RectF& bound) const override;
-
 protected:
     std::shared_ptr<RSFilter> GetFilter(const RSRenderNode& node) const override;
-    void ApplyFilterOnUpdate(const RSRenderNode& node, const std::shared_ptr<RSFilter>& filter) override;
-    void ApplyFilterOnSync() override;
-    void DrawFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
+    bool RenderWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
 
 private:
+    Drawing::RectI GetClipBound(const Drawing::Canvas& canvas) const override;
+    void OnFilterUpdated(const RSRenderNode& node, const std::shared_ptr<RSFilter>& filter) override;
+
     bool stagingEmptyShape_ = false;
     bool emptyShape_ = false;
     std::shared_ptr<Drawing::Path> stagingClipPath_;
@@ -259,6 +252,8 @@ public:
 
 protected:
     std::shared_ptr<RSFilter> GetFilter(const RSRenderNode& node) const override;
+    bool RenderWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
+    void OnFilterUpdated(const RSRenderNode& node, const std::shared_ptr<RSFilter>& filter) override;
 };
 
 } // namespace DrawableV2

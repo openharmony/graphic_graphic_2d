@@ -16,15 +16,22 @@
 #ifndef RENDER_SERVICE_BASE_DRAWABLE_RS_EFFECT_DRAWABLE_UTILS_H
 #define RENDER_SERVICE_BASE_DRAWABLE_RS_EFFECT_DRAWABLE_UTILS_H
 
+#include <atomic>
 #include <memory>
 #include <string>
 
 #include "common/rs_common_def.h"
-#include "property/rs_properties_def.h"
 #include "effect/rs_render_property_tag.h"
+#include "property/rs_properties_def.h"
+#include "render/rs_filter.h"
 namespace OHOS::Rosen {
+class RSDrawingFilter;
+class RSFilter;
+class RSFilterCacheManager;
+class RSNGRenderFilterBase;
 class RSNGRenderShaderBase;
 class RSNGRenderShapeBase;
+class RSPaintFilterCanvas;
 class RSProperties;
 class RSRenderNode;
 namespace Drawing {
@@ -49,17 +56,37 @@ public:
         const RSRenderNode& node, const RSProperties& properties, const std::shared_ptr<RSNGRenderShaderBase>& shader);
     // DRM bypass: if the filter carries the frosted glass effect, draw a nearly opaque SDF
     // shape color instead of the blur effect; otherwise fall back to the flat mask color.
-    static void DrawFilterWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
+    static void DrawFilterWithDRM(Drawing::Canvas* canvas, bool isDark, const Drawing::Rect* rect,
         const std::shared_ptr<RSFilter>& filter);
     // DRM bypass: draw a nearly opaque SDF shape color instead of the blur effect when the
     // effect region intersects the DRM layer.
     static void DrawColorUsingSDFWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect, bool isDark,
-        const std::shared_ptr<Drawing::GEVisualEffectContainer>& filterGEContainer, const std::string& filterTag,
+        const std::shared_ptr<Drawing::GEVisualEffectContainer>& geContainer, const std::string& effectTag,
         const std::string& shapeTag);
     // Draw ColorNGFilter (Binarization/LightUpEffect/DynamicDim) using GE image effect pipeline.
     // Uses GetDeviceClipBounds() for snapshot region and image-local coordinates for GE context.
     static void DrawColorNGFilter(Drawing::Canvas* canvas, const Drawing::Rect* rect,
         const std::shared_ptr<Drawing::GEVisualEffectContainer>& visualEffectContainer);
+    static void DrawBackgroundEffect(RSPaintFilterCanvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
+        NodeId filterId, const std::unique_ptr<RSFilterCacheManager>& cacheManager, const Drawing::RectI& bounds,
+        bool behindWindow = false);
+    static void ApplyAdaptiveFrostedGlassParams(
+        Drawing::Canvas* canvas, const std::shared_ptr<RSDrawingFilter>& filter);
+    static void DrawFilter(Drawing::Canvas* canvas, const std::shared_ptr<RSFilter>& rsFilter,
+        const std::unique_ptr<RSFilterCacheManager>& cacheManager, NodeId id, const bool isForegroundFilter,
+        const std::optional<Drawing::RectI>& snapshotRect = std::nullopt,
+        const std::optional<Drawing::RectI>& drawRect = std::nullopt);
+    static bool IsBlurFilterType(const RSFilter::FilterType& filterType);
+    static float GetBlurFilterRadius(const std::shared_ptr<RSFilter>& rsFilter);
+    static void ApplySDFShapeToFilter(
+        const RSProperties& properties, const std::shared_ptr<RSDrawingFilter>& drawingFilter, NodeId nodeId);
+    static std::shared_ptr<RSFilter> GenerateBehindWindowFilter(
+        float radius, float saturation, float brightness, RSColor maskColor);
+    static bool RSFilterSetPixelStretch(const RSProperties& property, const std::shared_ptr<RSFilter>& filter);
+    static void RSFilterRemovePixelStretch(const std::shared_ptr<RSFilter>& filter);
+    RSB_EXPORT static int GetAndResetBlurCnt();
+    static void IncBlurCnt() { g_blurCnt++; }
+    static void DecBlurCnt() { g_blurCnt--; }
 
     static std::shared_ptr<RSNGRenderShaderBase> FindShader(
         const std::shared_ptr<RSNGRenderShaderBase>& shader, RSNGEffectType type);
@@ -68,6 +95,11 @@ public:
         const std::shared_ptr<RSNGRenderShaderBase>& shader, const RSRenderNode& node);
 private:
     static std::shared_ptr<RSNGRenderShapeBase> CreateDefaultRRectShape(const RRect& sdfRRect, NodeId nodeId);
+    static void ClipVisibleRect(RSPaintFilterCanvas* canvas);
+    static std::shared_ptr<Drawing::ColorFilter> GenerateMaterialColorFilter(float sat, float brt);
+    static void ApplySDFShapeToMagnifier(
+        const RSProperties& properties, const std::shared_ptr<RSNGRenderFilterBase>& renderFilter, NodeId nodeId);
+    inline static std::atomic<int> g_blurCnt = 0;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

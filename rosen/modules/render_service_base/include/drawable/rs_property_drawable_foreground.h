@@ -57,19 +57,6 @@ private:
     std::shared_ptr<Drawing::GEVisualEffectContainer> visualEffectContainer_;
 };
 
-class RSCompositingFilterDrawable : public RSFilterDrawable {
-public:
-    RSCompositingFilterDrawable() = default;
-    ~RSCompositingFilterDrawable() override = default;
-
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
-    bool IsForeground() const override
-    {
-        return true;
-    }
-};
-
 // foregroundFilter
 class RSForegroundFilterDrawable : public RSDrawable {
 public:

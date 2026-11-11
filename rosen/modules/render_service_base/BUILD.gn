@@ -473,6 +473,7 @@ ohos_source_set("render_service_base_src") {
       "src/drawable/rs_drawable.cpp",
       "src/drawable/rs_misc_drawable.cpp",
       "src/drawable/rs_effect_drawable_utils.cpp",
+      "src/drawable/rs_filter_drawable.cpp",
       "src/drawable/rs_shader_drawable.cpp",
       "src/drawable/rs_property_drawable.cpp",
       "src/drawable/rs_property_drawable_background.cpp",
