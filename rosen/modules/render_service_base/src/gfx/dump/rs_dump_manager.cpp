@@ -66,8 +66,8 @@ void RSDumpManager::Register(RSDumpHander rsDumpHander)
         // If the module ID already exists, output a warning message
         RSDumpHander existingHander = rsDumpHanderMap_[rsDumpId];
         RS_LOGW("RSDumpManager::Register, rsDumpId %{public}d is already exist. "
-            "Existing tag = %{public}s, New tag = %{public}s",
-        static_cast<int>(rsDumpId), existingHander.tag.c_str(), rsDumpHander.tag.c_str());
+                "Existing tag = %{public}s, New tag = %{public}s",
+            static_cast<int>(rsDumpId), existingHander.tag.c_str(), rsDumpHander.tag.c_str());
     } else {
         rsDumpHanderMap_[rsDumpId] = rsDumpHander;
     }
