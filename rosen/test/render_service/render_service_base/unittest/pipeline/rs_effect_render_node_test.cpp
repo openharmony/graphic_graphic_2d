@@ -474,7 +474,8 @@ HWTEST_F(RSEffectRenderNodeTest, ForceClearForegroundFilterCacheWhenDirty, TestS
     renderNode->GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)]
         = backgroundFilterDrawable;
     renderNode->CheckBlurFilterCacheNeedForceClearOrSave(true);
-    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_, false);
+    EXPECT_EQ(backgroundFilterDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->stagingForceClearCache_, 
+        false);
 }
 
 /**

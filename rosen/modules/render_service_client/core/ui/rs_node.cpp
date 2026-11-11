@@ -374,7 +374,7 @@ void RSNode::AppSetNodeRate(int32_t nodeTargetRate)
         return;
     }
     nodeTargetRate_ = nodeTargetRate;
-    RS_TRACE_NAME_FMT("AppSetNodeRate nodeTargetRate is [%d]", nodeTargetRate_);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSNode::AppSetNodeRate nodeTargetRate is [%d]", nodeTargetRate_);
     SetRSCmdProperty<NodeTargetRateCmdModifier>(NodeTargetRateCmdParam { nodeTargetRate_ });
 }
 

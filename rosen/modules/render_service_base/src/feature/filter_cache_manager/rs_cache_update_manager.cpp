@@ -135,14 +135,9 @@ void RSCacheUpdateManager::UpdateFlags(FilterCacheType type, bool cacheValid)
     cacheUpdateInterval_tmp = (nodeFilterRate_ > 0 && !isGradientBlur) ?
         CalApsCacheUpdateInterval(cacheUpdateInterval_tmp, nodeFilterRate_) : cacheUpdateInterval_tmp;
     if (!cacheValid) {
-        cacheUpdateInterval_ =
-            stagingRotationChanged_
-                ? ROTATION_CACHE_UPDATE_INTERVAL
-                : (filterType_ == RSFilter::AIBAR
-                          ? AIBAR_CACHE_UPDATE_INTERVAL
-                          : (((stagingIsLargeArea_ && canSkipFrame_) || (nodeFilterRate_ > 0 && !isGradientBlur))
-                          ? cacheUpdateInterval_tmp
-                          : 0));
+        cacheUpdateInterval_ = stagingRotationChanged_ ? ROTATION_CACHE_UPDATE_INTERVAL : 
+            (filterType_ == RSFilter::AIBAR ? AIBAR_CACHE_UPDATE_INTERVAL : (((stagingIsLargeArea_ && canSkipFrame_) 
+                || (nodeFilterRate_ > 0 && !isGradientBlur)) ? cacheUpdateInterval_tmp : 0));
         pendingPurge_ = false;
         return;
     }
@@ -284,7 +279,6 @@ void RSCacheUpdateManager::MarkNeedClearFilterCache(NodeId nodeId)
 
     // if do not request NextVsync, close skip
     if (stagingForceClearCacheForLastFrame_) {
-        RS_TRACE_NAME_FMT("no need to process the tail frame when aps enable");
         if (nodeFilterRate_ <= 0) {
             cacheUpdateInterval_ = 0;
         }
@@ -325,7 +319,6 @@ void RSCacheUpdateManager::MarkNeedClearFilterCache(NodeId nodeId)
 bool RSCacheUpdateManager::NeedPendingPurge() const
 {
     if (nodeFilterRate_ > 0) {
-        RS_TRACE_NAME_FMT("no need tp process the tail frame when aps enable");
         return false;
     }
     return !stagingFilterInteractWithDirty_ && pendingPurge_;
