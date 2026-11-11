@@ -4794,6 +4794,43 @@ HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds005, TestSize.Le
 }
 
 /**
+ * @tc.name: DisableSolidLayerByDstRectNEBounds006
+ * @tc.desc: Test DisableSolidLayerByDstRectNEBounds when SolidLayerEnabled and no buffer
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniHwcVisitorTest, DisableSolidLayerByDstRectNEBounds006, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig surfaceConfig;
+    surfaceConfig.id = 1;
+    surfaceConfig.name = "solidLayerDstRectNEBoundsTest006";
+    auto surfaceNode = RSTestUtil::CreateSurfaceNode(surfaceConfig);
+    ASSERT_NE(surfaceNode, nullptr);
+    auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(surfaceNode->GetStagingRenderParams().get());
+    ASSERT_NE(stagingSurfaceParams, nullptr);
+    surfaceNode->GetRenderProperties().GetBoundsGeometry()->absRect_ = {0, 0, 200, 200};
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    ASSERT_NE(rsUniHwcVisitor, nullptr);
+
+    // SolidLayerEnabled + no buffer: guard returns early, solidLayer stays enabled
+    // even when dstRect is smaller than boundsRect (which would otherwise disable it)
+    surfaceNode->SetSolidLayerEnabled(true);
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({0, 0, 200, 100});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_TRUE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+
+    // dstRect inside boundsRect (centered): guard still keeps solidLayer enabled
+    stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(true);
+    surfaceNode->SetDstRect({25, 25, 150, 150});
+    rsUniHwcVisitor->DisableSolidLayerByDstRectNEBounds(*surfaceNode);
+    EXPECT_TRUE(stagingSurfaceParams->GetIsHwcEnabledBySolidLayer());
+}
+
+/**
  * @tc.name: UpdateRectInfoAndLeftTopForDelegateModeCoverage001
  * @tc.desc: cover the delegate-mode=true edges of RSUniHwcVisitor::UpdateRectInfoForDelegateMode and
  *           UpdateLeftAndTopForDelegateMode in one test (delegate-mode=false edges are already
