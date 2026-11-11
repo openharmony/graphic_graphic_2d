@@ -30,6 +30,26 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+// Ensure the GC / allocator / SCB-pool singletons are constructed BEFORE the
+// RSMainThread static instance. All static locals register destruction callbacks
+// with __cxa_atexit, which runs them in reverse construction order (LIFO).
+// The dump paths covered below create drawables bound to nodes owned by
+// RSMainThread's RSContext; their deleters call RSRenderNodeGC::DrawableDestructor.
+// If the GC instance were constructed after RSMainThread (first touched inside a
+// test body), it would be destroyed BEFORE ~RSMainThread at process exit, and the
+// drawable deleter running inside ~RSContext would crash on the dead GC singleton
+// (exit-time SIGSEGV seen in cppcrash-RSPipelineDumperTest logs). Constructing it
+// first here guarantees RSRenderNodeGC outlives RSMainThread, keeping the exit path safe.
+namespace {
+const bool g_gcSingletonsPreInitialized = []() {
+    (void)RSRenderNodeGC::Instance();
+    (void)RSRenderNodeAllocator::Instance();
+    (void)RSScbNodeMemoryPool::Instance();
+    return true;
+}();
+} // namespace
+
 class RSPipelineDumperTest : public testing::Test {
 public:
     static void SetUpTestCase();
