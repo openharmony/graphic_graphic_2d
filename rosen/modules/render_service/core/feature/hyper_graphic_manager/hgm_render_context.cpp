@@ -33,6 +33,7 @@ namespace Rosen {
 namespace {
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
 constexpr const char* FRAMEWORK_XWEB_NAME = "oh_xweb_";
+constexpr const char* SHELL_ASSISTANT_ANCO_PREFIX = "ShellAssistantAnco_";
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 }
 
@@ -132,7 +133,11 @@ void HgmRenderContext::HandleAdaptiveVsyncCondition(const std::shared_ptr<RSCont
             surfaceNode->GetSurfaceNodeType() == RSSurfaceNodeType::SELF_DRAWING_NODE) {
             auto appNode = RSBaseRenderNode::ReinterpretCast<RSSurfaceRenderNode>(
                 nodeMap.GetRenderNode(surfaceNode->GetInstanceRootNodeId()));
-            if (gameNodeName_ == surfaceNode->GetName()) {
+            const auto& nodeName = surfaceNode->GetName();
+            bool isGameNode = (gameNodeName_ == nodeName) ||
+                (!gameNodeName_.empty() && nodeName.find(gameNodeName_) != std::string::npos &&
+                 nodeName.rfind(SHELL_ASSISTANT_ANCO_PREFIX, 0) == 0);
+            if (isGameNode) {
                 isGameSelfNodeOnTree = true;
             } else if (!appNode || !appNode->GetVisibleRegion().IsEmpty()) {
                 isOtherSelfNodeOnTree = true;

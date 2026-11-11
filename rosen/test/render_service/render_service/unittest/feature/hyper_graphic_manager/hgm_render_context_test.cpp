@@ -321,6 +321,187 @@ HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForLTPS002, Function 
 }
 
 /**
+ * @tc.name: HandleAdaptiveVsyncConditionForShellAssistantAnco001
+ * @tc.desc: ShellAssistantAnco_ prefix + contains gameNodeName_ suffix → game node on tree
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco001, Function | SmallTest | Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    hgmRenderContext.gameNodeName_ = "gameNode";
+
+    config.id = 1;
+    config.name = "ShellAssistantAnco_gameNode";
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetVisibleRegion(Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000}));
+    rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+
+    hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
+    EXPECT_TRUE(hgmRenderContext.isGameNodeOnTree_.load());
+}
+
+/**
+ * @tc.name: HandleAdaptiveVsyncConditionForShellAssistantAnco002
+ * @tc.desc: ShellAssistantAnco_ prefix + gameNodeName_ appears in the middle → game node on tree
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco002, Function | SmallTest | Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    hgmRenderContext.gameNodeName_ = "gameNode";
+
+    config.id = 1;
+    config.name = "ShellAssistantAnco_prefix_gameNode_suffix";
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetVisibleRegion(Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000}));
+    rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+
+    hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
+    EXPECT_TRUE(hgmRenderContext.isGameNodeOnTree_.load());
+}
+
+/**
+ * @tc.name: HandleAdaptiveVsyncConditionForShellAssistantAnco003
+ * @tc.desc: ShellAssistantAnco_ prefix but doesn't contain gameNodeName_ → not game node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco003, Function | SmallTest | Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    hgmRenderContext.gameNodeName_ = "gameNode";
+
+    config.id = 1;
+    config.name = "ShellAssistantAnco_otherNode";
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetVisibleRegion(Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000}));
+    rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+
+    hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
+    EXPECT_FALSE(hgmRenderContext.isGameNodeOnTree_.load());
+}
+
+/**
+ * @tc.name: HandleAdaptiveVsyncConditionForShellAssistantAnco004
+ * @tc.desc: gameNodeName_ empty + ShellAssistantAnco_ prefix → guard prevents match, not game node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco004, Function | SmallTest | Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    hgmRenderContext.gameNodeName_ = "";
+
+    config.id = 1;
+    config.name = "ShellAssistantAnco_gameNode";
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetVisibleRegion(Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000}));
+    rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+
+    hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
+    EXPECT_FALSE(hgmRenderContext.isGameNodeOnTree_.load());
+}
+
+/**
+ * @tc.name: HandleAdaptiveVsyncConditionForShellAssistantAnco005
+ * @tc.desc: no ShellAssistantAnco_ prefix, contains gameNodeName_ substring but not exact match → not game node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForShellAssistantAnco005, Function | SmallTest | Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    hgmRenderContext.gameNodeName_ = "gameNode";
+
+    config.id = 1;
+    config.name = "OtherPrefix_gameNode";
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    surfaceNode->SetIsOnTheTree(true);
+    surfaceNode->SetVisibleRegion(Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000}));
+    rsContext->GetMutableNodeMap().RegisterRenderNode(surfaceNode);
+
+    hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
+    EXPECT_FALSE(hgmRenderContext.isGameNodeOnTree_.load());
+}
+
+/**
+ * @tc.name: HandleAdaptiveVsyncConditionForEmptyVisibleRegion
+ * @tc.desc: test self-drawing node is skipped when its app node has empty visible region
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, HandleAdaptiveVsyncConditionForEmptyVisibleRegion, Function | SmallTest | Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    hgmRenderContext.isAdaptive_.store(SupportASStatus::SUPPORT_AS);
+    hgmRenderContext.gameNodeName_ = "gameNode";
+
+    config.id = 1;
+    config.name = "ShellAssistantAnco_gameNode";
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto gameNode = std::make_shared<RSSurfaceRenderNode>(config);
+    gameNode->SetIsOnTheTree(true);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(gameNode);
+
+    NodeId appNodeId = 2;
+    config.id = appNodeId;
+    config.name = "appNode";
+    config.nodeType = RSSurfaceNodeType::DEFAULT;
+    auto appNode = std::make_shared<RSSurfaceRenderNode>(config);
+    appNode->SetIsOnTheTree(true);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(appNode);
+
+    config.id = 3;
+    config.name = "otherAppSelfNode";
+    config.nodeType = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    auto selfNode = std::make_shared<RSSurfaceRenderNode>(config);
+    selfNode->SetIsOnTheTree(true, appNodeId);
+    rsContext->GetMutableNodeMap().RegisterRenderNode(selfNode);
+
+    hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
+    EXPECT_TRUE(hgmRenderContext.isGameNodeOnTree_.load());
+
+    auto visibleRegion = Occlusion::Region(Occlusion::Rect{0, 0, 1000, 1000});
+    appNode->SetVisibleRegion(visibleRegion);
+    hgmRenderContext.HandleAdaptiveVsyncCondition(rsContext);
+    EXPECT_FALSE(hgmRenderContext.isGameNodeOnTree_.load());
+}
+
+/**
  * @tc.name: SetServiceToProcessInfoTest
  * @tc.desc: test HgmRenderContext.SetServiceToProcessInfo
  * @tc.type: FUNC
