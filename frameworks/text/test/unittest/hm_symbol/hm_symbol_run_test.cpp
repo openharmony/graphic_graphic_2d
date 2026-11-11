@@ -1305,7 +1305,7 @@ HWTEST_F(OHHmSymbolRunTest, SetDrawPath001, TestSize.Level0)
     hmSymbolRun.SetSymbolColor(symbolColor);
     hmSymbolRun.DrawPaths(rsCanvas.get(), multPaths, path);
     EXPECT_EQ(hmSymbolRun.symbolTxt_.GetRenderMode(), RSSymbolRenderingStrategy::SINGLE);
-    
+
     // test renderMode is MULTIPLE_COLOR
     renderMode = RSSymbolRenderingStrategy::MULTIPLE_COLOR;
     hmSymbolRun.SetRenderMode(renderMode);

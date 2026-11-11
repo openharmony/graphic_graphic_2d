@@ -1782,6 +1782,45 @@ HWTEST_F(RSUIDirectorTest, ReleaseRenderNodeTest003, TestSize.Level1)
 }
 
 /**
+ * @tc.name: ExecuteGoDestroyCallsDestroyModifiersDrawTest
+ * @tc.desc: Test ExecuteGoDestroy calls DestroyModifiersDraw when skipDestroyUIContext_ is false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ExecuteGoDestroyCallsDestroyModifiersDrawTest, TestSize.Level1)
+{
+    auto director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    ASSERT_NE(director->rsUIContext_, nullptr);
+    director->skipDestroyUIContext_ = false;
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        ASSERT_NE(director->rsUIContext_->modifiersDrawAgent_, nullptr);
+    }
+    director->ExecuteGoDestroy(false);
+    ASSERT_EQ(director->rsUIContext_, nullptr);
+    ASSERT_NE(director, nullptr);
+}
+
+/**
+ * @tc.name: ExecuteGoDestroySkipDestroyUIContextTest
+ * @tc.desc: Test ExecuteGoDestroy skips DestroyModifiersDraw when skipDestroyUIContext_ is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIDirectorTest, ExecuteGoDestroySkipDestroyUIContextTest, TestSize.Level1)
+{
+    auto director = CreateRSUIDirector();
+    ASSERT_NE(director, nullptr);
+    ASSERT_NE(director->rsUIContext_, nullptr);
+    auto savedContext = director->rsUIContext_;
+    director->skipDestroyUIContext_ = true;
+    director->ExecuteGoDestroy(false);
+    ASSERT_EQ(director->rsUIContext_, nullptr);
+    if (RSSystemProperties::GetHybridRenderCanvasEnabled()) {
+        ASSERT_NE(savedContext->modifiersDrawAgent_, nullptr);
+    }
+    ASSERT_NE(director, nullptr);
+}
+
+/**
  * @tc.name: ReleaseRenderNodeAncoNodeSkipTest
  * @tc.desc: Test RSUIDirector::ReleaseRenderNode; covers branch:
  *   SURFACE_NODE with IS_ANCO_NODE flag -> skip release (state stays ACTIVE)

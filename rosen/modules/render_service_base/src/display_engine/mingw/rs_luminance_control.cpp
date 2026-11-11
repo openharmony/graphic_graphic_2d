@@ -118,6 +118,11 @@ bool RSLuminanceControl::IsHdrPictureOn()
     return false;
 }
 
+bool RSLuminanceControl::IsHdrPicEnable(ScreenId screenId)
+{
+    return false;
+}
+
 bool RSLuminanceControl::IsScreenNoHeadroom(ScreenId screenId) const
 {
     return false;

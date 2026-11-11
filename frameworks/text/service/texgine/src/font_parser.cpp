@@ -114,7 +114,7 @@ FontParser::FontParser()
 {
     data_ = nullptr;
     length_ = 0;
-        fontSet_.clear();
+    fontSet_.clear();
     FontConfig fontConfig(FONT_CONFIG_FILE);
     auto fonts = fontConfig.GetFontSet();
     fontSet_.insert(fontSet_.end(), fonts.begin(), fonts.end());
@@ -846,7 +846,7 @@ std::unique_ptr<FontParser::FontDescriptor> FontParser::ParseFontDescriptor(cons
         return nullptr;
     }
     std::string path = SYSTEM_FONT_PATH + (*fontFileMap)[fontName];
-        auto typeface = Drawing::Typeface::MakeFromFile(path.c_str());
+    auto typeface = Drawing::Typeface::MakeFromFile(path.c_str());
     if (typeface == nullptr) {
         path = SYS_PROD_FONT_PATH + (*fontFileMap)[fontName];
         typeface = Drawing::Typeface::MakeFromFile(path.c_str());

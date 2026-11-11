@@ -22,45 +22,96 @@
 #include "concurrent_task_client.h"
 #include "feature/hdr/rs_colorspace_util.h"
 #include "qos.h"
+#include "sandbox_utils.h"
 
+#include "command/rs_delegate_composite_command.h"
 #include "platform/common/rs_log.h"
 #include "platform/ohos/backend/rs_surface_ohos_vulkan.h"
 #include "render_context/render_context.h"
-#include "render_context/shader_cache.h"
-#include "vulkan_context/native_buffer_utils.h"
 
 namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* CLEAN_FREE_BUFFERS_TASK_NAME = "CleanFreeBuffersTask";
 constexpr int64_t CLEAN_FREE_BUFFERS_DURATION = 2000;
-constexpr int64_t CLEAN_FREE_BUFFERS_IMMEDIATELY_DELAY = 50;
+constexpr int64_t CLEAN_FREE_BUFFERS_IMMEDIATELY_DELAY = 100;
 }
+
+// RSCanvasModifiersContext Start
+RSCanvasModifiersContext::RSCanvasModifiersContext(std::weak_ptr<RSRenderInterface> weakRenderInterface)
+    : weakRenderInterface_(weakRenderInterface)
+{}
+
+std::shared_ptr<Drawing::GPUContext> RSCanvasModifiersContext::GetGpuContext()
+{
+    if (renderContext_ == nullptr) {
+        renderContext_ = RenderContext::Create();
+        renderContext_->Init(RenderEngineType::BASIC_RENDER, cacheDir_);
+        gpuContext_ = renderContext_->GetSharedDrGPUContext();
+    }
+    return gpuContext_;
+}
+
+void RSCanvasModifiersContext::ReleaseGpuContext()
+{
+    if (gpuContext_ != nullptr) {
+        gpuContext_->FlushAndSubmit(false);
+        gpuContext_->PurgeUnlockedResources(true);
+        gpuContext_ = nullptr;
+        renderContext_ = nullptr;
+    }
+}
+
+void RSCanvasModifiersContext::CleanGpuCache()
+{
+    if (gpuContext_ != nullptr) {
+        gpuContext_->SetResourceCacheLimits(0, 0);
+        gpuContext_->PerformDeferredCleanup(std::chrono::milliseconds(0));
+        std::set<pid_t> exitedPidSet;
+        gpuContext_->PurgeUnlockedResourcesByPid(true, exitedPidSet);
+        needRestoreGpuCacheLimit_ = true;
+    }
+}
+
+void RSCanvasModifiersContext::GetGpuCacheLimits()
+{
+    if (gpuContext_ != nullptr) {
+        gpuContext_->GetResourceCacheLimits(nullptr, &maxGpuResourceBytes_);
+    }
+}
+
+void RSCanvasModifiersContext::RestoreGpuCacheLimits()
+{
+    if (!needRestoreGpuCacheLimit_) {
+        return;
+    }
+    if (gpuContext_ != nullptr) {
+        gpuContext_->SetResourceCacheLimits(0, maxGpuResourceBytes_);
+        needRestoreGpuCacheLimit_ = false;
+    }
+}
+// RSCanvasModifiersContext End
 
 // RSCanvasModifiersDrawable Start
 void RSCanvasModifiersDrawable::Reset()
 {
     width_ = 0;
     height_ = 0;
-    forceFlushBuffer_ = false;
-    needResetCanvas_ = false;
-    surfaceFrame_ = nullptr;
+    drawingSurface_ = nullptr;
+    bufferRequested_ = false;
+    bufferDirty_ = false;
     if (drawCmdListCache_ != nullptr) {
         drawCmdListCache_->clear();
     }
 }
 
-void RSCanvasModifiersDrawable::CreateProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface,
-    std::shared_ptr<Drawing::GPUContext> gpuContext, size_t& maxGpuResourceBytes)
+void RSCanvasModifiersDrawable::CreateProducerSurface(
+    std::shared_ptr<RSCanvasModifiersContext> canvasModifiersContext, GraphicColorGamut colorSpace)
 {
-    auto renderInterface = weakRenderInterface.lock();
+    auto renderInterface = canvasModifiersContext->weakRenderInterface_.lock();
     if (renderInterface == nullptr) {
         RS_LOGE(
             "RSCanvasModifiersDrawable::CreateProducerSurface, null renderInterface, nodeId=%{public}" PRIu64, nodeId_);
-        return;
-    }
-    if (gpuContext == nullptr) {
-        RS_LOGE("RSCanvasModifiersDrawable::CreateProducerSurface, null gpuContext, nodeId=%{public}" PRIu64, nodeId_);
         return;
     }
 
@@ -71,18 +122,32 @@ void RSCanvasModifiersDrawable::CreateProducerSurface(std::weak_ptr<RSRenderInte
     }
 
     static std::once_flag flag;
-    std::call_once(flag,
-        [gpuContext, &maxGpuResourceBytes]() { gpuContext->GetResourceCacheLimits(nullptr, &maxGpuResourceBytes); });
+    std::call_once(flag, [canvasModifiersContext]() { canvasModifiersContext->GetGpuCacheLimits(); });
     auto producerSurface = std::make_shared<RSSurfaceOhosVulkan>(surface);
-    producerSurface->SetRenderContext(renderContext_);
+    producerSurface->SetRenderContext(canvasModifiersContext->renderContext_);
     producerSurface->SetTimeOut(2); // Timeout 2ms
     producerSurface_ = producerSurface;
     drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+
+    // Set ColorSpace
+    producerSurface->SetColorSpace(colorSpace);
+    HDIV::CM_ColorSpaceType colorSpaceType = HDIV::CM_SRGB_FULL;
+    if (RSColorSpaceUtil::ConvertColorGamutToSpaceType(colorSpace, colorSpaceType)) {
+        // ATTRKEY_COLORSPACE_INFO is color space key
+        auto ret = surface->SetUserData("ATTRKEY_COLORSPACE_INFO", std::to_string(colorSpaceType));
+        if (ret != GSERROR_OK) {
+            RS_LOGE("RSCanvasModifiersDrawable::CreateProducerSurface: SetColorSpace fail, nodeId=%{public}" PRIu64
+                ", colorSpace=%{public}d, ret=%{public}d", nodeId_, colorSpace, ret);
+        }
+    } else {
+        RS_LOGE("RSCanvasModifiersDrawable::CreateProducerSurface: ConvertColorGamut fail, nodeId=%{public}" PRIu64
+            ", colorSpace=%{public}d", nodeId_, colorSpace);
+    }
 }
 
-void RSCanvasModifiersDrawable::ReleaseProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface)
+void RSCanvasModifiersDrawable::ReleaseProducerSurface(std::shared_ptr<RSCanvasModifiersContext> canvasModifiersContext)
 {
-    auto renderInterface = weakRenderInterface.lock();
+    auto renderInterface = canvasModifiersContext->weakRenderInterface_.lock();
     if (renderInterface == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::ReleaseProducerSurface, null renderInterface, nodeId=%{public}" PRIu64,
             nodeId_);
@@ -91,8 +156,7 @@ void RSCanvasModifiersDrawable::ReleaseProducerSurface(std::weak_ptr<RSRenderInt
     renderInterface->ReleaseCanvasDrawingNodeSurface(nodeId_);
 }
 
-void RSCanvasModifiersDrawable::ResetSurface(
-    int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace)
+void RSCanvasModifiersDrawable::ResetSurface(int width, int height, bool sizeOutOfGpuLimit)
 {
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
@@ -102,33 +166,30 @@ void RSCanvasModifiersDrawable::ResetSurface(
         RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: Same width and height, nodeId=%{public}" PRIu64, nodeId_);
         return;
     }
+    if (width <= 0 || height <= 0) {
+        RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: Invalid width or height, nodeId=%{public}" PRIu64
+            ", width=%{public}d, height=%{public}d", nodeId_, width, height);
+        return;
+    }
 
     auto ohosSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(producerSurface_);
     // Current buffer is not flushed, cancel it.
-    if (surfaceFrame_ != nullptr) {
+    if (bufferRequested_) {
         ohosSurface->CancelBufferForCurrentFrame();
     }
 
     Reset();
+    lastBufferExpiredTime_ = static_cast<int64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
+            .count());
     if (sizeOutOfGpuLimit) {
         return;
     }
 
     width_ = width;
     height_ = height;
-    needResetCanvas_ = true;
-    forceFlushBuffer_ = true;
-    ohosSurface->SetColorSpace(colorSpace);
-    HDIV::CM_ColorSpaceType colorSpaceType = HDIV::CM_SRGB_FULL;
-    if (RSColorSpaceUtil::ConvertColorGamutToSpaceType(colorSpace, colorSpaceType)) {
-        auto surface = ohosSurface->GetSurface();
-        // ATTRKEY_COLORSPACE_INFO is color space key
-        if (surface && surface->SetUserData("ATTRKEY_COLORSPACE_INFO", std::to_string(colorSpaceType)) != GSERROR_OK) {
-            RS_LOGE("RSCanvasModifiersDrawable::ResetSurface: SetColorSpace fail, nodeId=%{public}" PRIu64, nodeId_);
-        }
-    }
     if (hasDrawn_) {
-        Draw();
+        RequestBufferAndDrawHistory(width, height, true);
     }
 }
 
@@ -143,25 +204,22 @@ void RSCanvasModifiersDrawable::UpdateContent(Drawing::DrawCmdListPtr drawCmdLis
     if (drawCmdList != nullptr) {
         drawCmdListCache_->emplace_back(drawCmdList);
     }
-    forceFlushBuffer_ = forceFlushBuffer;
-    Draw();
+    Draw(forceFlushBuffer);
 }
 
-void RSCanvasModifiersDrawable::Draw()
+void RSCanvasModifiersDrawable::Draw(bool forceFlushBuffer)
 {
+    RS_OPTIONAL_TRACE_NAME_FMT("Draw content, nodeId=%" PRIu64, nodeId_);
     if (producerSurface_ == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::Draw: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
         return;
     }
-    if (drawCmdListCache_->empty() && !forceFlushBuffer_) {
+    if (drawCmdListCache_->empty() && !forceFlushBuffer) {
+        RS_TRACE_NAME_FMT("drawCmdListCache empty, nodeId=%" PRIu64, nodeId_);
         return;
     }
 
-    if (surfaceFrame_ == nullptr) {
-        surfaceFrame_ = RequestBufferAndDrawHistory();
-    }
-    if (surfaceFrame_ == nullptr) {
-        RS_LOGE("RSCanvasModifiersDrawable::Draw: Null surfaceFrame, nodeId=%{public}" PRIu64, nodeId_);
+    if (!bufferRequested_ && !RequestBufferAndDrawHistory(width_, height_, false)) {
         return;
     }
     for (auto& cmdList : *drawCmdListCache_) {
@@ -170,45 +228,46 @@ void RSCanvasModifiersDrawable::Draw()
         cmdList->ClearOp();
     }
     drawCmdListCache_->clear();
-    forceFlushBuffer_ = false;
+    bufferDirty_ = true;
     hasDrawn_ = true;
 }
 
-std::unique_ptr<RSSurfaceFrame> RSCanvasModifiersDrawable::RequestBufferAndDrawHistory()
+bool RSCanvasModifiersDrawable::RequestBufferAndDrawHistory(int width, int height, bool needResetCanvas)
 {
     auto ohosSurface = std::static_pointer_cast<RSSurfaceOhos>(producerSurface_);
-    auto renderFrame = ohosSurface->RequestFrame(width_, height_);
+    auto renderFrame = ohosSurface->RequestFrame(width, height);
     if (renderFrame == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::RequestBufferAndDrawHistory: Null renderFrame, nodeId=%{public}" PRIu64
-            ", width=%{public}d, height=%{public}d", nodeId_, width_, height_);
-        return nullptr;
+            ", width=%{public}d, height=%{public}d", nodeId_, width, height);
+        return false;
     }
     auto drawingSurface = renderFrame->GetSurface();
     if (drawingSurface == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::RequestBufferAndDrawHistory: Null drawingSurface, nodeId=%{public}" PRIu64,
             nodeId_);
-        return nullptr;
+        return false;
     }
     auto canvas = drawingSurface->GetCanvas();
     if (canvas == nullptr) {
         RS_LOGE(
             "RSCanvasModifiersDrawable::RequestBufferAndDrawHistory: Null canvas, nodeId=%{public}" PRIu64, nodeId_);
-        return nullptr;
+        return false;
     }
 
-    if (drawingSurface_ != nullptr && drawingSurface_ != drawingSurface) {
+    RS_OPTIONAL_TRACE_NAME_FMT("Buffer requested, nodeId=%" PRIu64 ", width=%d, height=%d", nodeId_, width, height);
+    if (needResetCanvas) {
+        RS_OPTIONAL_TRACE_NAME_FMT("Reset canvas, nodeId=%" PRIu64, nodeId_);
+        canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
+        canvas->RestoreToCount(1);
+        canvas->SetMatrix(Drawing::Matrix());
+    } else if (drawingSurface_ != nullptr && drawingSurface_ != drawingSurface) {
         if (auto lastCanvas = drawingSurface_->GetCanvas()) {
             canvas->InheritStateAndContentFrom(lastCanvas.get(), false);
         }
     }
-    if (needResetCanvas_) {
-        canvas->Clear(Drawing::Color::COLOR_TRANSPARENT);
-        canvas->RestoreToCount(1);
-        canvas->SetMatrix(Drawing::Matrix());
-        needResetCanvas_ = false;
-    }
     drawingSurface_ = drawingSurface;
-    return renderFrame;
+    bufferRequested_ = true;
+    return true;
 }
 
 void RSCanvasModifiersDrawable::Playback(const Drawing::DrawCmdListPtr& cmdList)
@@ -235,12 +294,16 @@ sptr<SurfaceBuffer> RSCanvasModifiersDrawable::GetBuffer(bool needFlushBuffer)
         RS_LOGE("RSCanvasModifiersDrawable::GetBuffer: Null producer surface, nodeId=%{public}" PRIu64, nodeId_);
         return nullptr;
     }
-    if (surfaceFrame_ == nullptr) {
+    if (!bufferDirty_) {
+        RS_OPTIONAL_TRACE_NAME_FMT(
+            "Buffer not dirty, nodeId=%" PRIu64 ", width=%d, height=%d", nodeId_, width_, height_);
         return nullptr;
     }
     auto ohosSurface = std::static_pointer_cast<RSSurfaceOhosVulkan>(producerSurface_);
     if (auto buffer = ohosSurface->GetCurrentBuffer()) {
         if (needFlushBuffer) {
+            RS_OPTIONAL_TRACE_NAME_FMT(
+                "Flush buffer, nodeId=%" PRIu64 ", width=%d, height=%d", nodeId_, width_, height_);
             ohosSurface->OnFlushBuffer();
         }
         return buffer;
@@ -248,18 +311,19 @@ sptr<SurfaceBuffer> RSCanvasModifiersDrawable::GetBuffer(bool needFlushBuffer)
     return nullptr;
 }
 
-void RSCanvasModifiersDrawable::OnDirtyBufferCollected(int64_t lastFlushBufferTime)
+void RSCanvasModifiersDrawable::OnDirtyBufferCollected(int64_t lastBufferExpiredTime)
 {
-    surfaceFrame_ = nullptr;
-    lastFlushBufferTime_ = lastFlushBufferTime;
+    bufferRequested_ = false;
+    bufferDirty_ = false;
+    lastBufferExpiredTime_ = lastBufferExpiredTime;
 }
 
 bool RSCanvasModifiersDrawable::IsFree(int64_t now, int64_t maxDuration)
 {
-    if (lastFlushBufferTime_ == 0) {
+    if (lastBufferExpiredTime_ == 0) {
         return false;
     }
-    auto duration = now - lastFlushBufferTime_;
+    auto duration = now - lastBufferExpiredTime_;
     if (duration <= maxDuration) {
         return false;
     }
@@ -277,25 +341,25 @@ void RSCanvasModifiersDrawable::CleanBuffer()
         return;
     }
     std::static_pointer_cast<RSSurfaceOhosVulkan>(producerSurface_)->CleanReleasedBuffers();
-    lastFlushBufferTime_ = 0;
+    lastBufferExpiredTime_ = 0;
     RS_LOGI("RSCanvasModifiersDrawable::CleanBuffer, nodeId=%{public}" PRIu64, nodeId_);
 }
 
 bool RSCanvasModifiersDrawable::GetPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::Rect* rect,
-    Drawing::DrawCmdListPtr drawCmdList, std::shared_ptr<Drawing::GPUContext> gpuContext)
+    Drawing::DrawCmdListPtr drawCmdList, std::shared_ptr<RSCanvasModifiersContext> canvasModifiersContext)
 {
     if (pixelMap == nullptr || rect == nullptr) {
         return false;
     }
     auto bitmapFormat = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888, Drawing::ALPHATYPE_PREMUL };
-    auto image = GetImage(bitmapFormat, gpuContext);
+    auto image = GetImage(bitmapFormat, canvasModifiersContext);
     if (image == nullptr) {
         return false;
     }
 
     if (drawCmdList != nullptr && !drawCmdList->IsEmpty()) {
         auto imageInfo = Drawing::ImageInfo { width_, height_, bitmapFormat.colorType, bitmapFormat.alphaType };
-        auto surface = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, imageInfo);
+        auto surface = Drawing::Surface::MakeRenderTarget(canvasModifiersContext->gpuContext_.get(), false, imageInfo);
         if (auto canvas = surface != nullptr ? surface->GetCanvas() : nullptr) {
             canvas->DrawImage(*image, 0, 0, Drawing::SamplingOptions());
             drawCmdList->Playback(*canvas);
@@ -324,7 +388,8 @@ bool RSCanvasModifiersDrawable::GetPixelMap(std::shared_ptr<Media::PixelMap> pix
     return true;
 }
 
-bool RSCanvasModifiersDrawable::GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::GPUContext> gpuContext)
+bool RSCanvasModifiersDrawable::GetBitmap(
+    Drawing::Bitmap& bitmap, std::shared_ptr<RSCanvasModifiersContext> canvasModifiersContext)
 {
     auto alphaType = Drawing::ALPHATYPE_PREMUL;
     const auto& format = bitmap.GetFormat();
@@ -332,7 +397,7 @@ bool RSCanvasModifiersDrawable::GetBitmap(Drawing::Bitmap& bitmap, std::shared_p
         alphaType = format.alphaType;
     }
     auto bitmapFormat = Drawing::BitmapFormat { Drawing::COLORTYPE_RGBA_8888, alphaType };
-    auto image = GetImage(bitmapFormat, gpuContext);
+    auto image = GetImage(bitmapFormat, canvasModifiersContext);
     if (image == nullptr) {
         return false;
     }
@@ -344,12 +409,13 @@ bool RSCanvasModifiersDrawable::GetBitmap(Drawing::Bitmap& bitmap, std::shared_p
 }
 
 std::shared_ptr<Drawing::Image> RSCanvasModifiersDrawable::GetImage(
-    const Drawing::BitmapFormat& bitmapFormat, std::shared_ptr<Drawing::GPUContext> gpuContext)
+    const Drawing::BitmapFormat& bitmapFormat, std::shared_ptr<RSCanvasModifiersContext> canvasModifiersContext)
 {
     if (drawingSurface_ == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::GetImage: Null surface, nodeId=%{public}" PRIu64, nodeId_);
         return nullptr;
     }
+    auto gpuContext = canvasModifiersContext->gpuContext_;
     if (gpuContext == nullptr) {
         RS_LOGE("RSCanvasModifiersDrawable::GetImage: Null GPU context, nodeId=%{public}" PRIu64, nodeId_);
         return nullptr;
@@ -364,6 +430,11 @@ std::shared_ptr<Drawing::Image> RSCanvasModifiersDrawable::GetImage(
     return image;
 }
 // RSCanvasModifiersDrawable End
+
+RSCanvasModifiersDraw::RSCanvasModifiersDraw(std::weak_ptr<RSRenderInterface> weakRenderInterface)
+{
+    canvasModifiersContext_ = std::make_shared<RSCanvasModifiersContext>(weakRenderInterface);
+}
 
 // Thread-related methods
 void RSCanvasModifiersDraw::StartThread()
@@ -382,37 +453,8 @@ void RSCanvasModifiersDraw::StartThread()
         OHOS::ConcurrentTask::ConcurrentTaskClient::GetInstance().QueryInterval(
             OHOS::ConcurrentTask::QUERY_MODIFIER_DRAW, reply);
         SetThreadQos(QOS::QosLevel::QOS_USER_INTERACTIVE);
-        // Init shader cache, shader save delay time differs between uni-render and hybrid-render.
-        std::string vkVersion = std::to_string(VK_API_VERSION_1_2);
-        auto size = vkVersion.size();
-        auto& cache = ShaderCache::Instance();
-        cache.InitShaderCache(vkVersion.c_str(), size, false);
     });
-    CleanFreeBuffers(false);
     RS_LOGI("RSCanvasModifiersDraw::StartThread: Thread started");
-}
-
-void RSCanvasModifiersDraw::WaitAllTasksFinish()
-{
-    if (!threadStarted_.load()) {
-        return;
-    }
-    RemoveTask(CLEAN_FREE_BUFFERS_TASK_NAME);
-    PostSyncTask([canvasModifiersDraw = shared_from_this()]() {
-        RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::WaitAllTasksFinish");
-        canvasModifiersDraw->drawableMap_.clear();
-        canvasModifiersDraw->transactionConfigList_.clear();
-        if (canvasModifiersDraw->destroySemaphoreInfo_ != nullptr) {
-            DestroySemaphoreInfo::DestroySemaphore(canvasModifiersDraw->destroySemaphoreInfo_);
-            canvasModifiersDraw->destroySemaphoreInfo_ = nullptr;
-        }
-        if (canvasModifiersDraw->gpuContext_ != nullptr) {
-            canvasModifiersDraw->gpuContext_->FlushAndSubmit(false);
-            canvasModifiersDraw->gpuContext_->PurgeUnlockedResources(true);
-            canvasModifiersDraw->gpuContext_ = nullptr;
-            canvasModifiersDraw->renderContext_ = nullptr;
-        }
-    });
 }
 
 void RSCanvasModifiersDraw::Destroy()
@@ -467,159 +509,148 @@ void RSCanvasModifiersDraw::RemoveTask(const std::string& name)
 }
 // End of thread-related methods
 
-std::shared_ptr<Drawing::GPUContext> RSCanvasModifiersDraw::GetGpuContext()
+bool RSCanvasModifiersDraw::RemoveCleanFreeBuffersTask()
 {
-    if (renderContext_ == nullptr) {
-        renderContext_ = RenderContext::Create();
-        renderContext_->Init(RenderEngineType::BASIC_RENDER, cacheDir_);
-        gpuContext_ = renderContext_->GetSharedDrGPUContext();
+    if (!threadStarted_.load()) {
+        return false;
     }
-    return gpuContext_;
+    RemoveTask(CLEAN_FREE_BUFFERS_TASK_NAME);
+    return true;
+}
+
+void RSCanvasModifiersDraw::ReleaseResource()
+{
+    RS_TRACE_NAME_FMT("RSCanvasModifiersDraw::ReleaseResource");
+    drawableMap_.clear();
+    transactionConfigList_.clear();
+    if (destroySemaphoreInfo_ != nullptr) {
+        DestroySemaphoreInfo::DestroySemaphore(destroySemaphoreInfo_);
+        destroySemaphoreInfo_ = nullptr;
+    }
+    canvasModifiersContext_->ReleaseGpuContext();
 }
 
 void RSCanvasModifiersDraw::SetCacheDir(const std::string& cacheDir)
 {
-    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
-    PostTask([weakCanvasModifiersDraw, path = cacheDir] {
-        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
-            ShaderCache::Instance().SetFilePath(path);
-            canvasModifiersDraw->cacheDir_ = path;
-        }
-    });
+    canvasModifiersContext_->cacheDir_ = cacheDir;
 }
 
-void RSCanvasModifiersDraw::OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface)
+void RSCanvasModifiersDraw::OnNodeCreate(NodeId nodeId, GraphicColorGamut colorSpace)
 {
-    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
-    PostTask([weakCanvasModifiersDraw, nodeId, weakRenderInterface] {
-        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
-            auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-            drawable.nodeId_ = nodeId;
-            auto gpuContext = canvasModifiersDraw->GetGpuContext();
-            drawable.renderContext_ = canvasModifiersDraw->renderContext_;
-            drawable.CreateProducerSurface(weakRenderInterface, gpuContext, maxGpuResourceBytes_);
-            canvasModifiersDraw->lastGpuContextActiveTime_ =
-                static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::steady_clock::now().time_since_epoch()).count());
-        }
-    });
+    if (canvasModifiersContext_->GetGpuContext() == nullptr) {
+        RS_LOGE("RSCanvasModifiersDraw::OnNodeCreate, null gpuContext, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
+    auto& drawable = drawableMap_[nodeId];
+    drawable.nodeId_ = nodeId;
+    drawable.CreateProducerSurface(canvasModifiersContext_, colorSpace);
+    lastGpuContextActiveTime_ = static_cast<int64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
+            .count());
+    // Only restart the clean task when the map transitions from empty to non-empty
+    // (i.e. the first node is created), otherwise keep the existing loop running.
+    if (drawableMap_.size() == 1) {
+        RemoveTask(CLEAN_FREE_BUFFERS_TASK_NAME);
+        CleanFreeBuffers(false);
+    }
 }
 
-void RSCanvasModifiersDraw::OnNodeRelease(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface)
+void RSCanvasModifiersDraw::OnNodeRelease(NodeId nodeId)
 {
-    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
-    PostTask([weakCanvasModifiersDraw, nodeId, weakRenderInterface] {
-        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
-            auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-            drawable.ReleaseProducerSurface(weakRenderInterface);
-            canvasModifiersDraw->drawableMap_.erase(nodeId);
-            canvasModifiersDraw->lastGpuContextActiveTime_ =
-                static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-                    std::chrono::steady_clock::now().time_since_epoch()).count());
-        }
-    });
+    auto it = drawableMap_.find(nodeId);
+    if (it == drawableMap_.end()) {
+        RS_LOGE("RSCanvasModifiersDraw::OnNodeRelease, node not found, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
+    it->second.ReleaseProducerSurface(canvasModifiersContext_);
+    drawableMap_.erase(nodeId);
+    lastGpuContextActiveTime_ = static_cast<int64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
+            .count());
 }
 
 void RSCanvasModifiersDraw::OnNodeStateChanged(NodeId nodeId, RSNodeState nodeState)
 {
-    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
-    PostTask([weakCanvasModifiersDraw, nodeId, nodeState] {
-        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
-        if (canvasModifiersDraw == nullptr) {
-            return;
-        }
-        auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-        drawable.nodeState_ = nodeState;
-        if (nodeState != RSNodeState::ACTIVE) {
-            canvasModifiersDraw->CleanFreeBuffers(true);
-            return;
-        }
-        canvasModifiersDraw->RestoreGpuCacheLimits();
-        drawable.UpdateContent(nullptr, true);
-    });
+    auto it = drawableMap_.find(nodeId);
+    if (it == drawableMap_.end()) {
+        RS_LOGE("RSCanvasModifiersDraw::OnNodeStateChanged, node not found, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
+    auto& drawable = it->second;
+    drawable.nodeState_ = nodeState;
+    if (nodeState != RSNodeState::ACTIVE) {
+        CleanFreeBuffers(true);
+        return;
+    }
+    canvasModifiersContext_->RestoreGpuCacheLimits();
+    drawable.UpdateContent(nullptr, true);
 }
 
-void RSCanvasModifiersDraw::ResetSurface(
-    NodeId nodeId, int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace)
+void RSCanvasModifiersDraw::ResetSurface(NodeId nodeId, int width, int height, bool sizeOutOfGpuLimit)
 {
-    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
-    PostTask([weakCanvasModifiersDraw, nodeId, width, height, sizeOutOfGpuLimit, colorSpace] {
-        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
-        if (canvasModifiersDraw == nullptr) {
-            return;
-        }
-        canvasModifiersDraw->RestoreGpuCacheLimits();
-        auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-        drawable.ResetSurface(width, height, sizeOutOfGpuLimit, colorSpace);
-        if (sizeOutOfGpuLimit) {
-            canvasModifiersDraw->CleanFreeBuffers(true);
-        }
-    });
+    auto it = drawableMap_.find(nodeId);
+    if (it == drawableMap_.end()) {
+        RS_LOGE("RSCanvasModifiersDraw::ResetSurface, node not found, nodeId=%{public}" PRIu64, nodeId);
+        return;
+    }
+    if (!sizeOutOfGpuLimit) {
+        canvasModifiersContext_->RestoreGpuCacheLimits();
+    }
+    it->second.ResetSurface(width, height, sizeOutOfGpuLimit);
+    // DDGR resources created by buffers can only be released after submit.
+    // If ResetSurface is called multiple times without content drawing, DDGR resources
+    // will keep accumulating and cause memory leaks. So a submit must be guaranteed
+    // after every ResetSurface.
+    needForceSubmit_ = true;
+    lastGpuContextActiveTime_ = static_cast<int64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
+            .count());
+    CleanFreeBuffers(true);
 }
 
 bool RSCanvasModifiersDraw::GetBitmap(NodeId nodeId, Drawing::Bitmap& bitmap)
 {
-    bool ret = false;
-    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
-    PostSyncTask([weakCanvasModifiersDraw, nodeId, &bitmap, &ret] {
-        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
-            auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-            ret = drawable.GetBitmap(bitmap, canvasModifiersDraw->GetGpuContext());
-        }
-    });
-    return ret;
+    auto it = drawableMap_.find(nodeId);
+    if (it == drawableMap_.end()) {
+        RS_LOGE("RSCanvasModifiersDraw::GetBitmap, node not found, nodeId=%{public}" PRIu64, nodeId);
+        return false;
+    }
+    return it->second.GetBitmap(bitmap, canvasModifiersContext_);
 }
 
 bool RSCanvasModifiersDraw::GetPixelMap(NodeId nodeId, std::shared_ptr<Media::PixelMap> pixelMap,
     const Drawing::Rect* rect, Drawing::DrawCmdListPtr drawCmdList)
 {
-    bool ret = false;
-    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
-    PostSyncTask([weakCanvasModifiersDraw, nodeId, pixelMap, rect, drawCmdList, &ret] {
-        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
-            auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-            ret = drawable.GetPixelMap(pixelMap, rect, drawCmdList, canvasModifiersDraw->GetGpuContext());
-        }
-    });
-    return ret;
+    auto it = drawableMap_.find(nodeId);
+    if (it == drawableMap_.end()) {
+        RS_LOGE("RSCanvasModifiersDraw::GetPixelMap, node not found, nodeId=%{public}" PRIu64, nodeId);
+        return false;
+    }
+    return it->second.GetPixelMap(pixelMap, rect, drawCmdList, canvasModifiersContext_);
 }
 
 void RSCanvasModifiersDraw::UpdateCanvasContent(NodeId nodeId, Drawing::DrawCmdListPtr drawCmdList)
 {
-    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
-    PostTask([weakCanvasModifiersDraw, nodeId, drawCmdList] {
-        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
-        if (canvasModifiersDraw == nullptr) {
-            return;
-        }
-        canvasModifiersDraw->RestoreGpuCacheLimits();
-        auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
-        drawable.UpdateContent(drawCmdList, false);
-        canvasModifiersDraw->lastGpuContextActiveTime_ = static_cast<int64_t>(
-            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
-                .count());
-    });
-}
-
-void RSCanvasModifiersDraw::RestoreGpuCacheLimits()
-{
-    if (!needRestoreGpuCacheLimit_) {
+    auto it = drawableMap_.find(nodeId);
+    if (it == drawableMap_.end()) {
+        RS_LOGE("RSCanvasModifiersDraw::UpdateCanvasContent, node not found, nodeId=%{public}" PRIu64, nodeId);
         return;
     }
-    if (auto gpuContext = GetGpuContext()) {
-        gpuContext->SetResourceCacheLimits(0, maxGpuResourceBytes_);
-        needRestoreGpuCacheLimit_ = false;
-    }
+    canvasModifiersContext_->RestoreGpuCacheLimits();
+    it->second.UpdateContent(drawCmdList, false);
+    lastGpuContextActiveTime_ = static_cast<int64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
+            .count());
 }
 
 DestroySemaphoreInfo* RSCanvasModifiersDraw::FlushSurfaceWithSemaphore(
     VkSemaphore& semaphore, std::shared_ptr<Drawing::Surface> drawingSurface)
 {
-    if (renderContext_ == nullptr) {
+    if (canvasModifiersContext_->renderContext_ == nullptr) {
         RS_LOGE("RSCanvasModifiersDraw::FlushSurfaceWithSemaphore renderContext_ is nullptr");
         return nullptr;
     }
-    auto vkInterface = RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface();
+    auto vkInterface = RsVulkanContext::Get(canvasModifiersContext_->renderContext_->GetType()).GetRsVulkanInterface();
     if (NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore) != VK_SUCCESS) {
         RS_LOGE("RSCanvasModifiersDraw::FlushSurfaceWithSemaphore: CreateVkSemaphore fail");
         semaphore = VK_NULL_HANDLE;
@@ -646,67 +677,68 @@ DestroySemaphoreInfo* RSCanvasModifiersDraw::FlushSurfaceWithSemaphore(
 int32_t RSCanvasModifiersDraw::GetFenceFd(VkSemaphore& semaphore)
 {
     int32_t fenceFd = INVALID_FD;
-    if (renderContext_ == nullptr) {
+    if (canvasModifiersContext_->renderContext_ == nullptr) {
         RS_LOGE("RSCanvasModifiersDraw::GetFenceFd renderContext_ is nullptr");
         return fenceFd;
     }
     if (semaphore != VK_NULL_HANDLE) {
         NativeBufferUtils::GetFenceFdFromSemaphore(
-            RsVulkanContext::Get(renderContext_->GetType()).GetRsVulkanInterface(), semaphore, fenceFd);
+            RsVulkanContext::Get(canvasModifiersContext_->renderContext_->GetType()).GetRsVulkanInterface(), semaphore,
+            fenceFd);
     }
     return fenceFd;
 }
 
 void RSCanvasModifiersDraw::SubmitAndCollectCanvasBuffers()
 {
-    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
-    PostTask([weakCanvasModifiersDraw] {
-        auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
-        if (canvasModifiersDraw == nullptr) {
-            return;
-        }
-        auto gpuContext = canvasModifiersDraw->GetGpuContext();
-        if (gpuContext == nullptr) {
-            RS_LOGE("RSCanvasModifiersDraw::SubmitAndCollectCanvasBuffers, null gpuContext");
-            return;
-        }
+    if (canvasModifiersContext_->gpuContext_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersDraw::SubmitAndCollectCanvasBuffers, null gpuContext");
+        return;
+    }
 
-        bool needFlushBuffer = false;
-        for (auto& [_, drawable] : canvasModifiersDraw->drawableMap_) {
-            if (drawable.nodeState_ == RSNodeState::ACTIVE) {
-                needFlushBuffer = true;
-                break;
-            }
+    bool needFlushBuffer = false;
+    for (auto& [_, drawable] : drawableMap_) {
+        if (drawable.nodeState_ == RSNodeState::ACTIVE) {
+            needFlushBuffer = true;
+            break;
         }
-        std::vector<std::pair<sptr<SurfaceBuffer>, RSCanvasModifiersDrawable*>> bufferList;
-        for (auto& [_, drawable] : canvasModifiersDraw->drawableMap_) {
-            if (auto buffer = drawable.GetBuffer(needFlushBuffer)) {
-                bufferList.emplace_back(buffer, &drawable);
-            }
+    }
+    std::vector<std::pair<sptr<SurfaceBuffer>, RSCanvasModifiersDrawable*>> bufferList;
+    for (auto& [_, drawable] : drawableMap_) {
+        if (auto buffer = drawable.GetBuffer(needFlushBuffer)) {
+            bufferList.emplace_back(buffer, &drawable);
         }
-        if (bufferList.empty()) {
-            return;
+    }
+    bool needForceSubmit = needForceSubmit_;
+    needForceSubmit_ = false;
+    if (bufferList.empty()) {
+        RS_TRACE_NAME_FMT("Buffer list empty");
+        if (needForceSubmit) {
+            canvasModifiersContext_->gpuContext_->Submit();
         }
-        if (!needFlushBuffer) {
-            gpuContext->Submit();
-            return;
-        }
-        if (canvasModifiersDraw->destroySemaphoreInfo_ != nullptr) {
-            DestroySemaphoreInfo::DestroySemaphore(canvasModifiersDraw->destroySemaphoreInfo_);
-            canvasModifiersDraw->destroySemaphoreInfo_ = nullptr;
-        }
-        VkSemaphore semaphore = VK_NULL_HANDLE;
-        canvasModifiersDraw->destroySemaphoreInfo_ =
-            canvasModifiersDraw->FlushSurfaceWithSemaphore(semaphore, bufferList.back().second->drawingSurface_);
-        gpuContext->Submit();
-        sptr<SyncFence> fence = new SyncFence(canvasModifiersDraw->GetFenceFd(semaphore));
-        auto now = static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count());
-        for (const auto& [buffer, drawable] : bufferList) {
-            canvasModifiersDraw->AppendTransactionConfig(drawable->nodeId_, buffer, fence);
-            drawable->OnDirtyBufferCollected(now);
-        }
-    });
+        return;
+    }
+    if (!needFlushBuffer) {
+        RS_TRACE_NAME_FMT("No active node, submit only");
+        canvasModifiersContext_->gpuContext_->Submit();
+        return;
+    }
+    if (destroySemaphoreInfo_ != nullptr) {
+        DestroySemaphoreInfo::DestroySemaphore(destroySemaphoreInfo_);
+        destroySemaphoreInfo_ = nullptr;
+    }
+    VkSemaphore semaphore = VK_NULL_HANDLE;
+    destroySemaphoreInfo_ = FlushSurfaceWithSemaphore(semaphore, bufferList.back().second->drawingSurface_);
+    canvasModifiersContext_->gpuContext_->Submit();
+    sptr<SyncFence> fence = new SyncFence(GetFenceFd(semaphore));
+    auto now = static_cast<int64_t>(
+        std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now().time_since_epoch())
+            .count());
+    for (const auto& [buffer, drawable] : bufferList) {
+        AppendTransactionConfig(drawable->nodeId_, buffer, fence);
+        drawable->OnDirtyBufferCollected(now);
+    }
+    RS_OPTIONAL_TRACE_NAME_FMT("SubmitAndCollectCanvasBuffers, bufferCount=%zu", transactionConfigList_.size());
 }
 
 void RSCanvasModifiersDraw::AppendTransactionConfig(NodeId nodeId, sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence)
@@ -720,14 +752,27 @@ void RSCanvasModifiersDraw::AppendTransactionConfig(NodeId nodeId, sptr<SurfaceB
     transactionConfigList_.emplace_back(config);
 }
 
-void RSCanvasModifiersDraw::SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList)
+std::unique_ptr<RSCommand> RSCanvasModifiersDraw::SyncAndWait()
 {
-    std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
-    PostSyncTask([weakCanvasModifiersDraw, &transactionConfigList] {
-        if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
-            std::swap(transactionConfigList, canvasModifiersDraw->transactionConfigList_);
-        }
-    });
+    RS_OPTIONAL_TRACE_NAME_FMT("SyncAndWait, bufferCount=%zu", transactionConfigList_.size());
+    std::unique_ptr<RSCommand> command = nullptr;
+    if (!transactionConfigList_.empty()) {
+        // Static is safe: GetRealPid() is constant within a process, and this nodeId
+        // is only used to pass server-side PID validation (ExtractPid(nodeId) == callingPid).
+        // Left shift by 32 to match the standard NodeId format (pid << 32 | sequence).
+        static NodeId nodeId = (NodeId)GetRealPid() << 32;
+        // TransactionBufferCommand constructor swaps configs into its own configList_, leaving
+        // transactionConfigList_ empty after construction — same effect as an explicit swap.
+        command = std::make_unique<TransactionBufferCommand>(transactionConfigList_, nodeId);
+    } else if (needForceSubmit_ && canvasModifiersContext_->gpuContext_ != nullptr) {
+        // SubmitAndCollectCanvasBuffers is triggered by RSUIDirector::FlushModifier,
+        // which may not be reached when there is no content update (theoretical analysis,
+        // not observed in practice). Submit here as a fallback to ensure DDGR resources
+        // are released in time.
+        canvasModifiersContext_->gpuContext_->Submit();
+        needForceSubmit_ = false;
+    }
+    return command;
 }
 
 void RSCanvasModifiersDraw::CleanFreeBuffers(bool immediately)
@@ -738,8 +783,12 @@ void RSCanvasModifiersDraw::CleanFreeBuffers(bool immediately)
     std::weak_ptr<RSCanvasModifiersDraw> weakCanvasModifiersDraw = shared_from_this();
     PostTask(
         [weakCanvasModifiersDraw, immediately] {
-            if (auto canvasModifiersDraw = weakCanvasModifiersDraw.lock()) {
-                canvasModifiersDraw->DoCleanFreeBuffers(immediately ? 0 : CLEAN_FREE_BUFFERS_DURATION);
+            auto canvasModifiersDraw = weakCanvasModifiersDraw.lock();
+            if (canvasModifiersDraw == nullptr) {
+                return;
+            }
+            canvasModifiersDraw->DoCleanFreeBuffers(immediately ? 0 : CLEAN_FREE_BUFFERS_DURATION);
+            if (!canvasModifiersDraw->drawableMap_.empty()) {
                 canvasModifiersDraw->CleanFreeBuffers(false);
             }
         },
@@ -759,11 +808,9 @@ void RSCanvasModifiersDraw::DoCleanFreeBuffers(int64_t maxDuration)
     for (auto* drawable : freeDrawableList) {
         drawable->CleanBuffer();
     }
-    if (gpuContext_ != nullptr && lastGpuContextActiveTime_ > 0 &&
+    if (canvasModifiersContext_->gpuContext_ != nullptr && lastGpuContextActiveTime_ > 0 &&
         now - lastGpuContextActiveTime_ > CLEAN_FREE_BUFFERS_DURATION) {
-        gpuContext_->SetResourceCacheLimits(0, 0);
-        gpuContext_->PerformDeferredCleanup(std::chrono::milliseconds(0));
-        needRestoreGpuCacheLimit_ = true;
+        canvasModifiersContext_->CleanGpuCache();
         lastGpuContextActiveTime_ = 0;
         RS_LOGI("RSCanvasModifiersDrawable::DoCleanFreeBuffers: clean GPU resource");
     }

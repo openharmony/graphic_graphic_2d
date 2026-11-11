@@ -91,7 +91,7 @@ OH_Drawing_FontDescriptor* OH_Drawing_MatchFontDescriptors(OH_Drawing_FontDescri
         *num = 0;
         return nullptr;
     }
-    
+
     size_t i = 0;
     for (const auto& item : result) {
         if (!OHOS::Rosen::Drawing::CopyFontDescriptor(&descriptors[i], *item)) {

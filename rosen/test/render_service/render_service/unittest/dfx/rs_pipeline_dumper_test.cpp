@@ -21,6 +21,7 @@
 #include "dfx/rs_pipeline_dumper.h"
 #include "dfx/rs_pipeline_dump_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_canvas_drawing_render_node.h"
 #include "pipeline/rs_render_node_allocator.h"
 #include "pipeline/rs_render_node_gc.h"
 #include "pipeline/rs_scb_node_memory_pool.h"
@@ -29,8 +30,6 @@ using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
-static constexpr int TEAR_DOWN_WAIT_SECONDS = 5;
-
 class RSPipelineDumperTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -44,7 +43,18 @@ protected:
 };
 
 void RSPipelineDumperTest::SetUpTestCase() {}
-void RSPipelineDumperTest::TearDownTestCase() {}
+void RSPipelineDumperTest::TearDownTestCase()
+{
+    // Prevent Signal 11 at process exit: RSRenderNodeGC (function-local static)
+    // may be destroyed before RSMainThread (function-local static). When
+    // RSMainThread's context_ is destroyed, globalRootRenderNode_'s renderDrawable_
+    // deleter calls RSRenderNodeGC::Instance() which is already dead → SIGSEGV.
+    // Reset renderDrawable_ on all nodes while RSRenderNodeGC is still alive.
+    auto& context = RSMainThread::Instance()->GetContext();
+    context.globalRootRenderNode_->renderDrawable_.reset();
+    context.GetMutableNodeMap().TraversalNodes(
+        [](const std::shared_ptr<RSBaseRenderNode>& node) { node->renderDrawable_.reset(); });
+}
 void RSPipelineDumperTest::SetUp()
 {
     dumpManager_ = std::make_shared<RSPipelineDumpManager>();
@@ -52,9 +62,6 @@ void RSPipelineDumperTest::SetUp()
 }
 void RSPipelineDumperTest::TearDown()
 {
-    // Prevent the null pointer issue caused by the
-    // dump not being completed when the test case ends
-    sleep(TEAR_DOWN_WAIT_SECONDS);
     dumper_.reset();
     dumpManager_.reset();
 }
@@ -2792,4 +2799,47 @@ HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_NameEmptyNoFallback, TestSize.
     node->SetIsOnTheTree(false);
     nodeMap.UnregisterRenderNode(node->GetId());
 }
+
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+/*
+ * @tc.name: DumpNodeInfo_CanvasDrawingNodeHybridRender
+ * @tc.desc: Test DumpNodeInfo covers bufferDraw_ true and false branches
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_CanvasDrawingNodeHybridRender, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+ 
+    pid_t pid = 9999;
+    uint64_t token = 888888;
+    NodeId baseId = static_cast<NodeId>(pid) << 32;
+ 
+    // Register a CanvasDrawingNode with bufferDraw_=true
+    auto nodeHybrid = std::make_shared<RSCanvasDrawingRenderNode>(baseId | 1);
+    nodeHybrid->SetUIContextToken(token);
+    nodeHybrid->bufferDraw_ = true;
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(nodeHybrid);
+ 
+    // Register a CanvasDrawingNode with bufferDraw_=false
+    auto nodeNonHybrid = std::make_shared<RSCanvasDrawingRenderNode>(baseId | 2);
+    nodeNonHybrid->SetUIContextToken(token);
+    nodeNonHybrid->bufferDraw_ = false;
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().RegisterRenderNode(nodeNonHybrid);
+ 
+    // Avoids PostSyncTask threading complexity and RSMainThread singleton crash at exit.
+    std::string out;
+    dumper_->DumpNodeInfo(pid, token, out);
+ 
+    // Should contain CanvasDrawingNode statistics with GPU and Non-GPU counts
+    EXPECT_FALSE(out.empty());
+    EXPECT_TRUE(out.find("CanvasDrawingNode") != std::string::npos);
+    EXPECT_TRUE(out.find("GPU: 1") != std::string::npos);
+    EXPECT_TRUE(out.find("Non-GPU: 1") != std::string::npos);
+ 
+    // Cleanup registered nodes
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(baseId | 1);
+    RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(baseId | 2);
+}
+#endif
 } // namespace OHOS::Rosen

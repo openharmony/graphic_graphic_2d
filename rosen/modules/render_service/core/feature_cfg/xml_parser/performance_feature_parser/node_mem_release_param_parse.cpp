@@ -39,7 +39,7 @@ int32_t NodeMemReleaseParamParse::ParseFeatureParam(FeatureParamMapType& feature
             return PARSE_INTERNAL_FAIL;
         }
     }
-    RSCanvasDrawingRenderNode::InitClientRenderEnable(NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled());
+    RSCanvasDrawingRenderNode::InitHybridRenderEnable(NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled());
     return PARSE_EXEC_SUCCESS;
 }
 

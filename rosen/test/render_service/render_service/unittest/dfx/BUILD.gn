@@ -13,6 +13,7 @@
 
 import("//build/test.gni")
 import("//foundation/graphic/graphic_2d/graphic_config.gni")
+import("$graphic_2d_root/rosen/modules/render_service_base/config.gni")
 
 module_output_path = "graphic_2d/graphic_2d/rosen_engine/render_service/dfx"
 
@@ -156,7 +157,14 @@ ohos_unittest("RSPipelineDumperTest") {
     "-Dprotected=public",
   ]
 
+  defines = []
+  if (rosen_is_ohos && graphic_2d_feature_enable_vulkan && graphic_2d_feature_rs_modifiers_draw_enable) {
+    defines += [ "RS_MODIFIERS_DRAW_ENABLE" ]
+  }
+
   deps = [
+    "$graphic_2d_root/frameworks/opengl_wrapper:EGL",
+    "$graphic_2d_root/frameworks/opengl_wrapper:GLESv3",
     "$graphic_2d_root/rosen/modules/composer:libcomposer",
     "$graphic_2d_root/rosen/modules/composer/vsync:libvsync",
     "$graphic_2d_root/rosen/modules/hyper_graphic_manager:libhyper_graphic_manager",
@@ -167,7 +175,9 @@ ohos_unittest("RSPipelineDumperTest") {
   external_deps = [
     "eventhandler:libeventhandler",
     "c_utils:utils",
+    "drivers_interface_display:display_commontype_idl_headers",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "samgr:samgr_proxy",
     "memmgr:memmgrclient",
     "egl:libEGL",

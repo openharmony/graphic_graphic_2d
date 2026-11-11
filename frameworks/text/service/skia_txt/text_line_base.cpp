@@ -14,6 +14,7 @@
  */
 
 #include "text_line_base.h"
+
 #include "convert.h"
 #include "run_impl.h"
 

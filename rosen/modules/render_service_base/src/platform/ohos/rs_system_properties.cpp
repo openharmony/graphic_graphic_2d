@@ -213,7 +213,7 @@ bool RSSystemProperties::GetBackgroundRebuildEnabled()
     uint8_t remoteValue = std::static_pointer_cast<RSRenderServiceClient>(
         RSIRenderClient::CreateRenderServiceClient())->GetBackgroundRebuildEnabled();
     isBackgroundRebuildEnabled_ = (remoteValue & 0xF0) != 0;
-    isCanvasDrawingNodeClientRenderEnabled_ = (remoteValue & 0x0F) != 0;
+    isCanvasDrawingNodeHybridRenderEnabled_ = (remoteValue & 0x0F) != 0;
     inited = true;
     ROSEN_LOGD("RSSystemProperties::GetBackgroundRebuildEnabled:%{public}d", isBackgroundRebuildEnabled_);
     return isBackgroundRebuildEnabled_;
@@ -1648,7 +1648,7 @@ bool RSSystemProperties::GetHybridRenderCanvasEnabled()
             canvasEnabled = false;
         } else {
             GetBackgroundRebuildEnabled();
-            canvasEnabled = isCanvasDrawingNodeClientRenderEnabled_;
+            canvasEnabled = isCanvasDrawingNodeHybridRenderEnabled_;
         }
     }
     inited = true;

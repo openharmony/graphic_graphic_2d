@@ -19,6 +19,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <unordered_map>
 
 #include "command/rs_animation_command.h"
 #include "common/rs_common_def.h"
@@ -101,6 +102,8 @@ private:
     int32_t currCnt_ = 0;
     TimestampType timestamp_ = 0;
     TimestampType targetTimestamp_ = 0;
+
+    std::unordered_map<int32_t, std::vector<int32_t>> rateToFactors_;
 
     SoloistIdType instanceId_ = 0;
     std::shared_ptr<RSFrameRateLinker> frameRateLinker_;
