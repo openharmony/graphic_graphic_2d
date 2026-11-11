@@ -398,6 +398,10 @@ void RSUniHwcVisitor::DisableSolidLayerByDstRectNEBounds(RSSurfaceRenderNode& no
     if (stagingSurfaceParams == nullptr || !stagingSurfaceParams->GetIsHwcEnabledBySolidLayer()) {
         return;
     }
+    bool hasBuffer = node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer();
+    if (IsSolidLayerEnabledNoBuffer(node, hasBuffer)) {
+        return;
+    }
     // Disable solidLayer when dstRect (self-drawing area) is smaller than boundsRect (hole area)
     if (!node.GetRenderProperties().GetBoundsGeometry()->GetAbsRect().IsInsideOf(node.GetDstRect())) {
         node.SetHardwareForcedDisabledState(true);
