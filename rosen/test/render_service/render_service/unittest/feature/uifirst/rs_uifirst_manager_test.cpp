@@ -2186,6 +2186,45 @@ HWTEST_F(RSUifirstManagerTest, GetSubNodeIsTransparent, TestSize.Level1)
 }
 
 /**
+ * @tc.name: GetSubNodeIsTransparent_AbilityBgAlpha
+ * @tc.desc: test ability bg alpha of app window child in leash window
+ * @tc.type: FUNC
+ * @tc.require: issueIBMDEJ
+ */
+HWTEST_F(RSUifirstManagerTest, GetSubNodeIsTransparent_AbilityBgAlpha, TestSize.Level1)
+{
+    uifirstManager_.currentFrameEvent_.clear();
+    const uint8_t semiTransparentAlpha = 128;
+    std::string dfxMsg;
+    NodeId leashId = static_cast<uint64_t>(1);
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    // case 1: app window child with semi-transparent ability bg alpha -> transparent
+    auto semiAppWindow = std::make_shared<RSSurfaceRenderNode>(leashId + 1);
+    semiAppWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    semiAppWindow->SetGlobalAlpha(1.0f);
+    semiAppWindow->SetAbilityBGAlpha(semiTransparentAlpha);
+    std::vector<std::shared_ptr<RSRenderNode>> semiChildren;
+    semiChildren.push_back(semiAppWindow);
+    leashNode->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(semiChildren);
+    ASSERT_EQ(uifirstManager_.GetSubNodeIsTransparent(*leashNode, dfxMsg), true);
+
+    // case 2: app window child with fully opaque ability bg alpha -> not transparent
+    auto opaqueAppWindow = std::make_shared<RSSurfaceRenderNode>(leashId + 2);
+    opaqueAppWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    opaqueAppWindow->SetGlobalAlpha(1.0f);
+    opaqueAppWindow->SetAbilityBGAlpha(UINT8_MAX);
+    opaqueAppWindow->AddChild(std::make_shared<RSCanvasRenderNode>(leashId + 3));
+    std::vector<std::shared_ptr<RSRenderNode>> opaqueChildren;
+    opaqueChildren.push_back(opaqueAppWindow);
+    leashNode->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(opaqueChildren);
+    ASSERT_EQ(uifirstManager_.GetSubNodeIsTransparent(*leashNode, dfxMsg), false);
+}
+
+/**
  * @tc.name: QuerySubAssignable
  * @tc.desc: test results of QuerySubAssignable
  * @tc.type: FUNC
