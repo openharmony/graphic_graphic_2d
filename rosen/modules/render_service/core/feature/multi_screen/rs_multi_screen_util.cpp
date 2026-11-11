@@ -978,7 +978,12 @@ void RSMultiScreenUtil::DrawVirtualExtend(
                 __func__);
         }
         // Note: FinishOffscreenRender is not needed here since we're not drawing back to a single canvas
+        if (drawable.canvasBackup_ != nullptr) {
+            drawable.curCanvas_ = drawable.canvasBackup_;
+        }
         drawable.canvasBackup_ = nullptr;
+        drawable.offscreenCanvas_ = nullptr;
+        drawable.offscreenSurface_ = nullptr;
     } else if (screenParam->GetHDRPresent()) {
         RS_LOGD("RSMultiScreenUtil::%{public}s HDRCast isHDREnabledVirtualScreen true", __func__);
         canvas->SetHDREnabledVirtualScreen(true);
