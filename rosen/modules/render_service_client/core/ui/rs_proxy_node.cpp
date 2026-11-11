@@ -61,11 +61,13 @@ RSProxyNode::SharedPtr RSProxyNode::Create(
             return node;
         }
         NodeId proxyNodeId = node->GetHierarchyCommandNodeId();
-        std::unique_ptr<RSCommand> command = std::make_unique<RSProxyNodeCreate>(proxyNodeId, targetNodeId, node->GetUIContextToken());
+        std::unique_ptr<RSCommand> command =
+            std::make_unique<RSProxyNodeCreate>(proxyNodeId, targetNodeId, node->GetUIContextToken());
         transactionProxy->AddCommand(command, node->IsUniRenderEnabled());
         // create proxy node in RS even if uni render not enabled.
         if (!node->IsUniRenderEnabled()) {
-            std::unique_ptr<RSCommand> command = std::make_unique<RSProxyNodeCreate>(proxyNodeId, targetNodeId, node->GetUIContextToken());
+            std::unique_ptr<RSCommand> command =
+                std::make_unique<RSProxyNodeCreate>(proxyNodeId, targetNodeId, node->GetUIContextToken());
             transactionProxy->AddCommand(command, true);
         }
         ROSEN_LOGD("RSProxyNode::Create, target node id:%{public}" PRIu64 ", name %s proxy node id %{public}" PRIu64,

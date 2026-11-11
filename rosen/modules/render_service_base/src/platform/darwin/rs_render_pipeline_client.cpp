@@ -36,11 +36,10 @@ void RSRenderPipelineClient::CommitTransaction(std::unique_ptr<RSTransactionData
 {
 }
 
-void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task)
-{
-}
+void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSyncTask>& task) {}
 
-bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId, bool isSceneBoard)
+bool RSRenderPipelineClient::CreateDisplayNode(
+    const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId, bool isSceneBoard)
 {
     return {};
 }

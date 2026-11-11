@@ -40,11 +40,10 @@ void RSRenderPipelineClient::ExecuteSynchronousTask(const std::shared_ptr<RSSync
 {
 }
 
-void RSRenderPipelineClient::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app)
-{
-}
+void RSRenderPipelineClient::RegisterApplicationAgent(uint32_t pid, sptr<IApplicationAgent> app) {}
 
-bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId, bool isSceneBoard)
+bool RSRenderPipelineClient::CreateDisplayNode(
+    const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId, bool isSceneBoard)
 {
     return {};
 }

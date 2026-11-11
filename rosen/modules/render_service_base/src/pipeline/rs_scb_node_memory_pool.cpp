@@ -313,7 +313,8 @@ void RSScbNodeMemoryPool::Dump(std::string& result) const
                 ++usedInChunk;
             }
         }
-        len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1, "Chunk[%u]: base=%u, count=%u, used=%u, free=%u, addr=%p\n",
+        len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1,
+            "Chunk[%u]: base=%u, count=%u, used=%u, free=%u, addr=%p\n",
             chunkIndex++, chunk.baseSlot, chunk.slotCount, usedInChunk,
             chunk.slotCount - usedInChunk, chunk.memory.get());
         result.append(buf, len);

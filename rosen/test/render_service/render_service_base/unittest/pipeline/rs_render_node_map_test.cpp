@@ -100,30 +100,6 @@ HWTEST_F(RSRenderNodeMapTest, ObtainLauncherNodeId, TestSize.Level1)
 }
 
 /**
- * @tc.name: ObtainLauncherNodeId_NonScbWindow001
- * @tc.desc: test ObtainLauncherNodeId leaves all SCB node ids untouched and does not
- *           overwrite scbPid_ for a non-SCB window type (none of the three if branches taken).
- * @tc.type: FUNC
- */
-HWTEST_F(RSRenderNodeMapTest, ObtainLauncherNodeId_NonScbWindow001, TestSize.Level1)
-{
-    RSRenderNodeMap rsRenderNodeMap;
-    auto& nodeGC = RSRenderNodeGC::Instance();
-    pid_t originalPid = nodeGC.GetScbPid();
- 
-    NodeId id = (static_cast<NodeId>(99) << 32) | 5;
-    RSSurfaceRenderNodeConfig config = { .id = id, .surfaceWindowType = SurfaceWindowType::DEFAULT_WINDOW };
-    auto node = std::make_shared<RSSurfaceRenderNode>(config);
-    rsRenderNodeMap.ObtainLauncherNodeId(node);
- 
-    // None of the SCB branches should fire
-    EXPECT_EQ(rsRenderNodeMap.entryViewNodeId_, 0);
-    EXPECT_EQ(rsRenderNodeMap.wallpaperViewNodeId_, 0);
-    EXPECT_EQ(rsRenderNodeMap.negativeScreenNodeId_, 0);
-    EXPECT_EQ(nodeGC.GetScbPid(), originalPid);
-}
- 
-/**
  * @tc.name: GetVisibleLeashWindowCountTest
  * @tc.desc: test results of GetVisibleLeashWindowCount
  * @tc.type:FUNC

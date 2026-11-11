@@ -176,7 +176,8 @@ HWTEST_F(RSSceneBoardConsistencyTest, CreateConsistency002, TestSize.Level1)
     MarkServerInstance(serverContext, contextA);
 
     NodeId idCreate = MakeClientNodeId(4);
-    SurfaceNodeCommandHelper::Create(serverContext, idCreate, false, contextA->GetToken());
+    SurfaceNodeCommandHelper::Create(serverContext, idCreate, RSSurfaceNodeType::DEFAULT, false,
+        contextA->GetToken());
     auto surfaceCreate = serverContext.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(idCreate);
     ASSERT_NE(surfaceCreate, nullptr);
     EXPECT_TRUE(surfaceCreate->IsSceneBoard());
