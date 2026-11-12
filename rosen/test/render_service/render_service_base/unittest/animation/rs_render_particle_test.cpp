@@ -13,14 +13,18 @@
  * limitations under the License.
  */
 
+#include <memory>
+
 #include "gtest/gtest.h"
-#include "animation/rs_render_particle.h"
-#include <cstdint>
-#include <random>
+
+#include "animation/rs_render_particle_pool.h"
+#include "common/rs_vector2.h"
+
 using namespace testing;
 using namespace testing::ext;
 
-namespace OHOS::Rosen {
+namespace OHOS {
+namespace Rosen {
 class RSRenderParticleTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -36,20 +40,20 @@ void RSRenderParticleTest::TearDown() {}
 
 /**
  * @tc.name: CalculateParticlePositionTest
- * @tc.desc:
+ * @tc.desc: Verify an uninitialized slot never reports alive
  * @tc.type:FUNC
  */
 HWTEST_F(RSRenderParticleTest, CalculateParticlePositionTest, TestSize.Level1)
 {
-    ShapeType emitShape_ = ShapeType::RECT;
-    Vector2f position_;
-    Vector2f emitSize_;
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    RSRenderParticle rsRenderParticle(particleParams);
-    bool la = rsRenderParticle.IsAlive();
+    auto pool = std::make_shared<RSRenderParticlePool>();
+    const size_t slot = pool->Acquire();
+    EXPECT_FALSE(pool->IsAlive(slot));
     AnnulusRegion region;
     std::shared_ptr<AnnulusRegion> regionPtr = std::make_shared<AnnulusRegion>(region);
-    rsRenderParticle.CalculateParticlePosition(emitShape_, position_, emitSize_, regionPtr);
-    ASSERT_EQ(la, false);
+    float positionX = 0.f;
+    float positionY = 0.f;
+    regionPtr->CalculatePosition(positionX, positionY);
+    EXPECT_GE(positionX, 0.f);
 }
-} // namespace OHOS::Rosen
+} // namespace Rosen
+} // namespace OHOS

@@ -19,6 +19,7 @@
 
 #include "animation/rs_render_particle_animation.h"
 #include "animation/rs_render_particle_emitter.h"
+#include "animation/rs_render_particle_pool.h"
 #include "common/rs_vector2.h"
 #include "modifier/rs_render_property.h"
 #include "pipeline/rs_canvas_render_node.h"
@@ -48,6 +49,7 @@ public:
     RenderParticleParaType<float> spin_;
     std::shared_ptr<ParticleRenderParams> params;
     std::shared_ptr<RSRenderParticleEmitter> particleEmitter;
+    std::shared_ptr<RSRenderParticlePool> pool;
 };
 
 void RSRenderParticleEmitterTest::SetUpTestCase() {}
@@ -118,6 +120,7 @@ void RSRenderParticleEmitterTest::SetUp()
     params = std::make_shared<ParticleRenderParams>(
         emitterConfig_, velocity_, acceleration_, color_, opacity_, scale_, spin_);
     particleEmitter = std::make_shared<RSRenderParticleEmitter>(params);
+    pool = std::make_shared<RSRenderParticlePool>();
 }
 void RSRenderParticleEmitterTest::TearDown() {}
 
@@ -129,7 +132,7 @@ void RSRenderParticleEmitterTest::TearDown() {}
 HWTEST_F(RSRenderParticleEmitterTest, EmitParticle001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle001 start";
-    particleEmitter->EmitParticle(NS_TO_S);
+    particleEmitter->EmitParticle(*pool, 0, NS_TO_S);
     ASSERT_TRUE(particleEmitter != nullptr);
     bool isFinish = particleEmitter->IsEmitterFinish();
     EXPECT_TRUE(isFinish == false);
@@ -147,7 +150,7 @@ HWTEST_F(RSRenderParticleEmitterTest, EmitParticle002, TestSize.Level1)
     ASSERT_TRUE(particleEmitter != nullptr);
     ASSERT_TRUE(particleEmitter->particleParams_ != nullptr);
     particleEmitter->particleParams_->opacity_.updator_ = ParticleUpdator::NONE;
-    particleEmitter->EmitParticle(NS_TO_S);
+    particleEmitter->EmitParticle(*pool, 0, NS_TO_S);
     bool isFinish = particleEmitter->IsEmitterFinish();
     EXPECT_TRUE(isFinish == false);
     GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle002 end";
@@ -163,7 +166,7 @@ HWTEST_F(RSRenderParticleEmitterTest, EmitParticle003, TestSize.Level1)
     GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle003 start";
     ASSERT_TRUE(particleEmitter != nullptr);
     particleEmitter->particleParams_ = nullptr;
-    particleEmitter->EmitParticle(NS_TO_S);
+    particleEmitter->EmitParticle(*pool, 0, NS_TO_S);
     bool isFinish = particleEmitter->IsEmitterFinish();
     EXPECT_TRUE(isFinish == true);
     GTEST_LOG_(INFO) << "RSRenderParticleEmitterTest EmitParticle003 end";
@@ -313,13 +316,14 @@ HWTEST_F(RSRenderParticleEmitterTest, EmitParticleTest, TestSize.Level1)
 {
     auto params = std::make_shared<ParticleRenderParams>();
     RSRenderParticleEmitter emitter(params);
+    auto pool = std::make_shared<RSRenderParticlePool>();
     emitter.emitFinish_ = false;
 
     // case1: particleCount_ < 0
     params->emitterConfig_.particleCount_ = -1;
-    emitter.EmitParticle(0);
+    emitter.EmitParticle(*pool, 0, 0);
     params->emitterConfig_.particleCount_ = -2;
-    emitter.EmitParticle(0);
+    emitter.EmitParticle(*pool, 0, 0);
     ASSERT_TRUE(emitter.emitFinish_);
 
     // case2: lifeTime end
@@ -327,7 +331,7 @@ HWTEST_F(RSRenderParticleEmitterTest, EmitParticleTest, TestSize.Level1)
     params->emitterConfig_.lifeTime_.start_ = 0;
     params->emitterConfig_.lifeTime_.end_ = 0;
     emitter.emitFinish_ = false;
-    emitter.EmitParticle(0);
+    emitter.EmitParticle(*pool, 0, 0);
     ASSERT_TRUE(emitter.emitFinish_);
 
     // case3: particleCount_ > particleCount_
@@ -336,7 +340,7 @@ HWTEST_F(RSRenderParticleEmitterTest, EmitParticleTest, TestSize.Level1)
     params->emitterConfig_.lifeTime_.end_ = 1;
     emitter.particleCount_ = 2;
     emitter.emitFinish_ = false;
-    emitter.EmitParticle(0);
+    emitter.EmitParticle(*pool, 0, 0);
     ASSERT_TRUE(emitter.emitFinish_);
 }
 } // namespace Rosen

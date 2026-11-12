@@ -18,11 +18,11 @@
 
 #include "gtest/gtest.h"
 
-#include "animation/rs_cubic_bezier_interpolator.h"
-#include "animation/rs_render_particle_animation.h"
-#include "common/rs_vector2.h"
-#include "modifier/rs_render_property.h"
-#include "pipeline/rs_canvas_render_node.h"
+#include "animation/rs_particle_field_collection.h"
+#include "animation/rs_particle_noise_field.h"
+#include "animation/rs_render_particle.h"
+#include "animation/rs_render_particle_effector.h"
+#include "animation/rs_render_particle_pool.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -33,13 +33,12 @@ class RSRenderParticleEffectorTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
+    void SetUp() override;
+    void TearDown() override;
     void SetEmitConfig();
     void SetColor();
     void SetOpacity();
-    void SetUp() override;
-    void TearDown() override;
-    static constexpr uint64_t ANIMATION_ID = 12345;
-    static constexpr uint64_t PROPERTY_ID = 54321;
+    void CreateParticle(const std::shared_ptr<ParticleRenderParams>& renderParams);
     EmitterConfig emitterConfig_;
     ParticleVelocity velocity_;
     RenderParticleAcceleration acceleration_;
@@ -49,7 +48,8 @@ public:
     RenderParticleParaType<float> spin_;
 
     std::shared_ptr<ParticleRenderParams> params;
-    std::shared_ptr<RSRenderParticle> particle;
+    std::shared_ptr<RSRenderParticlePool> pool;
+    size_t slot = 0;
     std::shared_ptr<RSRenderParticleEffector> effector;
     float deltaTime = 0.1f;
     int64_t activeTime = 100000;
@@ -122,447 +122,201 @@ void RSRenderParticleEffectorTest::SetUp()
     spin_ = RenderParticleParaType(scaleVal, scaleUpdator, spinRandom, scaleChangeOverLife);
     params = std::make_shared<ParticleRenderParams>(
         emitterConfig_, velocity_, acceleration_, color_, opacity_, scale_, spin_);
-    particle = std::make_shared<RSRenderParticle>(params);
+    CreateParticle(params);
     effector = std::make_shared<RSRenderParticleEffector>();
 }
+
 void RSRenderParticleEffectorTest::TearDown() {}
+
+void RSRenderParticleEffectorTest::CreateParticle(const std::shared_ptr<ParticleRenderParams>& renderParams)
+{
+    params = renderParams;
+    pool = std::make_shared<RSRenderParticlePool>();
+    slot = pool->Acquire();
+    if (params != nullptr) {
+        InitParticle(*pool, slot, *params, 0);
+    }
+}
 
 /**
  * @tc.name: UpdateColor001
- * @tc.desc: Verify the UpdateColor
+ * @tc.desc: Verify the color update for point particles and the image skip
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateColor001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateColor001 start";
     ASSERT_TRUE(effector != nullptr);
-    ASSERT_TRUE(particle != nullptr);
-    effector->UpdateColor(particle, deltaTime);
-    EXPECT_TRUE(particle->GetColor() != Color::FromArgbInt(0x00000000));
-    particle->SetParticleType(ParticleType::IMAGES);
-    effector->UpdateColor(particle, deltaTime);
-    std::shared_ptr<RSRenderParticle> particle1 = nullptr;
-    effector->UpdateColor(particle1, deltaTime);
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateColor001 end";
+    effector->UpdateColor(*pool, slot, *params, deltaTime);
+    EXPECT_TRUE(pool->GetColor(slot) != Color::FromArgbInt(0x00000000));
+    pool->SetParticleType(slot, ParticleType::IMAGES);
+    const Color before = pool->GetColor(slot);
+    effector->UpdateColor(*pool, slot, *params, deltaTime);
+    EXPECT_TRUE(pool->GetColor(slot) == before);
 }
 
 /**
  * @tc.name: UpdateOpacity001
- * @tc.desc: Verify the UpdateOpacity
+ * @tc.desc: Verify the opacity update
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateOpacity001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateOpacity001 start";
     ASSERT_TRUE(effector != nullptr);
-    effector->UpdateOpacity(particle, deltaTime);
-    ASSERT_TRUE(particle != nullptr);
-    EXPECT_TRUE(particle->GetOpacity() != 0.f);
-
-    Range<float> opacityVal = Range<float>(0.0, 0.0);
-    ParticleUpdator opacityUpdator = ParticleUpdator::RANDOM;
-    Range<float> opacityRandom = Range<float>(0.0f, 0.0f);
-    std::vector<std::shared_ptr<ChangeInOverLife<float>>> opacityChangeOverLife;
-    auto opacity = RenderParticleParaType(opacityVal, opacityUpdator, opacityRandom, opacityChangeOverLife);
-
-    auto renderParams = std::make_shared<ParticleRenderParams>(
-        emitterConfig_, velocity_, acceleration_, color_, opacity, scale_, spin_);
-    auto particle_opacity = std::make_shared<RSRenderParticle>(renderParams);
-    effector->UpdateOpacity(particle_opacity, deltaTime);
-
-    opacityRandom = Range<float>(1.0f, 1.0f);
-    opacity = RenderParticleParaType(opacityVal, opacityUpdator, opacityRandom, opacityChangeOverLife);
-    renderParams = std::make_shared<ParticleRenderParams>(
-        emitterConfig_, velocity_, acceleration_, color_, opacity, scale_, spin_);
-    particle_opacity = std::make_shared<RSRenderParticle>(renderParams);
-    effector->UpdateOpacity(particle_opacity, deltaTime);
-
-    opacityVal = Range<float>(1.0, 1.0);
-    opacityRandom = Range<float>(0.0f, 0.0f);
-    opacity = RenderParticleParaType(opacityVal, opacityUpdator, opacityRandom, opacityChangeOverLife);
-    renderParams = std::make_shared<ParticleRenderParams>(
-        emitterConfig_, velocity_, acceleration_, color_, opacity, scale_, spin_);
-    particle_opacity = std::make_shared<RSRenderParticle>(renderParams);
-    effector->UpdateOpacity(particle_opacity, deltaTime);
-
-    std::shared_ptr<RSRenderParticle> particle1 = nullptr;
-    effector->UpdateOpacity(particle1, deltaTime);
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateOpacity001 end";
+    effector->UpdateOpacity(*pool, slot, *params, deltaTime);
+    EXPECT_TRUE(pool->GetOpacity(slot) != 0.f);
 }
 
 /**
  * @tc.name: UpdateScale001
- * @tc.desc: Verify the UpdateScale
+ * @tc.desc: Verify the scale update
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateScale001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateScale001 start";
     ASSERT_TRUE(effector != nullptr);
-    effector->UpdateScale(particle, deltaTime);
-    ASSERT_TRUE(particle != nullptr);
-    EXPECT_TRUE(particle->GetScale() != 0.f);
-
-    Range<float> scaleVal = Range<float>(0.0, 0.0);
-    ParticleUpdator scaleUpdator = ParticleUpdator::RANDOM;
-    Range<float> scaleRandom = Range<float>(0.0f, 0.0f);
-    std::vector<std::shared_ptr<ChangeInOverLife<float>>> scaleChangeOverLife;
-    auto scale = RenderParticleParaType(scaleVal, scaleUpdator, scaleRandom, scaleChangeOverLife);
-    auto renderParams = std::make_shared<ParticleRenderParams>(
-        emitterConfig_, velocity_, acceleration_, color_, opacity_, scale, spin_);
-    auto particle_scale = std::make_shared<RSRenderParticle>(renderParams);
-    effector->UpdateScale(particle_scale, deltaTime);
-
-    scaleRandom = Range<float>(1.0f, 1.0f);
-    scale = RenderParticleParaType(scaleVal, scaleUpdator, scaleRandom, scaleChangeOverLife);
-    renderParams = std::make_shared<ParticleRenderParams>(
-        emitterConfig_, velocity_, acceleration_, color_, opacity_, scale, spin_);
-    particle_scale = std::make_shared<RSRenderParticle>(renderParams);
-    effector->UpdateScale(particle_scale, deltaTime);
-
-    scaleVal = Range<float>(1.0, 1.0);
-    scaleRandom = Range<float>(0.0f, 0.0f);
-    scale = RenderParticleParaType(scaleVal, scaleUpdator, scaleRandom, scaleChangeOverLife);
-    renderParams = std::make_shared<ParticleRenderParams>(
-        emitterConfig_, velocity_, acceleration_, color_, opacity_, scale, spin_);
-    particle_scale = std::make_shared<RSRenderParticle>(renderParams);
-    effector->UpdateScale(particle_scale, deltaTime);
-
-    std::shared_ptr<RSRenderParticle> particle1 = nullptr;
-    effector->UpdateScale(particle1, deltaTime);
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateScale001 end";
+    effector->UpdateScale(*pool, slot, *params, deltaTime);
+    EXPECT_TRUE(pool->GetScale(slot) != 0.f);
 }
 
 /**
  * @tc.name: UpdateSpin001
- * @tc.desc: Verify the UpdateSpin
+ * @tc.desc: Verify the spin update
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateSpin001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateSpin001 start";
     ASSERT_TRUE(effector != nullptr);
-    effector->UpdateSpin(particle, deltaTime);
-    ASSERT_TRUE(particle != nullptr);
-    EXPECT_TRUE(particle->GetSpin() != 0.f);
-    std::shared_ptr<RSRenderParticle> particle1 = nullptr;
-    effector->UpdateSpin(particle1, deltaTime);
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateSpin001 end";
+    effector->UpdateSpin(*pool, slot, *params, deltaTime);
+    EXPECT_TRUE(pool->GetSpin(slot) != 0.f);
 }
 
 /**
  * @tc.name: UpdateEffect001
- * @tc.desc: Verify the UpdateSpin UpdateScale UpdateOpacity UpdateColor
+ * @tc.desc: Verify the four appearance updates together
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateEffect001, TestSize.Level1)
 {
-    Color start = RSColor(255, 255, 255, 255);
-    Color end = RSColor(255, 255, 255, 255);
-    Range<Color> colorVal = Range<Color>(start, end);
-    ParticleUpdator randomUpdator = ParticleUpdator::RANDOM;
-    ParticleUpdator curveUpdator = ParticleUpdator::CURVE;
-    Range<float> redRandom = Range<float>(-1.0f, 0.f);
-    Range<float> greenRandom = Range<float>(-1.0f, 0.f);
-    Range<float> blueRandom = Range<float>(-1.0f, 0.f);
-    Range<float> alphaRandom = Range<float>(-1.0f, 0.f);
-    std::vector<std::shared_ptr<ChangeInOverLife<Color>>> colorChangeOverLife = {};
-    RenderParticleColorParaType color = RenderParticleColorParaType(colorVal, DistributionType::GAUSSIAN, randomUpdator,
-        redRandom, greenRandom, blueRandom, alphaRandom, colorChangeOverLife);
-    Range<float> opacityVal = Range<float>(0.5f, 1.0f);
-    Range<float> randomSpeed = Range<float>(0.1f, 1.f);
-    Range<float> opacityRandom;
-    float fromValue = 0.1f;
-    float toValue = 1.f;
-    int startMillis = 0;
-    int endMillis = 3000;
-    std::shared_ptr<RSInterpolator> interpolator =
-        std::make_shared<RSCubicBezierInterpolator>(0.42f, 0.0f, 0.58f, 1.0f);
-    auto change1 = std::make_shared<ChangeInOverLife<float>>(fromValue, toValue, startMillis, endMillis, interpolator);
-    auto change2 =
-        std::make_shared<ChangeInOverLife<float>>(toValue, fromValue, endMillis + 4000, endMillis + 7000, interpolator);
-    std::vector<std::shared_ptr<ChangeInOverLife<float>>> valChangeOverLife;
-    valChangeOverLife.push_back(change1);
-    valChangeOverLife.push_back(change2);
-    RenderParticleParaType<float> opacity =
-        RenderParticleParaType(opacityVal, randomUpdator, randomSpeed, valChangeOverLife);
-    RenderParticleParaType<float> scale =
-        RenderParticleParaType(opacityVal, curveUpdator, randomSpeed, valChangeOverLife);
-    Range<float> spinRandom = Range<float>(1.f, 0.1f);
-    RenderParticleParaType<float> spin =
-        RenderParticleParaType(opacityVal, curveUpdator, randomSpeed, valChangeOverLife);
-    params =
-        std::make_shared<ParticleRenderParams>(emitterConfig_, velocity_, acceleration_, color, opacity, scale, spin);
-    particle = std::make_shared<RSRenderParticle>(params);
-    effector = std::make_shared<RSRenderParticleEffector>();
-    effector->UpdateColor(particle, deltaTime);
     ASSERT_TRUE(effector != nullptr);
-    ASSERT_TRUE(particle != nullptr);
-    EXPECT_TRUE(particle->GetColor() != Color::FromArgbInt(0x00000000));
-    effector->UpdateOpacity(particle, deltaTime);
-    EXPECT_TRUE(particle->GetOpacity() != 0.f);
-    effector->UpdateScale(particle, deltaTime);
-    EXPECT_TRUE(particle->GetScale() != 0.f);
-    effector->UpdateSpin(particle, deltaTime);
-    EXPECT_TRUE(particle->GetSpin() != 0.f);
+    effector->UpdateColor(*pool, slot, *params, deltaTime);
+    effector->UpdateOpacity(*pool, slot, *params, deltaTime);
+    effector->UpdateScale(*pool, slot, *params, deltaTime);
+    effector->UpdateSpin(*pool, slot, *params, deltaTime);
+    EXPECT_TRUE(pool->GetColor(slot) != Color::FromArgbInt(0x00000000));
+    EXPECT_TRUE(pool->GetOpacity(slot) != 0.f);
+    EXPECT_TRUE(pool->GetScale(slot) != 0.f);
+    EXPECT_TRUE(pool->GetSpin(slot) != 0.f);
 }
 
 /**
  * @tc.name: UpdateColorCurve001
- * @tc.desc: Verify the UpdateColorCurve
+ * @tc.desc: Verify the color curve evaluation
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateColorCurve001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateColorCurve001 start";
-    int emitRate = 20;
-    ShapeType emitShape = ShapeType::RECT;
-    Vector2f position = Vector2f(0.f, 0.f);
-    Vector2f emitSize = Vector2f(10.f, 10.f);
-    int particleCount = 20;
-    Range<int64_t> lifeTime = Range<int64_t>(1000, 3000); //  1000 is lifeTime range start, 3000 is lifeTime.
-    ParticleType type = ParticleType::POINTS;
-    float radius = 1;
-    std::shared_ptr<RSImage> image;
-    Vector2f imageSize = Vector2f(1.f, 1.f);
-    EmitterConfig emitterConfig =
-        EmitterConfig(emitRate, emitShape, position, emitSize, particleCount, lifeTime, type, radius, image, imageSize);
-    ParticleVelocity velocity;
-    RenderParticleAcceleration acceleration;
-    RenderParticleParaType<float> opacity;
-    RenderParticleParaType<float> scale;
-    RenderParticleParaType<float> spin;
-    Color start = RSColor(255, 255, 255, 255);
-    Color end = RSColor(255, 255, 255, 255);
-    Range<Color> colorVal = Range<Color>(start, end);
-    DistributionType distribution = DistributionType::GAUSSIAN;
-    ParticleUpdator curveUpdator = ParticleUpdator::CURVE;
-    Range<float> redRandom = Range<float>(-1.0f, 0.f);
-    Range<float> greenRandom = Range<float>(-1.0f, 0.f);
-    Range<float> blueRandom = Range<float>(-1.0f, 0.f);
-    Range<float> alphaRandom = Range<float>(-1.0f, 0.f);
-    std::vector<std::shared_ptr<ChangeInOverLife<Color>>> colorChangeOverLife;
-    Color colorFromValue = RSColor(0, 0, 0, 100);
-    Color colorToValue = RSColor(100, 200, 100, 200);
-    int startMillis = 0;
-    int endMillis = 3000;
-    std::shared_ptr<RSInterpolator> interpolator =
-        std::make_shared<RSCubicBezierInterpolator>(0.42f, 0.0f, 0.58f, 1.0f);
-    auto colorChange =
-        std::make_shared<ChangeInOverLife<Color>>(colorFromValue, colorToValue, startMillis, endMillis, interpolator);
-    colorChangeOverLife.push_back(colorChange);
-    RenderParticleColorParaType color = RenderParticleColorParaType(
-        colorVal, distribution, curveUpdator, redRandom, greenRandom, blueRandom, alphaRandom, colorChangeOverLife);
-    params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
-    particle = std::make_shared<RSRenderParticle>(params);
-    effector = std::make_shared<RSRenderParticleEffector>();
-    ASSERT_TRUE(effector != nullptr);
-    ASSERT_TRUE(particle != nullptr);
-    effector->UpdateColor(particle, deltaTime);
-    EXPECT_TRUE(particle->GetColor() != Color::FromArgbInt(0x00000000));
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateColorCurve001 end";
+    Color from = RSColor(0, 0, 0, 255);
+    Color to = RSColor(255, 0, 0, 255);
+    auto change = std::make_shared<ChangeInOverLife<Color>>(from, to, 0, 3000, nullptr);
+    RenderParticleColorParaType color(Range<Color>(from, from), DistributionType::UNIFORM,
+        ParticleUpdator::CURVE, Range<float>(0.f, 0.f), Range<float>(0.f, 0.f), Range<float>(0.f, 0.f),
+        Range<float>(0.f, 0.f), { change });
+    auto renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color, opacity_, scale_, spin_);
+    CreateParticle(renderParams);
+    pool->SetActiveTime(slot, NS_TO_S / 2);
+    effector->UpdateColor(*pool, slot, *renderParams, deltaTime);
+    EXPECT_TRUE(pool->GetColor(slot).GetRed() > 0);
 }
 
 /**
  * @tc.name: UpdateAccelerationRandom001
- * @tc.desc: Verify the UpdateAccelerationRandom
+ * @tc.desc: Verify the random acceleration update
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerationRandom001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateAccelerationRandom001 start";
-    ParticleVelocity velocity;
-    RenderParticleAcceleration acceleration;
-    RenderParticleParaType<float> opacity;
-    RenderParticleParaType<float> scale;
-    RenderParticleParaType<float> spin;
-    RenderParticleColorParaType color;
-    Range<float> velocityValue = Range<float>(1, 10);
-    Range<float> velocityAngle = Range<float>(1, 10);
-    velocity = ParticleVelocity(velocityValue, velocityAngle);
-    ParticleUpdator randomUpdator = ParticleUpdator::RANDOM;
-    Range<float> val = Range<float>(0.5, 1);
-    Range<float> randomSpeed = Range<float>(-1.f, 0.f);
-    std::vector<std::shared_ptr<ChangeInOverLife<float>>> valChangeOverLife;
-    RenderParticleParaType<float> accelerationValue =
-        RenderParticleParaType(val, randomUpdator, randomSpeed, valChangeOverLife);
-    RenderParticleParaType<float> accelerationAngle =
-        RenderParticleParaType(val, randomUpdator, randomSpeed, valChangeOverLife);
-    acceleration = RenderParticleAcceleration(accelerationValue, accelerationAngle);
-    params =
-        std::make_shared<ParticleRenderParams>(emitterConfig_, velocity, acceleration, color, opacity, scale, spin);
-    particle = std::make_shared<RSRenderParticle>(params);
-    ASSERT_TRUE(particle != nullptr);
-    particle->SetActiveTime(activeTime);
-    effector = std::make_shared<RSRenderParticleEffector>();
-    int fieldStrength = 10;
-    ShapeType fieldShape = ShapeType::RECT;
-    Vector2f fieldSize = { 200.f, 200.f };
-    Vector2f fieldCenter = { 40.f, 50.f };
-    uint16_t fieldFeather = 50;
-    float noiseScale = 8.f;
-    float noiseFrequency = 2.f;
-    float noiseAmplitude = 4.f;
-    auto noiseField = std::make_shared<ParticleNoiseField>(
-        fieldStrength, fieldShape, fieldSize, fieldCenter, fieldFeather, noiseScale, noiseFrequency, noiseAmplitude);
-    auto noiseFields = std::make_shared<ParticleNoiseFields>();
-    ASSERT_TRUE(noiseFields != nullptr);
-    ASSERT_TRUE(effector != nullptr);
-    noiseFields->AddField(noiseField);
-    effector->Update(particle, noiseFields, nullptr, nullptr, activeTime);
-    EXPECT_TRUE(particle->GetActiveTime() == 200000);
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateAccelerationRandom001 end";
+    auto accVal = RenderParticleParaType<float>(
+        Range<float>(1.f, 1.f), ParticleUpdator::RANDOM, Range<float>(0.5f, 0.5f), {});
+    auto accAngle = RenderParticleParaType<float>(
+        Range<float>(1.f, 1.f), ParticleUpdator::RANDOM, Range<float>(0.5f, 0.5f), {});
+    RenderParticleAcceleration acceleration(accVal, accAngle);
+    auto renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration, color_, opacity_, scale_, spin_);
+    CreateParticle(renderParams);
+    const float value = pool->GetAccelerationValue(slot);
+    const float angle = pool->GetAccelerationAngle(slot);
+    effector->UpdateAccelerationValue(*pool, slot, *renderParams, deltaTime);
+    effector->UpdateAccelerationAngle(*pool, slot, *renderParams, deltaTime);
+    EXPECT_TRUE(pool->GetAccelerationValue(slot) != value);
+    EXPECT_TRUE(pool->GetAccelerationAngle(slot) != angle);
 }
 
 /**
  * @tc.name: UpdateAccelerationCurve001
- * @tc.desc: Verify the UpdateAcceleration Curve
+ * @tc.desc: Verify an expired acceleration range is tolerated
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerationCurve001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateAccelerationCurve001 start";
-    ParticleVelocity velocity;
-    RenderParticleAcceleration acceleration;
-    RenderParticleParaType<float> opacity;
-    RenderParticleParaType<float> scale;
-    RenderParticleParaType<float> spin;
-    RenderParticleColorParaType color;
-
-    ParticleUpdator curveUpdator = ParticleUpdator::CURVE;
-    Range<float> val = Range<float>(0.5, 1);
-    Range<float> randomSpeed = Range<float>(-1.0f, 0.f);
-    Range<float> opacityRandom;
-    float fromValue = 0.1f;
-    float toValue = 1.f;
-    int startMillis = 0;
-    int endMillis = 3000;
-    std::shared_ptr<RSInterpolator> interpolator = nullptr;
-    auto change1 = std::make_shared<ChangeInOverLife<float>>(fromValue, toValue, startMillis, endMillis, interpolator);
-    auto change2 =
-        std::make_shared<ChangeInOverLife<float>>(toValue, fromValue, endMillis + 4000, endMillis + 7000, interpolator);
-    std::vector<std::shared_ptr<ChangeInOverLife<float>>> valChangeOverLife;
-    valChangeOverLife.push_back(change1);
-    valChangeOverLife.push_back(change2);
-    RenderParticleParaType<float> accelerationValue =
-        RenderParticleParaType(val, curveUpdator, randomSpeed, valChangeOverLife);
-    RenderParticleParaType<float> accelerationAngle =
-        RenderParticleParaType(val, curveUpdator, randomSpeed, valChangeOverLife);
-    acceleration = RenderParticleAcceleration(accelerationValue, accelerationAngle);
-    params =
-        std::make_shared<ParticleRenderParams>(emitterConfig_, velocity, acceleration, color, opacity, scale, spin);
-    auto particle1 = std::make_shared<RSRenderParticle>(params);
-    ASSERT_TRUE(particle1 != nullptr);
-    particle1->SetActiveTime(activeTime);
-    effector = std::make_shared<RSRenderParticleEffector>();
-    ASSERT_TRUE(effector != nullptr);
-    effector->UpdateAccelerationValue(particle1, deltaTime);
-    effector->UpdateAccelerationAngle(particle1, deltaTime);
-    EXPECT_TRUE(particle1->GetAccelerationValue() != 0.f);
-    EXPECT_TRUE(particle1->GetAccelerationAngle() != 0.f);
-    particle1->particleParams_ = nullptr;
-    effector->UpdateAccelerationValue(particle1, deltaTime);
-    effector->UpdateAccelerationAngle(particle1, deltaTime);
-    effector->UpdateScale(particle1, deltaTime);
-    effector->UpdateSpin(particle1, deltaTime);
-    effector->UpdateOpacity(particle1, deltaTime);
-    effector->UpdateColor(particle1, deltaTime);
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest UpdateAccelerationCurve001 end";
+    auto renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, opacity_, scale_, spin_);
+    CreateParticle(renderParams);
+    effector->UpdateAccelerationValue(*pool, slot, *renderParams, deltaTime);
+    effector->UpdateAccelerationAngle(*pool, slot, *renderParams, deltaTime);
+    effector->UpdateColor(*pool, slot, *renderParams, deltaTime);
+    effector->UpdateOpacity(*pool, slot, *renderParams, deltaTime);
+    effector->UpdateScale(*pool, slot, *renderParams, deltaTime);
+    effector->UpdateSpin(*pool, slot, *renderParams, deltaTime);
+    EXPECT_GE(pool->GetScale(slot), 0.f);
 }
 
 /**
  * @tc.name: Update001
- * @tc.desc: Verify the Update
+ * @tc.desc: Verify the fused update publishes a force
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, Update001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest Update001 start";
-    int fieldStrength = 0;
-    ShapeType fieldShape = ShapeType::CIRCLE;
+    int fieldStrength = 10;
     Vector2f fieldSize = { 10.f, 10.f };
     Vector2f fieldCenter = { 40.f, 50.f };
-    uint16_t fieldFeather = 50;
-    float noiseScale = 8.f;
-    float noiseFrequency = 2.f;
-    float noiseAmplitude = 4.f;
     auto noiseField = std::make_shared<ParticleNoiseField>(
-        fieldStrength, fieldShape, fieldSize, fieldCenter, fieldFeather, noiseScale, noiseFrequency, noiseAmplitude);
-    auto noiseFields = std::make_shared<ParticleNoiseFields>();
-    ASSERT_TRUE(noiseFields != nullptr);
-    ASSERT_TRUE(effector != nullptr);
-    ASSERT_TRUE(particle != nullptr);
-    noiseFields->AddField(noiseField);
-    effector->Update(particle, noiseFields, nullptr, nullptr, activeTime);
-    EXPECT_TRUE(particle->GetActiveTime() == activeTime);
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest Update001 end";
+        fieldStrength, ShapeType::CIRCLE, fieldSize, fieldCenter, 50, 8.f, 2.f, 4.f);
+    auto fields = std::make_shared<ParticleFieldCollection>();
+    fields->Add(noiseField);
+    pool->SetSpinSpeed(slot, 1.f);
+    const float spinBefore = pool->GetSpin(slot);
+    effector->Update(*pool, slot, *params, fields, activeTime);
+    EXPECT_TRUE(pool->GetSpin(slot) != spinBefore);
 }
 
 /**
  * @tc.name: Update002
- * @tc.desc: Verify the Update
+ * @tc.desc: Verify Update does not advance the age (the pool pass owns the clock)
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, Update002, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest Update002 start";
-    int fieldStrength = -10;
-    ShapeType fieldShape = ShapeType::CIRCLE;
-    Vector2f fieldSize = { 10.f, 10.f };
-    Vector2f fieldCenter = { 40.f, 50.f };
-    uint16_t fieldFeather = 50;
-    float noiseScale = 8.f;
-    float noiseFrequency = 2.f;
-    float noiseAmplitude = 4.f;
-    auto noiseField = std::make_shared<ParticleNoiseField>(
-        fieldStrength, fieldShape, fieldSize, fieldCenter, fieldFeather, noiseScale, noiseFrequency, noiseAmplitude);
-    auto noiseFields = std::make_shared<ParticleNoiseFields>();
-    ASSERT_TRUE(noiseFields != nullptr);
-    ASSERT_TRUE(effector != nullptr);
-    ASSERT_TRUE(particle != nullptr);
-    noiseFields->AddField(noiseField);
-    effector->Update(particle, noiseFields, nullptr, nullptr, activeTime);
-    EXPECT_TRUE(particle->GetActiveTime() == activeTime);
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest Update002 end";
+    pool->SetActiveTime(slot, activeTime);
+    std::shared_ptr<ParticleFieldCollection> fields = nullptr;
+    effector->Update(*pool, slot, *params, fields, activeTime);
+    EXPECT_EQ(pool->GetActiveTime(slot), activeTime);
 }
 
 /**
  * @tc.name: Update003
- * @tc.desc: Verify the Update
+ * @tc.desc: Verify a zero delta leaves the age untouched
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleEffectorTest, Update003, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest Update003 start";
-    int fieldStrength = 10;
-    ShapeType fieldShape = ShapeType::CIRCLE;
-    Vector2f fieldSize = { 10.f, 10.f };
-    Vector2f fieldCenter = { 40.f, 50.f };
-    uint16_t fieldFeather = 50;
-    float noiseScale = 8.f;
-    float noiseFrequency = 2.f;
-    float noiseAmplitude = 4.f;
     auto noiseField = std::make_shared<ParticleNoiseField>(
-        fieldStrength, fieldShape, fieldSize, fieldCenter, fieldFeather, noiseScale, noiseFrequency, noiseAmplitude);
-    auto noiseFields = std::make_shared<ParticleNoiseFields>();
-    ASSERT_TRUE(noiseFields != nullptr);
-    ASSERT_TRUE(effector != nullptr);
-    ASSERT_TRUE(particle != nullptr);
-    noiseFields->AddField(noiseField);
-    effector->Update(particle, noiseFields, nullptr, nullptr, 0);
-    EXPECT_TRUE(particle->GetActiveTime() == 0);
-    GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest Update003 end";
+        10, ShapeType::CIRCLE, Vector2f(10.f, 10.f), Vector2f(40.f, 50.f), 50, 8.f, 2.f, 4.f);
+    auto fields = std::make_shared<ParticleFieldCollection>();
+    fields->Add(noiseField);
+    effector->Update(*pool, slot, *params, fields, 0);
+    EXPECT_EQ(pool->GetActiveTime(slot), 0);
 }
 
 /**
@@ -722,6 +476,161 @@ HWTEST_F(RSRenderParticleEffectorTest, ApplyField001, TestSize.Level1)
     EXPECT_TRUE(ROSEN_EQ(force.x_, 0.f) && ROSEN_EQ(force.y_, 0.f));
 
     GTEST_LOG_(INFO) << "RSRenderParticleEffectorTest ApplyField001 end";
+}
+
+/**
+ * @tc.name: UpdateOpacityGroupRandom001
+ * @tc.desc: Verify UpdateOpacityGroup RANDOM covers CLAMP_AND_KILL_AT_REST KILL/SKIP/UPDATE
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEffectorTest, UpdateOpacityGroupRandom001, TestSize.Level1)
+{
+    auto op = RenderParticleParaType<float>(
+        Range<float>(0.5f, 0.5f), ParticleUpdator::RANDOM, Range<float>(0.1f, 0.1f), {});
+    auto renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, op, scale_, spin_);
+    CreateParticle(renderParams);
+    size_t s0 = slot;
+    size_t s1 = pool->Acquire();
+    size_t s2 = pool->Acquire();
+    pool->SetOpacity(s0, 0.0f);
+    pool->SetOpacitySpeed(s0, 0.0f);
+    pool->SetOpacity(s1, 1.0f);
+    pool->SetOpacitySpeed(s1, 1.0f);
+    pool->SetOpacity(s2, 0.5f);
+    pool->SetOpacitySpeed(s2, 0.2f);
+    std::vector<size_t> slots{ s0, s1, s2 };
+    effector->UpdateOpacityGroup(*pool, slots, *renderParams, deltaTime);
+    EXPECT_FALSE(pool->IsAlive(s0));                              // KILL
+    EXPECT_TRUE(ROSEN_EQ(pool->GetOpacity(s1), 1.0f));            // SKIP
+    EXPECT_TRUE(ROSEN_EQ(pool->GetOpacity(s2), 0.5f + 0.2f * deltaTime)); // UPDATE + clamp
+}
+
+/**
+ * @tc.name: UpdateScaleGroupRandom001
+ * @tc.desc: Verify UpdateScaleGroup RANDOM covers KILL_AT_REST KILL/UPDATE (no clamp)
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEffectorTest, UpdateScaleGroupRandom001, TestSize.Level1)
+{
+    auto sc = RenderParticleParaType<float>(
+        Range<float>(0.5f, 1.f), ParticleUpdator::RANDOM, Range<float>(0.1f, 0.1f), {});
+    auto renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, opacity_, sc, spin_);
+    CreateParticle(renderParams);
+    size_t s0 = slot;
+    size_t s1 = pool->Acquire();
+    pool->SetScale(s0, 0.0f);
+    pool->SetScaleSpeed(s0, 0.0f);
+    pool->SetScale(s1, 0.5f);
+    pool->SetScaleSpeed(s1, 0.2f);
+    std::vector<size_t> slots{ s0, s1 };
+    effector->UpdateScaleGroup(*pool, slots, *renderParams, deltaTime);
+    EXPECT_FALSE(pool->IsAlive(s0));                             // KILL
+    EXPECT_TRUE(ROSEN_EQ(pool->GetScale(s1), 0.5f + 0.2f * deltaTime)); // UPDATE (unbounded)
+}
+
+/**
+ * @tc.name: UpdateSpinGroupRandom001
+ * @tc.desc: Verify UpdateSpinGroup RANDOM covers ACCUMULATE advance and cos/sin recompute
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEffectorTest, UpdateSpinGroupRandom001, TestSize.Level1)
+{
+    auto sp = RenderParticleParaType<float>(
+        Range<float>(1.f, 1.f), ParticleUpdator::RANDOM, Range<float>(1.f, 1.f), {});
+    auto renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration_, color_, opacity_, scale_, sp);
+    CreateParticle(renderParams);
+    size_t s0 = slot;
+    pool->SetSpin(s0, 10.f);
+    pool->SetSpinSpeed(s0, 5.f);
+    std::vector<size_t> slots{ s0 };
+    effector->UpdateSpinGroup(*pool, slots, *renderParams, deltaTime);
+    EXPECT_TRUE(ROSEN_EQ(pool->GetSpin(s0), 10.f + 5.f * deltaTime)); // ACCUMULATE, no clamp
+}
+
+/**
+ * @tc.name: UpdateAccelerationGroupRandom001
+ * @tc.desc: Verify UpdateAccelerationGroup RANDOM covers ACCUMULATE for value and angle
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEffectorTest, UpdateAccelerationGroupRandom001, TestSize.Level1)
+{
+    auto accVal = RenderParticleParaType<float>(
+        Range<float>(1.f, 1.f), ParticleUpdator::RANDOM, Range<float>(0.5f, 0.5f), {});
+    auto accAngle = RenderParticleParaType<float>(
+        Range<float>(1.f, 1.f), ParticleUpdator::RANDOM, Range<float>(0.5f, 0.5f), {});
+    RenderParticleAcceleration acceleration(accVal, accAngle);
+    auto renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration, color_, opacity_, scale_, spin_);
+    CreateParticle(renderParams);
+    size_t s0 = slot;
+    pool->SetAccelerationValue(s0, 2.f);
+    pool->SetAccelerationAngle(s0, 3.f);
+    std::vector<size_t> slots{ s0 };
+    effector->UpdateAccelerationGroup(*pool, slots, *renderParams, deltaTime);
+    EXPECT_TRUE(ROSEN_EQ(pool->GetAccelerationValue(s0), 2.f + 0.5f * deltaTime));
+    EXPECT_TRUE(ROSEN_EQ(pool->GetAccelerationAngle(s0), 3.f + 0.5f * deltaTime));
+}
+
+/**
+ * @tc.name: UpdatePositionGroupNullFields001
+ * @tc.desc: Verify UpdatePositionGroup with null fields and accel-cache miss path
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEffectorTest, UpdatePositionGroupNullFields001, TestSize.Level1)
+{
+    std::shared_ptr<ParticleFieldCollection> fields = nullptr;
+    std::vector<size_t> slots{ slot };
+    pool->SetAccelerationValue(slot, 10.f);
+    pool->SetAccelerationAngle(slot, 0.f);
+    effector->UpdatePositionGroup(*pool, slots, fields, deltaTime);
+    const Vector2f accel = pool->GetAcceleration(slot);
+    EXPECT_TRUE(ROSEN_EQ(accel.x_, 10.f));
+    EXPECT_TRUE(ROSEN_EQ(accel.y_, 0.f));
+}
+
+/**
+ * @tc.name: UpdateToActiveTime001
+ * @tc.desc: Verify UpdateToActiveTime advances activeTime with null fields
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEffectorTest, UpdateToActiveTime001, TestSize.Level1)
+{
+    pool->SetActiveTime(slot, activeTime);
+    effector->UpdateToActiveTime(*pool, slot, *params, nullptr, activeTime);
+    EXPECT_GT(pool->GetActiveTime(slot), 0);
+}
+
+/**
+ * @tc.name: UpdateGroupCurve001
+ * @tc.desc: Verify UpdateGroup dispatches the CURVE branches of all property groups with fields
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleEffectorTest, UpdateGroupCurve001, TestSize.Level1)
+{
+    auto accVal = RenderParticleParaType<float>(
+        Range<float>(1.f, 1.f), ParticleUpdator::CURVE, Range<float>(), {});
+    auto accAngle = RenderParticleParaType<float>(
+        Range<float>(1.f, 1.f), ParticleUpdator::CURVE, Range<float>(), {});
+    RenderParticleAcceleration acceleration(accVal, accAngle);
+    auto sc = RenderParticleParaType<float>(
+        Range<float>(0.5f, 1.f), ParticleUpdator::CURVE, Range<float>(), {});
+    auto sp = RenderParticleParaType<float>(
+        Range<float>(0.5f, 1.f), ParticleUpdator::CURVE, Range<float>(), {});
+    auto renderParams = std::make_shared<ParticleRenderParams>(
+        emitterConfig_, velocity_, acceleration, color_, opacity_, sc, sp);
+    CreateParticle(renderParams);
+    auto noiseField = std::make_shared<ParticleNoiseField>(
+        10, ShapeType::CIRCLE, Vector2f(10.f, 10.f), Vector2f(40.f, 50.f), 50, 8.f, 2.f, 4.f);
+    auto fields = std::make_shared<ParticleFieldCollection>();
+    fields->Add(noiseField);
+    std::vector<size_t> slots{ slot };
+    pool->SetActiveTime(slot, 0);
+    const float opacityBefore = pool->GetOpacity(slot);
+    effector->UpdateGroup(*pool, slots, *renderParams, fields, activeTime);
+    EXPECT_TRUE(pool->GetOpacity(slot) != opacityBefore);
 }
 } // namespace Rosen
 } // namespace OHOS

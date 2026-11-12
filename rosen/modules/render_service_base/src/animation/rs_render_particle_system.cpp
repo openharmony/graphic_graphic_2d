@@ -15,6 +15,8 @@
 
 #include "animation/rs_render_particle_system.h"
 
+#include "animation/rs_render_particle_pool.h"
+
 #include <algorithm>
 #include <cstddef>
 
@@ -22,88 +24,163 @@
 #include "platform/common/rs_log.h"
 namespace OHOS {
 namespace Rosen {
+constexpr int64_t MAX_PRESIZE_PARTICLES = 65536;
+
 RSRenderParticleSystem::RSRenderParticleSystem(
     const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams)
     : particlesRenderParams_(particlesRenderParams)
 {
+    particlePool_ = std::make_shared<RSRenderParticlePool>();
     CreateEmitter();
+}
+
+void RSRenderParticleSystem::EnsureParticlePool()
+{
+    if (particlePool_ == nullptr) {
+        particlePool_ = std::make_shared<RSRenderParticlePool>();
+    }
+}
+
+void RSRenderParticleSystem::ResetParticlePool()
+{
+    particlePool_ = std::make_shared<RSRenderParticlePool>();
+}
+
+const std::shared_ptr<ParticleFieldCollection>& RSRenderParticleSystem::GetLegacyFields()
+{
+    if (legacyFields_ == nullptr) {
+        legacyFields_ = std::make_shared<ParticleFieldCollection>();
+    }
+    legacyFields_->Clear();
+    if (particleNoiseFields_ != nullptr) {
+        for (const auto& field : particleNoiseFields_->fields_) {
+            legacyFields_->Add(field);
+        }
+    }
+    if (particleRippleFields_ != nullptr) {
+        for (const auto& field : particleRippleFields_->rippleFields_) {
+            legacyFields_->Add(field);
+        }
+    }
+    if (particleVelocityFields_ != nullptr) {
+        for (const auto& field : particleVelocityFields_->velocityFields_) {
+            legacyFields_->Add(field);
+        }
+    }
+    return legacyFields_;
 }
 
 void RSRenderParticleSystem::CreateEmitter()
 {
-    size_t index = 0;
-    for (size_t iter = 0; iter < particlesRenderParams_.size(); iter++) {
-        auto& particleRenderParams = particlesRenderParams_[iter];
-        if (particleRenderParams != nullptr) {
-            if (particleRenderParams->GetParticleType() == ParticleType::IMAGES) {
-                particleRenderParams->SetImageIndex(index++);
-                auto& image = particleRenderParams->GetParticleImage();
-                imageVector_.push_back(image);
-            }
-            emitters_.push_back(std::make_shared<RSRenderParticleEmitter>(particleRenderParams));
+    emitters_.clear();
+    emitterParams_.clear();
+    imageVector_.clear();
+    // A re-created emitter set starts a new population: stale slots would point at old parameter indices.
+    EnsureParticlePool();
+    particlePool_->Clear();
+    // Reserve from the configured count; an above-cap count is treated as runaway and left to grow on demand.
+    size_t imageIndex = 0;
+    int64_t presize = 0;
+    for (auto& particleRenderParams : particlesRenderParams_) {
+        if (particleRenderParams == nullptr) {
+            continue;
         }
+        const int64_t configuredCount = particleRenderParams->GetParticleCount();
+        if (configuredCount > 0) {
+            presize = std::min<int64_t>(presize + configuredCount, MAX_PRESIZE_PARTICLES);
+        }
+        if (particleRenderParams->GetParticleType() == ParticleType::IMAGES) {
+            particleRenderParams->SetImageIndex(imageIndex++);
+            imageVector_.push_back(particleRenderParams->GetParticleImage());
+        }
+        emitterParams_.push_back(particleRenderParams);
+        emitters_.push_back(std::make_shared<RSRenderParticleEmitter>(particleRenderParams));
+    }
+    if (particlePool_ != nullptr && presize > 0) {
+        particlePool_->Resize(static_cast<size_t>(presize));
     }
 }
 
 void RSRenderParticleSystem::ClearEmitter()
 {
     emitters_.clear();
+    emitterParams_.clear();
 }
 
-void RSRenderParticleSystem::Emit(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles,
-    std::vector<std::shared_ptr<RSImage>>& imageVector)
+void RSRenderParticleSystem::EmitFromEmitter(int64_t deltaTime, size_t emitterIndex)
 {
-    for (size_t iter = 0; iter < emitters_.size(); iter++) {
-        if (emitters_[iter] != nullptr) {
-            emitters_[iter]->EmitParticle(deltaTime);
-            auto& particles = emitters_[iter]->GetParticles();
-            activeParticles.insert(activeParticles.end(), particles.begin(), particles.end());
+    if (emitterIndex >= emitters_.size() || emitters_[emitterIndex] == nullptr) {
+        return;
+    }
+    emitters_[emitterIndex]->EmitParticle(*particlePool_, static_cast<uint32_t>(emitterIndex), deltaTime);
+}
+
+void RSRenderParticleSystem::Emit(int64_t deltaTime, std::vector<std::shared_ptr<RSImage>>& imageVector)
+{
+    EnsureParticlePool();
+    for (size_t i = 0; i < emitters_.size(); i++) {
+        if (particlePool_->Count() >= PARTICLE_UPPER_LIMIT) {
+            break;
         }
+        EmitFromEmitter(deltaTime, i);
     }
     imageVector = imageVector_;
 }
-
-void RSRenderParticleSystem::UpdateParticle(
-    int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles)
+void RSRenderParticleSystem::UpdateParticle(int64_t deltaTime)
 {
-    if (activeParticles.empty()) {
+    if (particlePool_ == nullptr || particlePool_->Count() == 0) {
         return;
     }
-    // Prefer unified particleFields_ if available, fall back to old separate fields
-    if (particleFields_) {
-        particleFields_->UpdateAll(static_cast<float>(deltaTime) / NS_TO_S);
-        for (auto it = activeParticles.begin(); it != activeParticles.end();) {
-            if ((*it) == nullptr || !(*it)->IsAlive()) {
-                it = activeParticles.erase(it);
-            } else {
-                Update((*it), particleFields_, deltaTime);
-                ++it;
-            }
-        }
+    const float deltaSeconds = static_cast<float>(deltaTime) / static_cast<float>(NS_TO_S);
+    std::shared_ptr<ParticleFieldCollection> fields = particleFields_;
+    if (fields != nullptr) {
+        fields->UpdateAll(deltaSeconds);
     } else {
         if (particleRippleFields_ != nullptr) {
-            particleRippleFields_->UpdateAllRipples(static_cast<float>(deltaTime) / NS_TO_S);
+            particleRippleFields_->UpdateAllRipples(deltaSeconds);
         }
-        for (auto it = activeParticles.begin(); it != activeParticles.end();) {
-            if ((*it) == nullptr || !(*it)->IsAlive()) {
-                it = activeParticles.erase(it);
-            } else {
-                Update((*it), particleNoiseFields_, particleRippleFields_, particleVelocityFields_, deltaTime);
-                ++it;
-            }
+        fields = GetLegacyFields();
+    }
+    groupedSlots_.resize(emitterParams_.size());
+    for (auto& group : groupedSlots_) {
+        group.clear();
+    }
+    for (size_t slot = 0; slot < particlePool_->Count(); slot++) {
+        if (!particlePool_->IsAlive(slot)) {
+            continue;
         }
+        const uint32_t index = particlePool_->Data().paramsIndex[slot];
+        if (index < groupedSlots_.size()) {
+            groupedSlots_[index].push_back(slot);
+        }
+    }
+    for (size_t index = 0; index < groupedSlots_.size(); index++) {
+        if (groupedSlots_[index].empty() || emitterParams_[index] == nullptr) {
+            continue;
+        }
+        UpdateGroup(*particlePool_, groupedSlots_[index], *emitterParams_[index], fields, deltaTime);
+    }
+    particlePool_->Update(deltaSeconds);
+    if (particlePool_->HasDead()) {
+        particlePool_->Compact();
     }
 }
 
-void RSRenderParticleSystem::Warmup(int64_t totalTimeNs,
-    std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles, std::vector<std::shared_ptr<RSImage>>& imageVector)
+void RSRenderParticleSystem::Warmup(int64_t totalTimeNs, std::vector<std::shared_ptr<RSImage>>& imageVector)
 {
     if (totalTimeNs <= 0) {
         return;
     }
+    EnsureParticlePool();
     WarmupFields(totalTimeNs);
-    for (auto& emitter : emitters_) {
-        WarmupEmitter(emitter, totalTimeNs, activeParticles);
+    for (size_t i = 0; i < emitters_.size(); i++) {
+        if (particlePool_->Count() >= PARTICLE_UPPER_LIMIT) {
+            break;
+        }
+        WarmupEmitter(i, totalTimeNs);
+    }
+    if (particlePool_->HasDead()) {
+        particlePool_->Compact();
     }
     imageVector = imageVector_;
 }
@@ -129,16 +206,15 @@ void RSRenderParticleSystem::WarmupFields(int64_t totalTimeNs)
     }
 }
 
-void RSRenderParticleSystem::WarmupEmitter(const std::shared_ptr<RSRenderParticleEmitter>& emitter,
-    int64_t totalTimeNs, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles)
+void RSRenderParticleSystem::WarmupEmitter(size_t emitterIndex, int64_t totalTimeNs)
 {
     constexpr int MAX_EMIT_RATE = 5000;
     constexpr int64_t INFINITE_LIFE_NS = -1 * NS_PER_MS;
     constexpr int MAX_FILL_PER_EMITTER = 20000;
-    if (emitter == nullptr) {
+    if (emitterIndex >= emitters_.size() || emitters_[emitterIndex] == nullptr) {
         return;
     }
-    const auto& params = emitter->GetParticleParams();
+    const auto& params = emitters_[emitterIndex]->GetParticleParams();
     if (params == nullptr) {
         return;
     }
@@ -157,34 +233,34 @@ void RSRenderParticleSystem::WarmupEmitter(const std::shared_ptr<RSRenderParticl
         emittedF = std::min(emittedF, static_cast<float>(maxParticle));
     }
     int emittedCount = std::min(static_cast<int>(emittedF), MAX_FILL_PER_EMITTER);
+    std::shared_ptr<ParticleFieldCollection> fields = particleFields_;
+    if (fields == nullptr) {
+        fields = GetLegacyFields();
+    }
     for (int k = 0; k < emittedCount; k++) {
         int64_t activeTimeNs = static_cast<int64_t>(static_cast<float>(k) / static_cast<float>(emitRate) * NS_TO_S);
         if (activeTimeNs > totalTimeNs || (!infiniteLife && activeTimeNs >= lifeEndNs)) {
             break;
         }
-        auto particle = std::make_shared<RSRenderParticle>(params);
-        if (particleFields_) {
-            UpdateToActiveTime(particle, particleFields_, activeTimeNs);
-        } else {
-            UpdateToActiveTime(
-                particle, particleNoiseFields_, particleRippleFields_, particleVelocityFields_, activeTimeNs);
-        }
-        if (particle->IsAlive()) {
-            activeParticles.push_back(particle);
+        const size_t slot = particlePool_->Acquire();
+        InitParticle(*particlePool_, slot, *params, static_cast<uint32_t>(emitterIndex));
+        UpdateToActiveTime(*particlePool_, slot, *params, fields, activeTimeNs);
+        if (!particlePool_->IsAlive(slot)) {
+            particlePool_->MarkDead(slot);
         }
     }
-    emitter->SetEmittedCount(emittedF);
+    emitters_[emitterIndex]->SetEmittedCount(emittedF);
 }
 
-bool RSRenderParticleSystem::IsFinish(const std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles)
+bool RSRenderParticleSystem::IsFinish()
 {
-    bool finish = true;
-    if (!activeParticles.empty()) {
+    if (particlePool_ != nullptr && particlePool_->Count() > 0) {
         return false;
     }
-    for (size_t iter = 0; iter < emitters_.size(); iter++) {
-        if (emitters_[iter] != nullptr) {
-            finish = finish && emitters_[iter]->IsEmitterFinish();
+    bool finish = true;
+    for (auto& emitter : emitters_) {
+        if (emitter != nullptr) {
+            finish = finish && emitter->IsEmitterFinish();
         }
     }
     return finish;

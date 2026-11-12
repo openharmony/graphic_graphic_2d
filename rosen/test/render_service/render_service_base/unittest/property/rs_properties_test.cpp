@@ -1049,11 +1049,8 @@ HWTEST_F(RSPropertiesTest, SetParticles001, TestSize.Level1)
 {
     RSProperties properties;
     RSRenderParticleVector particles;
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    std::shared_ptr<RSRenderParticle> newv = std::make_shared<RSRenderParticle>(particleParams);
-    properties.GetEffectProperties().GetShaderEffect().particles_.renderParticleVector_.push_back(newv);
     properties.SetParticles(particles);
-    EXPECT_EQ(properties.GetEffectProperties().GetShaderEffect().particles_.renderParticleVector_.size(), 0);
+    EXPECT_EQ(properties.GetEffectProperties().GetShaderEffect().particles_.GetParticleSize(), 0);
 }
 
 /**

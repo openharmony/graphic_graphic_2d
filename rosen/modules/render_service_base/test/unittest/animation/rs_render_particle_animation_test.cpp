@@ -116,21 +116,16 @@ HWTEST_F(RSRenderParticleAnimationTest, Animate001, TestSize.Level1)
     particleSystem_ = std::make_shared<RSRenderParticleSystem>(particlesRenderParams);
     ASSERT_TRUE(particleSystem_ != nullptr);
 
-    std::vector<std::shared_ptr<RSRenderParticle>> activeParticles;
     std::vector<std::shared_ptr<RSImage>> imageVector;
-    particleSystem_->Emit(NS_TO_S, activeParticles, imageVector);
-    particleSystem_->UpdateParticle(NS_TO_S, activeParticles);
-    bool finish = particleSystem_->IsFinish(activeParticles);
+    particleSystem_->Emit(NS_TO_S, imageVector);
+    particleSystem_->UpdateParticle(NS_TO_S);
+    bool finish = particleSystem_->IsFinish();
     EXPECT_TRUE(finish);
     particleSystem_->particlesRenderParams_ = {};
     particleSystem_->CreateEmitter();
-    particleSystem_->Emit(NS_TO_S, activeParticles, imageVector);
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    std::shared_ptr<RSRenderParticle> newParam = std::make_shared<RSRenderParticle>(particleParams);
-    activeParticles.push_back(newParam);
-    activeParticles.push_back(nullptr);
-    particleSystem_->UpdateParticle(NS_TO_S, activeParticles);
-    finish = particleSystem_->IsFinish(activeParticles);
+    particleSystem_->Emit(NS_TO_S, imageVector);
+    particleSystem_->UpdateParticle(NS_TO_S);
+    finish = particleSystem_->IsFinish();
     EXPECT_TRUE(finish);
     GTEST_LOG_(INFO) << "RSRenderParticleAnimationTest Animate001 end";
 }
@@ -175,10 +170,7 @@ HWTEST_F(RSRenderParticleAnimationTest, UpdateEmitter001, TestSize.Level1)
     renderParticleAnimation->UpdateEmitter(emitUpdate);
     auto particleSystem = renderParticleAnimation->GetParticleSystem();
     ASSERT_TRUE(particleSystem != nullptr);
-    std::vector<std::shared_ptr<RSRenderParticle>> activeParticles;
-    auto particle = std::make_shared<RSRenderParticle>(param);
-    activeParticles.push_back(particle);
-    particleSystem->UpdateParticle(NS_TO_S, activeParticles);
+    particleSystem->UpdateParticle(NS_TO_S);
     auto emitters = particleSystem->GetParticleEmitter();
     ASSERT_TRUE(emitters.size() != 0);
     ASSERT_TRUE(emitters[emitterIndex] != nullptr);

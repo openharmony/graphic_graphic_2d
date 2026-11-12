@@ -22,6 +22,7 @@
 #include "animation/rs_cubic_bezier_interpolator.h"
 #include "animation/rs_interpolator.h"
 #include "animation/rs_render_particle.h"
+#include "animation/rs_render_particle_pool.h"
 #include "animation/rs_spring_interpolator.h"
 #include "animation/rs_steps_interpolator.h"
 #include "common/rs_color.h"
@@ -86,20 +87,24 @@ RenderParticleColorParaType RandomRenderParticleColorParaType()
 }
 } // namespace
 
-std::shared_ptr<RSRenderParticle> RandomRSRenderParticle::GetRandomRSRenderParticle()
+std::shared_ptr<RSRenderParticlePool> RandomRSRenderParticle::GetRandomRSRenderParticlePool()
 {
-    auto params = GetRandomParticleRenderParams();
-    return std::make_shared<RSRenderParticle>(params);
+    auto pool = std::make_shared<RSRenderParticlePool>();
+    const int vectorLength = RandomEngine::GetRandomSmallVectorLength();
+    for (int i = 0; i < vectorLength; ++i) {
+        auto params = GetRandomParticleRenderParams();
+        if (params == nullptr) {
+            continue;
+        }
+        const size_t slot = pool->Acquire();
+        InitParticle(*pool, slot, *params, static_cast<uint32_t>(i));
+    }
+    return pool;
 }
 
 RSRenderParticleVector RandomRSRenderParticle::GetRandomRSRenderParticleVector()
 {
-    std::vector<std::shared_ptr<RSRenderParticle>> particles;
-    int vectorLength = RandomEngine::GetRandomSmallVectorLength();
-    for (int i = 0; i < vectorLength; ++i) {
-        particles.emplace_back(GetRandomRSRenderParticle());
-    }
-    return RSRenderParticleVector(std::move(particles), RandomRSImage::GetRandomRSImageVector());
+    return RSRenderParticleVector(GetRandomRSRenderParticlePool(), RandomRSImage::GetRandomRSImageVector());
 }
 
 std::shared_ptr<ParticleRenderParams> RandomRSRenderParticle::GetRandomParticleRenderParams()

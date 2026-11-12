@@ -66,8 +66,10 @@ bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime,
     runningTimeNs_ += deltaTime;
     if (particleSystem_ != nullptr) {
         particleSystem_->Emit(
-            deltaTime, renderParticleVector_.renderParticleVector_, renderParticleVector_.imageVector_);
-        particleSystem_->UpdateParticle(deltaTime, renderParticleVector_.renderParticleVector_);
+            deltaTime, renderParticleVector_.imageVector_);
+        particleSystem_->UpdateParticle(deltaTime);
+        // The vector owns the structure-of-arrays buffer so a bound particle can never outlive it.
+        renderParticleVector_.SetParticlePool(particleSystem_->GetParticlePool());
     }
     auto property = property_ ?
         property_->CastToPropertyOf<RSRenderParticleVector>(__func__) : nullptr;
@@ -75,7 +77,7 @@ bool RSRenderParticleAnimation::Animate(int64_t time, int64_t& minLeftDelayTime,
         property->Set(renderParticleVector_);
     }
 
-    if (particleSystem_ == nullptr || particleSystem_->IsFinish(renderParticleVector_.renderParticleVector_)) {
+    if (particleSystem_ == nullptr || particleSystem_->IsFinish()) {
         RemoveDrawModifier(target);
         return true;
     }
@@ -97,9 +99,10 @@ void RSRenderParticleAnimation::FillRebuildProgress()
     if (rebuildRunningTimeNs_ <= 0 || particleSystem_ == nullptr) {
         return;
     }
-    renderParticleVector_.renderParticleVector_.clear();
-    particleSystem_->Warmup(
-        rebuildRunningTimeNs_, renderParticleVector_.renderParticleVector_, renderParticleVector_.imageVector_);
+    // A rebuilt population must not inherit the old slots or their owners.
+    particleSystem_->ResetParticlePool();
+    renderParticleVector_.SetParticlePool(particleSystem_->GetParticlePool());
+    particleSystem_->Warmup(rebuildRunningTimeNs_, renderParticleVector_.imageVector_);
     runningTimeNs_ = rebuildRunningTimeNs_;
     rebuildRunningTimeNs_ = 0;
     auto property = property_ ?
@@ -305,7 +308,7 @@ bool RSRenderParticleAnimation::ParseParam(Parcel& parcel)
     }
     SetAnimationId(id);
     if (!(RSMarshallingHelper::UnmarshallingPidPlusId(parcel, propertyId_) &&
-            RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_))) {
+        RSMarshallingHelper::Unmarshalling(parcel, particlesRenderParams_))) {
         ROSEN_LOGE("RSRenderParticleAnimation::ParseParam, Unmarshalling failed");
         return false;
     }

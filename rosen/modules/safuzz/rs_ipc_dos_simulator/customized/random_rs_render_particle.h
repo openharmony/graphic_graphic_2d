@@ -22,7 +22,7 @@ namespace OHOS {
 namespace Rosen {
 class RandomRSRenderParticle {
 public:
-    static std::shared_ptr<RSRenderParticle> GetRandomRSRenderParticle();
+    static std::shared_ptr<RSRenderParticlePool> GetRandomRSRenderParticlePool();
     static RSRenderParticleVector GetRandomRSRenderParticleVector();
     static std::shared_ptr<ParticleRenderParams> GetRandomParticleRenderParams();
     static std::vector<std::shared_ptr<ParticleRenderParams>> GetRandomParticleRenderParamsVector();

@@ -13,11 +13,13 @@
  * limitations under the License.
  */
 
+#include <limits>
 #include <vector>
 
 #include "gtest/gtest.h"
 #include "pixel_map.h"
 
+#include "animation/rs_render_particle_pool.h"
 #include "animation/rs_render_particle_animation.h"
 #include "common/rs_vector2.h"
 #include "modifier/rs_render_property.h"
@@ -36,10 +38,12 @@ public:
     static void TearDownTestCase();
     void SetUp() override;
     void TearDown() override;
+    void CreateParticle(const std::shared_ptr<ParticleRenderParams>& renderParams);
     static constexpr uint64_t ANIMATION_ID = 12345;
     static constexpr uint64_t PROPERTY_ID = 54321;
     std::shared_ptr<ParticleRenderParams> params;
-    std::shared_ptr<RSRenderParticle> particle;
+    std::shared_ptr<RSRenderParticlePool> pool;
+    size_t slot = 0;
 };
 
 void RSRenderParticleTest::SetUpTestCase() {}
@@ -65,9 +69,19 @@ void RSRenderParticleTest::SetUp()
     RenderParticleParaType<float> scale;
     RenderParticleParaType<float> spin;
     params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
-    particle = std::make_shared<RSRenderParticle>(params);
+    CreateParticle(params);
 }
 void RSRenderParticleTest::TearDown() {}
+
+void RSRenderParticleTest::CreateParticle(const std::shared_ptr<ParticleRenderParams>& renderParams)
+{
+    params = renderParams;
+    pool = std::make_shared<RSRenderParticlePool>();
+    slot = pool->Acquire();
+    if (params != nullptr) {
+        InitParticle(*pool, slot, *params, 0);
+    }
+}
 
 static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
 {
@@ -109,9 +123,9 @@ static std::shared_ptr<Media::PixelMap> CreatePixelMap(int width, int height)
 HWTEST_F(RSRenderParticleTest, InitProperty001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty001 start";
-    ASSERT_TRUE(particle != nullptr);
-    particle->InitProperty();
-    EXPECT_TRUE(particle != nullptr);
+    ASSERT_TRUE(params != nullptr);
+    InitParticle(*pool, slot, *params, 0);
+    EXPECT_TRUE(pool->IsAlive(slot));
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty001 end";
 }
 
@@ -144,10 +158,8 @@ HWTEST_F(RSRenderParticleTest, InitProperty002, TestSize.Level1)
     RenderParticleParaType<float> scale;
     RenderParticleParaType<float> spin;
     params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
-    particle = std::make_shared<RSRenderParticle>(params);
-    ASSERT_TRUE(particle != nullptr);
-    particle->InitProperty();
-    EXPECT_TRUE(particle->IsAlive() == true);
+    CreateParticle(params);
+    EXPECT_TRUE(pool->IsAlive(slot));
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty002 end";
 }
 
@@ -182,10 +194,8 @@ HWTEST_F(RSRenderParticleTest, InitProperty003, TestSize.Level1)
     RenderParticleParaType<float> scale;
     RenderParticleParaType<float> spin;
     params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
-    particle = std::make_shared<RSRenderParticle>(params);
-    ASSERT_TRUE(particle != nullptr);
-    particle->InitProperty();
-    EXPECT_TRUE(particle->IsAlive() == true);
+    CreateParticle(params);
+    EXPECT_TRUE(pool->IsAlive(slot));
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty003 end";
 }
 
@@ -223,32 +233,24 @@ HWTEST_F(RSRenderParticleTest, InitProperty004, TestSize.Level1)
     RenderParticleParaType<float> scale;
     RenderParticleParaType<float> spin;
     params = std::make_shared<ParticleRenderParams>(emitterConfig, velocity, acceleration, color, opacity, scale, spin);
-    particle = std::make_shared<RSRenderParticle>(params);
-    ASSERT_TRUE(particle != nullptr);
-    particle->InitProperty();
-    EXPECT_TRUE(particle->IsAlive() == true);
-    EXPECT_TRUE(particle != nullptr);
+    CreateParticle(params);
+    EXPECT_TRUE(pool->IsAlive(slot));
     GTEST_LOG_(INFO) << "RSRenderParticleTest InitProperty004 end";
 }
 
 /**
  * @tc.name: RSRenderParticle001
- * @tc.desc: Verify the RSRenderParticle when particleParams_ is nullptr
+ * @tc.desc: Verify a slot without parameters never reports alive
  * @tc.type:FUNC
  * @tc.require: issueIA6IWR
  */
 HWTEST_F(RSRenderParticleTest, RSRenderParticle001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleTest RSRenderParticle001 start";
-    params = nullptr;
-    particle = std::make_shared<RSRenderParticle>(params);
-    ASSERT_TRUE(particle != nullptr);
-    particle->InitProperty();
-    particle->SetColor();
-    EXPECT_TRUE(particle->GetParticleRenderParams() == nullptr);
-    particle->activeTime_ = 0;
-    particle->lifeTime_ = 0;
-    EXPECT_TRUE(particle->IsAlive() == false);
+    CreateParticle(nullptr);
+    pool->SetActiveTime(slot, 0);
+    pool->SetLifeTime(slot, 0);
+    EXPECT_FALSE(pool->IsAlive(slot));
     GTEST_LOG_(INFO) << "RSRenderParticleTest RSRenderParticle001 end";
 }
 
@@ -261,29 +263,61 @@ HWTEST_F(RSRenderParticleTest, RSRenderParticle001, TestSize.Level1)
 HWTEST_F(RSRenderParticleTest, IsAlive001, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "RSRenderParticleTest IsAlive001 start";
-    ASSERT_TRUE(particle != nullptr);
-    EXPECT_TRUE(particle->IsAlive() == true);
-    particle->SetIsDead();
-    EXPECT_TRUE(particle->IsAlive() == false);
+    EXPECT_TRUE(pool->IsAlive(slot));
+    pool->MarkDead(slot);
+    EXPECT_FALSE(pool->IsAlive(slot));
     GTEST_LOG_(INFO) << "RSRenderParticleTest IsAlive001 end";
 }
 
 /**
- * @tc.name: ColorLerp001
- * @tc.desc: Verify the Color Lerp
+ * @tc.name: IsAliveSoA001
+ * @tc.desc: Verify the slot liveness is the only source of truth
  * @tc.type:FUNC
- * @tc.require: issueIA6IWR
  */
-HWTEST_F(RSRenderParticleTest, ColorLerp001, TestSize.Level1)
+HWTEST_F(RSRenderParticleTest, IsAliveSoA001, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "RSRenderParticleTest ColorLerp001 start";
-    ASSERT_TRUE(particle != nullptr);
-    Color start = Color(0, 0, 0, 128);
-    Color end = Color(255, 255, 255, 255);
-    float t = 0.5f;
-    Color color = particle->Lerp(start, end, t);
-    EXPECT_TRUE((color != start) && (color != end));
-    GTEST_LOG_(INFO) << "RSRenderParticleTest ColorLerp001 end";
+    EXPECT_TRUE(pool->IsAlive(slot));
+    pool->MarkDead(slot);
+    EXPECT_FALSE(pool->IsAlive(slot));
+    EXPECT_TRUE(pool->HasDead());
+}
+
+/**
+ * @tc.name: SetIsDeadSoA001
+ * @tc.desc: Verify MarkDead leaves no alive slot behind
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleTest, SetIsDeadSoA001, TestSize.Level1)
+{
+    pool->MarkDead(slot);
+    EXPECT_FALSE(pool->IsAlive(slot));
+    EXPECT_TRUE(pool->HasDead());
+}
+
+/**
+ * @tc.name: SpinTrig001
+ * @tc.desc: Verify the cached sin/cos pair follows SetSpin
+ * @tc.type:FUNC
+ */
+HWTEST_F(RSRenderParticleTest, SpinTrig001, TestSize.Level1)
+{
+    float cosValue = 0.f;
+    float sinValue = 0.f;
+
+    pool->SetSpin(slot, 0.f);
+    pool->GetSpinTrig(slot, cosValue, sinValue);
+    EXPECT_FLOAT_EQ(cosValue, 1.f);
+    EXPECT_FLOAT_EQ(sinValue, 0.f);
+
+    pool->SetSpin(slot, 90.f);
+    pool->GetSpinTrig(slot, cosValue, sinValue);
+    EXPECT_NEAR(cosValue, 0.f, 1e-5f);
+    EXPECT_NEAR(sinValue, 1.f, 1e-5f);
+
+    pool->SetSpin(slot, 180.f);
+    pool->GetSpinTrig(slot, cosValue, sinValue);
+    EXPECT_NEAR(cosValue, -1.f, 1e-5f);
+    EXPECT_NEAR(sinValue, 0.f, 1e-5f);
 }
 
 } // namespace Rosen
