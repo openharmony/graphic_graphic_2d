@@ -304,6 +304,167 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateDstRect002, TestSize.Level2)
 }
 
 /**
+ * @tc.name: UpdateDstRect003
+ * @tc.desc: Test UpdateDstRect ROG scaling with HardCursorStatus=true, HdiRogEnable=true (no scaling)
+ * @tc.type: FUNC
+ * @tc.require:issues26680
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateDstRect003, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    rsSurfaceRenderNode->SetHwcGlobalPositionEnabled(true);
+    rsSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::CURSOR_NODE);
+    rsSurfaceRenderNode->SetHardCursorStatus(true);
+
+    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(12, 0, rsContext->weak_from_this());
+    rsDisplayRenderNode->InitRenderParams();
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::IS_ROG_RESOLUTION>(true);
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::IS_HDI_ROG_ENABLE>(true);
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>(
+        std::pair<uint32_t, uint32_t>{800u, 600u});
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        std::tuple<uint32_t, uint32_t, uint32_t>{1600u, 1200u, 60u});
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    rsUniRenderVisitor->InitScreenInfo(*rsDisplayRenderNode);
+
+    RectI absRect(10, 20, 100, 200);
+    RectI clipRect(0, 0, 10000, 10000);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 10);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().top_, 20);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().width_, 100);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().height_, 200);
+}
+
+/**
+ * @tc.name: UpdateDstRect004
+ * @tc.desc: Test UpdateDstRect ROG scaling with HardCursorStatus=true, HdiRogEnable=false (no scaling)
+ * @tc.type: FUNC
+ * @tc.require:issues26680
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateDstRect004, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    rsSurfaceRenderNode->SetHwcGlobalPositionEnabled(true);
+    rsSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::CURSOR_NODE);
+    rsSurfaceRenderNode->SetHardCursorStatus(true);
+
+    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(12, 0, rsContext->weak_from_this());
+    rsDisplayRenderNode->InitRenderParams();
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::IS_ROG_RESOLUTION>(true);
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::IS_HDI_ROG_ENABLE>(false);
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>(
+        std::pair<uint32_t, uint32_t>{800u, 600u});
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        std::tuple<uint32_t, uint32_t, uint32_t>{1600u, 1200u, 60u});
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    rsUniRenderVisitor->InitScreenInfo(*rsDisplayRenderNode);
+
+    RectI absRect(10, 20, 100, 200);
+    RectI clipRect(0, 0, 10000, 10000);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 10);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().top_, 20);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().width_, 100);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().height_, 200);
+}
+
+/**
+ * @tc.name: UpdateDstRect005
+ * @tc.desc: Test UpdateDstRect ROG scaling with HardCursorStatus=false, HdiRogEnable=true (scaling applied)
+ * @tc.type: FUNC
+ * @tc.require:issues26680
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateDstRect005, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    rsSurfaceRenderNode->SetHwcGlobalPositionEnabled(true);
+    rsSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::CURSOR_NODE);
+    rsSurfaceRenderNode->SetHardCursorStatus(false);
+
+    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(12, 0, rsContext->weak_from_this());
+    rsDisplayRenderNode->InitRenderParams();
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::IS_ROG_RESOLUTION>(true);
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::IS_HDI_ROG_ENABLE>(true);
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>(
+        std::pair<uint32_t, uint32_t>{800u, 600u});
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        std::tuple<uint32_t, uint32_t, uint32_t>{1600u, 1200u, 60u});
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    rsUniRenderVisitor->InitScreenInfo(*rsDisplayRenderNode);
+
+    RectI absRect(10, 20, 100, 200);
+    RectI clipRect(0, 0, 10000, 10000);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    // widthRatio = 1600/800 = 2.0, heightRatio = 1200/600 = 2.0
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 20);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().top_, 40);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().width_, 200);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().height_, 400);
+}
+
+/**
+ * @tc.name: UpdateDstRect006
+ * @tc.desc: Test UpdateDstRect ROG scaling with HardCursorStatus=false, HdiRogEnable=false (no scaling)
+ * @tc.type: FUNC
+ * @tc.require:issues26680
+ */
+HWTEST_F(RSUniHwcVisitorTest, UpdateDstRect006, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    RSSurfaceRenderNodeConfig config;
+    config.id = 10;
+    auto rsSurfaceRenderNode = std::make_shared<RSSurfaceRenderNode>(config, rsContext->weak_from_this());
+    ASSERT_NE(rsSurfaceRenderNode, nullptr);
+    rsSurfaceRenderNode->InitRenderParams();
+    rsSurfaceRenderNode->SetHwcGlobalPositionEnabled(true);
+    rsSurfaceRenderNode->SetSurfaceNodeType(RSSurfaceNodeType::CURSOR_NODE);
+    rsSurfaceRenderNode->SetHardCursorStatus(false);
+
+    auto rsDisplayRenderNode = std::make_shared<RSScreenRenderNode>(12, 0, rsContext->weak_from_this());
+    rsDisplayRenderNode->InitRenderParams();
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::IS_ROG_RESOLUTION>(true);
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::IS_HDI_ROG_ENABLE>(false);
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::RENDER_RESOLUTION>(
+        std::pair<uint32_t, uint32_t>{800u, 600u});
+    rsDisplayRenderNode->screenProperty_.Set<ScreenPropertyType::PHYSICAL_RESOLUTION_REFRESHRATE>(
+        std::tuple<uint32_t, uint32_t, uint32_t>{1600u, 1200u, 60u});
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    auto rsUniHwcVisitor = std::make_shared<RSUniHwcVisitor>(*rsUniRenderVisitor);
+    rsUniRenderVisitor->InitScreenInfo(*rsDisplayRenderNode);
+
+    RectI absRect(10, 20, 100, 200);
+    RectI clipRect(0, 0, 10000, 10000);
+    rsUniHwcVisitor->UpdateDstRect(*rsSurfaceRenderNode, absRect, clipRect);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().left_, 10);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().top_, 20);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().width_, 100);
+    ASSERT_EQ(rsSurfaceRenderNode->GetDstRect().height_, 200);
+}
+
+/**
  * @tc.name: UpdateHwcNodeByTransform_001
  * @tc.desc: UpdateHwcNodeByTransform Test, buffer of RSSurfaceHandler is not nullptr, and
  * consumer_ of of RSSurfaceHandler is nullptr, expect return directly
