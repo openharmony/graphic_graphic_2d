@@ -411,6 +411,8 @@ HWTEST_F(RSRenderPipelineAgentTest, SetApsConfigParamsFilterCacheFrame001, TestS
     std::unordered_map<std::string, std::string> emptyParams;
     EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::FILTER_CACHE_FRAME, emptyParams), ERR_OK);
     EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::FILTER_CACHE_FRAME, params), ERR_OK);
+    // event that is neither HVE, SPLIT_LAYER nor FILTER_CACHE_FRAME falls through to the common ERR_OK return
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::SWIPER_BOOST_OFF, params), ERR_OK);
 }
 
 /**

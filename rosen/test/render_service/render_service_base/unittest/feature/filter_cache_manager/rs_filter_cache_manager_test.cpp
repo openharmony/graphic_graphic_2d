@@ -3080,5 +3080,95 @@ HWTEST_F(RSFilterCacheManagerTest, SwapDataAndInitStagingFlagsTest002, TestSize.
     EXPECT_FALSE(stagingUpdate->stagingForceUseCache_);
     EXPECT_EQ(stagingUpdate->lastOffscreenNodeId_, 100);
 }
+
+/**
+ * @tc.name: RecordFilterInfosTest002
+ * @tc.desc: test RecordFilterInfos keeps stagingFilterHashChanged_ false when filter hash is unchanged
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFilterCacheManagerTest, RecordFilterInfosTest002, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+    auto cacheUpdateManager = rsFilterCacheManager->GetRSCacheUpdateManager();
+    ASSERT_NE(cacheUpdateManager, nullptr);
+    auto rsFilter = std::make_shared<RSDrawingFilter>(std::make_shared<RSRenderFilterParaBase>());
+    ASSERT_NE(rsFilter, nullptr);
+
+    // pre-set the cached hash to the same filter hash: recording again should keep the flag false
+    cacheUpdateManager->stagingCachedFilterHash_ = rsFilter->Hash();
+    cacheUpdateManager->RecordFilterInfos(rsFilter);
+    EXPECT_FALSE(cacheUpdateManager->stagingFilterHashChanged_);
+    EXPECT_EQ(cacheUpdateManager->stagingCachedFilterHash_, rsFilter->Hash());
+    EXPECT_EQ(cacheUpdateManager->filterType_, rsFilter->GetFilterType());
+}
+
+/**
+ * @tc.name: UpdateFlagsTest001
+ * @tc.desc: test UpdateFlags skips interval reduce when no interact flag set and rate is invalid
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFilterCacheManagerTest, UpdateFlagsTest001, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+    auto cacheUpdateManager = rsFilterCacheManager->GetRSCacheUpdateManager();
+    ASSERT_NE(cacheUpdateManager, nullptr);
+
+    cacheUpdateManager->stagingIsAIBarInteractWithHWC_ = false;
+    cacheUpdateManager->stagingFilterInteractWithDirty_ = false;
+    cacheUpdateManager->stagingRotationChanged_ = false;
+    cacheUpdateManager->nodeFilterRate_ = INVALID_FILTER_RATE; // < 0
+
+    cacheUpdateManager->UpdateFlags(FilterCacheType::SNAPSHOT, true);
+    EXPECT_EQ(cacheUpdateManager->stagingClearType_, FilterCacheType::SNAPSHOT);
+    EXPECT_TRUE(cacheUpdateManager->isFilterCacheValid_);
+    EXPECT_EQ(cacheUpdateManager->cacheUpdateInterval_, 0);
+}
+
+/**
+ * @tc.name: UpdateFlagsTest002
+ * @tc.desc: test UpdateFlags skips interval reduce for gradient blur filter even with positive rate
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFilterCacheManagerTest, UpdateFlagsTest002, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+    auto cacheUpdateManager = rsFilterCacheManager->GetRSCacheUpdateManager();
+    ASSERT_NE(cacheUpdateManager, nullptr);
+
+    cacheUpdateManager->filterType_ = RSFilter::LINEAR_GRADIENT_BLUR;
+    cacheUpdateManager->nodeFilterRate_ = 30; // positive rate is ignored when gradient blur
+
+    cacheUpdateManager->UpdateFlags(FilterCacheType::SNAPSHOT, true);
+    EXPECT_EQ(cacheUpdateManager->cacheUpdateInterval_, 0);
+    EXPECT_EQ(cacheUpdateManager->stagingClearType_, FilterCacheType::SNAPSHOT);
+}
+
+/**
+ * @tc.name: ClearFilterCacheAIBarTest001
+ * @tc.desc: test ClearFilterCache keeps blur image when AIBAR without last frame force clear
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSFilterCacheManagerTest, ClearFilterCacheAIBarTest001, TestSize.Level1)
+{
+    auto rsFilterCacheManager = std::make_shared<RSFilterCacheManager>();
+    ASSERT_NE(rsFilterCacheManager, nullptr);
+    auto cacheUpdateManager = rsFilterCacheManager->GetRSCacheUpdateManager();
+    ASSERT_NE(cacheUpdateManager, nullptr);
+
+    // AIBAR filter without last-frame force clear: snapshot should not be held
+    cacheUpdateManager->filterType_ = RSFilter::AIBAR;
+    rsFilterCacheManager->renderForceClearCacheForLastFrame_ = false;
+
+    rsFilterCacheManager->ClearFilterCache();
+    EXPECT_FALSE(rsFilterCacheManager->renderClearFilteredCacheAfterDrawing_);
+    EXPECT_EQ(cacheUpdateManager->lastCacheType_, FilterCacheType::FILTERED_SNAPSHOT);
+}
 } // namespace Rosen
 } // namespace OHOS

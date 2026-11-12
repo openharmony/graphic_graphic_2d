@@ -309,9 +309,18 @@ HWTEST_F(RSEffectUtilsTest, HasValidEffectTest001, TestSize.Level1)
 HWTEST_F(RSEffectUtilsTest, UpdateNodeFilterRateToDrawableTest001, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    // node without any filter properties should not crash
+    auto materialDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    materialDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    node.drawableVec_ = std::make_unique<RSDrawable::Vec>();
+    (*node.drawableVec_)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = materialDrawable;
+
+    // node without any filter properties: rates must not be written to the drawable
     RSEffectUtils::UpdateNodeFilterApsRateToDrawable(node, 30);
     RSEffectUtils::UpdateNodeFilterAppRateToDrawable(node, 60);
+    EXPECT_EQ(materialDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterApsRate(),
+        INVALID_FILTER_RATE);
+    EXPECT_EQ(materialDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterAppRate(),
+        INVALID_FILTER_RATE);
 }
 
 /**
@@ -327,10 +336,14 @@ HWTEST_F(RSEffectUtilsTest, UpdateNodeFilterRateToDrawableTest002, TestSize.Leve
         std::make_shared<RSFilter>();
     node->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
     node->GetMutableRenderProperties().GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
+    node->drawableVec_ = std::make_unique<RSDrawable::Vec>();
 
-    // filter properties are set but no filter drawable exists, should not crash
+    // filter properties are set but no filter drawable exists: nothing is created or updated
     RSEffectUtils::UpdateNodeFilterApsRateToDrawable(*node, 30);
     RSEffectUtils::UpdateNodeFilterAppRateToDrawable(*node, 60);
+    EXPECT_EQ((*node->drawableVec_)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)], nullptr);
+    EXPECT_EQ((*node->drawableVec_)[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_FILTER)], nullptr);
+    EXPECT_EQ((*node->drawableVec_)[static_cast<int8_t>(RSDrawableSlot::COMPOSITING_FILTER)], nullptr);
 }
 
 /**
@@ -422,6 +435,59 @@ HWTEST_F(RSEffectUtilsTest, UpdateSurfaceFilterRate002, TestSize.Level1)
     EXPECT_EQ(surfaceNode->GetApsFilterRate(), 30);
 
     nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: UpdateSurfaceFilterRate003
+ * @tc.desc: test UpdateSurfaceFilterRate with trailing dot param updates nothing
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectUtilsTest, UpdateSurfaceFilterRate003, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSContext>();
+    ASSERT_NE(ctx, nullptr);
+    auto& nodeMap = ctx->GetMutableNodeMap();
+
+    constexpr NodeId nodeId = 920104;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "demo_surface" };
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, ctx);
+    ASSERT_NE(surfaceNode, nullptr);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    surfaceNode->SetApsFilterRate(30);
+
+    // param ending with a dot: suffix after last dot is empty, no surface should be updated
+    RSEffectUtils::UpdateSurfaceFilterRate("com.test.", 60, ctx->GetNodeMap());
+    EXPECT_EQ(surfaceNode->GetApsFilterRate(), 30);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: UpdateSurfaceFilterRate004
+ * @tc.desc: test UpdateSurfaceFilterRate skips null surface entries without crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectUtilsTest, UpdateSurfaceFilterRate004, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSContext>();
+    ASSERT_NE(ctx, nullptr);
+    auto& nodeMap = ctx->GetMutableNodeMap();
+
+    constexpr NodeId nodeId = 920105;
+    constexpr NodeId nullEntryId = 920106;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "demo_surface" };
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, ctx);
+    ASSERT_NE(surfaceNode, nullptr);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    // a null entry in the surface map exercises the null surfaceNode branch in the traversal lambda
+    nodeMap.surfaceNodeMap_[nullEntryId] = nullptr;
+
+    RSEffectUtils::UpdateSurfaceFilterRate("com.test.demo", 60, ctx->GetNodeMap());
+    // traversal continues past the null entry and updates matched node
+    EXPECT_EQ(surfaceNode->GetApsFilterRate(), 60);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+    nodeMap.surfaceNodeMap_.erase(nullEntryId);
 }
 } // namespace Rosen
 } // namespace OHOS
