@@ -26,6 +26,7 @@
 #include "common/rs_rect.h"
 #include "common/rs_vector2.h"
 #include "common/rs_vector4.h"
+#include "drawable/rs_filter_drawable.h"
 #include "feature/hdr/rs_colorspace_util.h"
 #ifdef RS_MEMORY_INFO_MANAGER
 #include "feature/memory_info_manager/rs_memory_info_manager.h"
@@ -3889,7 +3890,8 @@ void RSSurfaceRenderNode::CalDrawBehindWindowRegion()
         "RSSurfaceRenderNode::CalDrawBehindWindowRegion: Id: %{public}" PRIu64 ", BehindWindowRegion: %{public}s",
         GetId(), region.ToString().c_str());
     drawBehindWindowRegion_ = region;
-    auto filterDrawable = GetFilterDrawable(false);
+    auto filterDrawable = std::static_pointer_cast<DrawableV2::RSBackgroundFilterDrawable>(
+        GetFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER));
     if (!filterDrawable) {
         return;
     }

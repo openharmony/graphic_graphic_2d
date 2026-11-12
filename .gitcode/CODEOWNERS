@@ -137,10 +137,12 @@ rosen/modules/render_service_base/include/drawable/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/src/drawable/ @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/drawable/rs_color_picker_drawable.h @hanamaru
 rosen/modules/render_service_base/src/drawable/rs_color_picker_drawable.cpp @hanamaru
-rosen/modules/render_service_base/include/drawable/rs_coverage_ng_shader_drawable.h @hanamaru
-rosen/modules/render_service_base/src/drawable/rs_coverage_ng_shader_drawable.cpp @hanamaru
 rosen/modules/render_service_base/include/drawable/rs_shader_drawable.h @hanamaru
 rosen/modules/render_service_base/src/drawable/rs_shader_drawable.cpp @hanamaru
+rosen/modules/render_service_base/include/drawable/rs_filter_drawable.h @hanamaru
+rosen/modules/render_service_base/src/drawable/rs_filter_drawable.cpp @hanamaru
+rosen/modules/render_service_base/include/drawable/rs_effect_drawable_utils.h @hanamaru
+rosen/modules/render_service_base/src/drawable/rs_effect_drawable_utils.cpp @hanamaru
 
 [effect]
 rosen/modules/render_service_client/core/ui_effect/ @hanamaru
@@ -155,6 +157,12 @@ rosen/modules/render_service_base/src/render/rs_image.cpp @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/render/rs_image_base.h @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/render/rs_image_cache.h @xiaojianfeng_jeffery
 rosen/modules/render_service_base/include/render/rs_image.h @xiaojianfeng_jeffery
+
+[effect_feature]
+rosen/modules/render_service_base/src/feature/behind_window_filter/ @hanamaru
+rosen/modules/render_service_base/include/feature/behind_window_filter/ @hanamaru
+rosen/modules/render_service_base/src/feature/filter_cache_manager/ @hanamaru
+rosen/modules/render_service_base/include/feature/filter_cache_manager/ @hanamaru
 
 [IPC]
 rosen/modules/render_service/core/transaction/ @chuchengcheng

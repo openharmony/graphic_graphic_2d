@@ -113,7 +113,7 @@ bool RSFilterCacheManager::DrawFilterWithoutSnapshot(RSPaintFilterCanvas& canvas
     }
     RS_OPTIONAL_TRACE_FUNC();
 
-    /* Reuse code from RSPropertyDrawableUtils::DrawFilter() when cache manager is not available */
+    /* Reuse code from RSEffectDrawableUtils::DrawFilter() when cache manager is not available */
     auto clipIBounds = dst;
     Drawing::AutoCanvasRestore acr(canvas, true);
     canvas.ResetMatrix();

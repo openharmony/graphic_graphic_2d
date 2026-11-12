@@ -21,6 +21,7 @@
 #include "ge_visual_effect_container.h"
 
 #include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_effect_drawable_utils.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_filter_base.h"
 #include "effect/rs_render_shader_base.h"
@@ -126,29 +127,6 @@ bool RSForegroundColorDrawable::OnUpdate(const RSRenderNode& node)
     return true;
 }
 
-RSDrawable::Ptr RSCompositingFilterDrawable::OnGenerate(const RSRenderNode& node)
-{
-    if (auto ret = std::make_shared<RSCompositingFilterDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-}
-
-bool RSCompositingFilterDrawable::OnUpdate(const RSRenderNode& node)
-{
-    stagingNodeId_ = node.GetId();
-    stagingNodeName_ = node.GetNodeName();
-    auto& rsFilter = node.GetRenderProperties().GetCompositingFilter();
-    if (rsFilter == nullptr) {
-        return false;
-    }
-    RecordFilterInfos(rsFilter);
-    needSync_ = true;
-    stagingFilter_ = rsFilter;
-    PostUpdate(node);
-    return true;
-}
-
 // foregroundFilter
 RSDrawable::Ptr RSForegroundFilterDrawable::OnGenerate(const RSRenderNode& node)
 {
@@ -176,7 +154,7 @@ bool RSForegroundFilterDrawable::OnUpdate(const RSRenderNode& node)
     }
     if (rsFilter->IsDrawingFilter()) {
         const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-        RSPropertyDrawableUtils::ApplySDFShapeToFilter(node.GetRenderProperties(), drawingFilter, node.GetId());
+        RSEffectDrawableUtils::ApplySDFShapeToFilter(node.GetRenderProperties(), drawingFilter, node.GetId());
     }
     needSync_ = true;
     stagingBoundsRect_ = node.GetRenderProperties().GetBoundsRect();

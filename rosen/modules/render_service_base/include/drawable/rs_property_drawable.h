@@ -20,18 +20,15 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_rect.h"
-#include "render/rs_filter.h"
-#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "recording/draw_cmd_list.h"
 
 #include "drawable/rs_drawable.h"
+#include "drawable/rs_filter_drawable.h"
 #include "pipeline/rs_simple_draw_cmd_list.h"
 #include "property/rs_properties_def.h"
 
 namespace OHOS::Rosen {
 class RSRenderNode;
-class RSFilter;
-class RSFilterCacheManager;
 class ExtendRecordingCanvas;
 namespace Drawing {
 class GEVisualEffectContainer;
@@ -130,120 +127,6 @@ public:
     bool OnUpdate(const RSRenderNode& node) override;
 
 private:
-};
-
-class RSFilterDrawable : public RSDrawable {
-public:
-    RSFilterDrawable();
-    ~RSFilterDrawable() override = default;
-
-    virtual bool IsForeground() const
-    {
-        return false;
-    }
-
-    // set flags for clearing filter cache
-    // All MarkXXX function should be called from render_service thread
-    void MarkFilterRegionChanged();
-    void MarkFilterRegionInteractWithDirty();
-    void MarkFilterRegionIsLargeArea();
-    void MarkFilterForceUseCache(bool forceUseCache = true);
-    void MarkFilterForceClearCache();
-    void MarkEffectNode();
-    void MarkForceClearCacheWithLastFrame();
-    void MarkRotationChanged();
-    void MarkNodeIsOccluded(bool isOccluded);
-    void MarkNeedClearFilterCache();
-    void MarkBlurIntersectWithDRM(bool IsIntersectWithDRM, bool isDark);
-    void MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId);
-    void MarkDebugEnabled();
-
-    bool IsFilterCacheValid() const;
-    bool IsForceClearFilterCache() const;
-    bool IsForceUseFilterCache() const;
-    bool LastHpaeClearCache() const;
-    bool NeedPendingPurge() const;
-    bool IsSkippingFrame() const;
-    bool IsAIBarFilter() const;
-    bool CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage);
-    // Return true if the cache interval of aibar has been successfully reduced; otherwise, return false.
-    bool ForceReduceAIBarCacheInterval(bool intersectHwcDamage);
-    bool WouldDrawLargeAreaBlur();
-    bool WouldDrawLargeAreaBlurPrecisely();
-
-    RectF GetStagingRelativeRect(EffectRectType type, const RectF& defaultValue) const;
-    RectF GetRenderRelativeRect(EffectRectType type, const RectF& defaultValue) const;
-    virtual void CalVisibleRect(const Drawing::Matrix& absMatrix, const std::optional<RectI>& clipRect,
-        const RectF& defaultRelativeRect);
-    RectI GetVisibleTotalRegion(const RectI& defaultValue) const;
-    RectI GetVisibleSnapshotRegion(const RectI& defaultValue) const;
-    RectI GetLastVisibleSnapshotRegion(const RectI& defaultValue) const;
-    RectI GetVisibleDrawRegion(const RectI& defaultValue) const;
-    RectI GetLastVisibleDrawRegion(const RectI& defaultValue) const;
-
-    void PostUpdate(const RSRenderNode& node);
-    void OnSync() override;
-    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-    const RectI GetFilterCachedRegion() const;
-
-    bool GetEnableEDR() const override
-    {
-        return enableEDREffect_;
-    }
-
-    bool IsFilterCacheValidForOcclusion();
-    bool IsFilterCacheValidForPartialRender() const;
-
-    void SetDrawBehindWindowRegion(RectI region);
-
-    void UpdateFilterRectInfo(const RectF& bound, const std::shared_ptr<RSFilter>& filter);
-
-protected:
-    struct FilterRectInfo {
-        RectF snapshotRect_;
-        RectF drawRect_;
-    };
-    static RectF GetRelativeRect(const std::unique_ptr<FilterRectInfo>& rectInfo,
-        EffectRectType type, const RectF& defaultValue);
-    void RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter);
-    virtual Drawing::RectI GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
-        EffectRectType type, const RectF& bound) const;
-    struct FilterVisibleRectInfo {
-        RectI snapshotRect_;
-        RectI totalRect_;
-        RectI drawRect_;
-    };
-
-    bool needSync_ = false;
-    bool needDrawBehindWindow_ = false;
-    bool stagingNeedDrawBehindWindow_ = false;
-
-    bool stagingIntersectWithDRM_ = false;
-    bool stagingIsDarkColorMode_ = false;
-
-    bool renderIntersectWithDRM_  = false;
-    bool renderIsDarkColorMode_  = false;
-    bool enableEDREffect_ = false;
-
-    NodeId stagingNodeId_ = INVALID_NODEID;
-    NodeId renderNodeId_ = INVALID_NODEID;
-    NodeId screenNodeId_ = INVALID_NODEID;
-
-    std::string stagingNodeName_ = "invalid0";
-    std::string renderNodeName_ = "invalid0";
-
-    std::shared_ptr<RSFilter> filter_;
-    std::shared_ptr<RSFilter> stagingFilter_;
-    std::unique_ptr<RSFilterCacheManager> stagingCacheManager_;
-    std::unique_ptr<RSFilterCacheManager> cacheManager_;
-    RectI drawBehindWindowRegion_;
-    RectI stagingDrawBehindWindowRegion_;
-
-    std::unique_ptr<RectI> lastStagingVisibleSnapshotRect_;
-    std::unique_ptr<RectI> lastStagingVisibleDrawRect_;
-    std::unique_ptr<FilterVisibleRectInfo> stagingVisibleRectInfo_;
-    std::unique_ptr<FilterRectInfo> stagingRelativeRectInfo_;
-    std::unique_ptr<FilterRectInfo> renderRelativeRectInfo_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen
