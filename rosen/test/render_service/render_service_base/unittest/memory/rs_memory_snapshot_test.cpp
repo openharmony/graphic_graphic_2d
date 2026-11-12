@@ -1294,4 +1294,43 @@ HWTEST_F(RSMemorySnapshotTest, UpdateGpuInfoHelperTotalGpuUnderflowTest001, test
 
     MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
 }
+
+/**
+ * @tc.name: CleanupExpiredAbnormalProcessTest001
+ * @tc.desc: Test CleanupExpiredAbnormalProcess removes entries older than 10s.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemorySnapshotTest, CleanupExpiredAbnormalProcessTest001, testing::ext::TestSize.Level1)
+{
+    pid_t pid1 = 3030;
+    pid_t pid2 = 3031;
+    std::set<pid_t> exitedPids = {pid1, pid2};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // mark as abnormal
+    MemorySnapshot::Instance().SetAbnormalProcess(pid1);
+    MemorySnapshot::Instance().SetAbnormalProcess(pid2);
+    ASSERT_TRUE(MemorySnapshot::Instance().IsAbnormalProcess(pid1));
+
+    // Manually backdate the tiemstamp to simulate expiry
+    {
+        std::unique_lock<std::shared_mutex> lock(MemorySnapshot::Instance().killProcessSetMutex_);
+        auto it = MemorySnapshot::Instance().killProcessSet_.find(pid1);
+        ASSERT_TRUE(it != MemorySnapshot::Instance().killProcessSet_.end());
+        constexpr uint64_t backdate = 11 * 1000; // 11s
+        it->second -= backdate;
+    }
+
+    // Trigger cleanup via UpdateGpuMemoryInfo
+    std::unordered_map<pid_t, size_t> gpuInfo;
+    std::unordered_map<pid_t, MemorySnapshotInfo> pidForReport;
+    bool isTotalOver = false;
+    MemorySnapshot::Instance().UpdateGpuMemoryInfo(gpuInfo, pidForReport, isTotalOver);
+
+    // expired entry should be clean up
+    ASSERT_FALSE(MemorySnapshot::Instance().IsAbnormalProcess(pid1));
+    MemorySnapshot::Instance().RemoveAbnormalProcess(pid2);
+    ASSERT_FALSE(MemorySnapshot::Instance().IsAbnormalProcess(pid2));
+}
 } // namespace OHOS::Rosen

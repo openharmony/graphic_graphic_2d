@@ -85,6 +85,7 @@ public:
     static void DumpNodesInfoForReport(std::string& log, const pid_t pid);
     static void GpuReportFromKernel(const std::string& recvInfo);
     static bool UpdateGpuInfoFromEngine(pid_t pid, size_t memorySize, bool isAdd);
+    static bool IsAbnormalProcessFromEngine(pid_t pid);
 private:
     // rs memory = rs + skia cpu + skia gpu
     static void DumpRenderServiceMemory(DfxString& log, bool isLite = false);

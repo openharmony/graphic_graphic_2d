@@ -75,9 +75,7 @@ bool GPUContext::BuildFromVK(const GrVkBackendContext& context, const GPUContext
 
 void GPUContext::GetResourceCacheLimits(int* maxResource, size_t* maxResourceBytes) const
 {
-    if (impl_ != nullptr) {
-        impl_->GetResourceCacheLimits(maxResource, maxResourceBytes);
-    }
+    impl_->GetResourceCacheLimits(maxResource, maxResourceBytes);
 }
 
 void GPUContext::SetResourceCacheLimits(int maxResource, size_t maxResourceBytes)
@@ -252,14 +250,9 @@ void GPUContext::InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callbac
     impl_->InitGpuMemoryInfoStatProc(callback);
 }
 
-void GPUContext::SetAbnormalPid(pid_t pid)
+void GPUContext::InitIsAbnormalProcessProc(IsAbnormalProcessProcCallback callback)
 {
-    impl_->SetAbnormalPid(pid);
-}
-
-void GPUContext::RemoveAbnormalPid(pid_t pid)
-{
-    impl_->RemoveAbnormalPid(pid);
+    impl_->InitIsAbnormalProcessProc(callback);
 }
 // LCOV_EXCL_STOP
 

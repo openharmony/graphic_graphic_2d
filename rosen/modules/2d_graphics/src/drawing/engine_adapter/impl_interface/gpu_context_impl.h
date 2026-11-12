@@ -35,7 +35,8 @@ namespace Rosen {
 namespace Drawing {
 using pid_t = int;
 using MemoryOverflowCalllback = std::function<bool(pid_t, uint64_t, bool)>;
-using GpuMemoryInfoStatProcCallback =  std::function<bool(pid_t, size_t, bool)>;
+using GpuMemoryInfoStatProcCallback = std::function<bool(pid_t, size_t, bool)>;
+using IsAbnormalProcessProcCallback = std::function<bool(pid_t)>;
 struct GPUResourceTag;
 struct HpsBlurParameter;
 class GPUContext;
@@ -117,9 +118,7 @@ public:
 
     virtual void InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback) = 0;
 
-    virtual void SetAbnormalPid(pid_t pid) = 0;
-
-    virtual void RemoveAbnormalPid(pid_t pid) = 0;
+    virtual void InitIsAbnormalProcessProc(IsAbnormalProcessProcCallback callback) = 0;
 
 #ifdef RS_ENABLE_VK
     virtual void StoreVkPipelineCacheData() = 0;

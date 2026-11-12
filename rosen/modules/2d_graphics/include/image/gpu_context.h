@@ -354,14 +354,10 @@ public:
     /**
      * @brief mark pid as abnormal so it cannot allocate new gpu memory.
      * @param pid of abnormal process.
+     * @brief Register abnormal process check callback
+     * @param callback to check if a procss is abnoraml
      */
-    void SetAbnormalPid(pid_t pid);
-
-    /**
-     * @brief remove pid from the abnormal set.
-     * @param pid of abnormal process.
-     */
-    void RemoveAbnormalPid(pid_t pid);
+    void InitIsAbnormalProcessProc(IsAbnormalProcessProcCallback callback);
 
 #ifdef RS_ENABLE_VK
     /**

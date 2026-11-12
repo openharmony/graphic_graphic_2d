@@ -27,6 +27,7 @@ constexpr uint32_t HILOG_INFO_COUNT = 5; // The number of info printed each time
 constexpr float WEIGHT_CPU = 0.3; // Weight of CPU.
 constexpr float WEIGHT_GPU = 0.3; // Weight of GPU.
 constexpr float WEIGHT_SUM = 0.4; // Weight of CPU+GPU.
+constexpr int64_t ABNORMAL_PROCESS_EXPIRE_MS = 10 * 1000; // 10 seconds
 }
 
 MemorySnapshot& MemorySnapshot::Instance()
@@ -75,6 +76,7 @@ void MemorySnapshot::UpdateGpuMemoryInfo(const std::unordered_map<pid_t, size_t>
     std::unordered_map<pid_t, MemorySnapshotInfo>& pidForReport, bool& isTotalOver)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    CleanupExpiredAbnormalProcess();
     std::set<pid_t> needClearPids;
     for (auto& [pid, info] : appMemorySnapshots_) {
         if (info.TotalMemory() == 0) {
@@ -295,7 +297,9 @@ void MemorySnapshot::UpdateGpuInfoHelper(MemorySnapshotInfo& info, const size_t 
 void MemorySnapshot::SetAbnormalProcess(pid_t pid)
 {
     std::unique_lock<std::shared_mutex> lock(killProcessSetMutex_);
-    killProcessSet_.insert(pid);
+    auto now = std::chrono::steady_clock::now().time_since_epoch();
+    uint64_t nowTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
+    killProcessSet_[pid] = nowTime;
     killProcessSetSize_.store(killProcessSet_.size(), std::memory_order_relaxed);
 }
 
@@ -316,6 +320,26 @@ bool MemorySnapshot::IsAbnormalProcess(pid_t pid)
     }
     std::shared_lock<std::shared_mutex> lock(killProcessSetMutex_);
     return killProcessSet_.count(pid) > 0;
+}
+
+void MemorySnapshot::CleanupExpiredAbnormalProcess()
+{
+    if (killProcessSetSize_.load(std::memory_order_relaxed) <= 0) {
+        return;
+    }
+    std::unique_lock<std::shared_mutex> lock(killProcessSetMutex_);
+    auto now = std::chrono::steady_clock::now().time_since_epoch();
+    uint64_t currentTime =
+        static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(now).count());
+    for (auto it = killProcessSet_.begin(); it != killProcessSet_.end();) {
+        if (currentTime - it->second > ABNORMAL_PROCESS_EXPIRE_MS) {
+            RS_LOGE("CleanupExpiredAbnormalProcess erase pid:%{public}s", std::to_string(it->first).c_str());
+            it = killProcessSet_.erase(it);
+        } else {
+            ++it;
+        }
+    }
+    killProcessSetSize_.store(killProcessSet_.size(), std::memory_order_relaxed);
 }
 }
 } // namespace OHOS::Rosen
