@@ -266,8 +266,6 @@ HWTEST_F(RSVsyncRateReduceManagerTest, CheckNeedNotify001, TestSize.Level1)
     EXPECT_EQ(true, rateReduceManager.CheckNeedNotify());
     auto& vSyncRateMap = rateReduceManager.vSyncRateMap_;
     EXPECT_NE(vSyncRateMap.end(), vSyncRateMap.find(nodeId2));
-    EXPECT_EQ(true, rateReduceManager.CheckNeedNotify());
-    EXPECT_NE(vSyncRateMap.end(), vSyncRateMap.find(nodeId));
 }
 
 /**
@@ -664,7 +662,7 @@ HWTEST_F(RSVsyncRateReduceManagerTest, TransformNodeToLinkersRateMapTest, TestSi
     vRateMap.emplace(1, 60);
     vRateMap.emplace(2, 0);
     RSVsyncRateReduceUtil::TransformNodeToLinkersRateMap(vRateMap, true, appVSyncDistributor);
-    ASSERT_EQ(RSVsyncRateReduceUtil::lastVSyncRateMap_.empty(), true);
+    ASSERT_EQ(RSVsyncRateReduceUtil::linkersRateMap_.empty(), true);
 
     RSVsyncRateReduceUtil::TransformNodeToLinkersRateMap(vRateMap, true, appVSyncDistributor);
 

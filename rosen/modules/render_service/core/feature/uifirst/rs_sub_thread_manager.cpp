@@ -133,7 +133,7 @@ void RSSubThreadManager::WaitNodeTask(uint64_t nodeId)
     RS_TRACE_NAME_FMT("RSSubThreadManager::WaitNodeTask for node %" PRIu64, nodeId);
     std::unique_lock<std::mutex> lock(parallelRenderMutex_);
     cvParallelRender_.wait_for(lock, std::chrono::milliseconds(WAIT_NODE_TASK_TIMEOUT), [&]() {
-        return !nodeTaskState_[nodeId];
+        return renderingNodes_.find(nodeId) == renderingNodes_.end();
     });
 }
 
@@ -141,7 +141,7 @@ void RSSubThreadManager::NodeTaskNotify(uint64_t nodeId)
 {
     {
         std::unique_lock<std::mutex> lock(parallelRenderMutex_);
-        nodeTaskState_[nodeId] = 0;
+        renderingNodes_.erase(nodeId);
     }
     cvParallelRender_.notify_one();
 }
@@ -304,7 +304,7 @@ void RSSubThreadManager::ScheduleRenderNodeDrawable(
     auto tid = reThreadIndexMap_[nowIdx];
     {
         std::unique_lock<std::mutex> lock(parallelRenderMutex_);
-        nodeTaskState_[param->GetId()] = 1;
+        renderingNodes_.insert(param->GetId());
     }
     auto submittedFrameCount = RSUniRenderThread::Instance().GetFrameCount();
     subThread->DoingCacheProcessNumInc();

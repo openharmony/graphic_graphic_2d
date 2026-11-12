@@ -16,7 +16,7 @@
 #ifndef RS_DRAWABLE_UPDATER_H
 #define RS_DRAWABLE_UPDATER_H
 
-#include <limits>
+#include <limits.h>
 
 #include "drawable/rs_drawable.h"
 #include "drawable/rs_misc_drawable.h"

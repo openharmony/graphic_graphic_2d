@@ -190,7 +190,7 @@ public:
         systemDoWindowAnimate_ = flag;
     }
 
-    bool IsInSystemWindowAnimate()
+    bool IsInSystemWindowAnimate() const
     {
         return systemDoWindowAnimate_;
     }
@@ -200,12 +200,12 @@ public:
         topLeashWindowId_ = id;
     }
 
-    bool IsTopLeashWindow(NodeId id)
+    bool IsTopLeashWindow(NodeId id) const
     {
         return id == topLeashWindowId_;
     }
 
-    bool IsNotFindTopLeashWindow()
+    bool IsNotFindTopLeashWindow() const
     {
         return topLeashWindowId_ == INVALID_NODEID;
     }
@@ -245,6 +245,9 @@ public:
     }
 
     bool IsOcclusionEnabled() const;
+    bool UifirstCacheUpdate(NodeId id);
+    bool UifirstCacheUpdated(std::shared_ptr<RSSurfaceRenderNode>& node);
+    void SwapProcessDoneNodes(bool& isDoneNodesSwaped);
     bool IsLayerPartRenderDisableAnimation() const;
 
     // only use in RT sync phase
@@ -252,10 +255,6 @@ public:
     {
         return subthreadProcessingNode_.count(id) > 0;
     }
-    bool UifirstCacheUpdate(NodeId id);
-    bool UifirstCacheUpdated(std::shared_ptr<RSSurfaceRenderNode>& node);
-    void SwapProcessDoneNodes(bool& isDoneNodesSwaped);
-
 private:
     bool IsRebuildForceDisable(const RSSurfaceRenderNode& node) const;
     struct NodeDataBehindWindow {
