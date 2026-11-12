@@ -19,7 +19,6 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen::SrvText {
-
 napi_value JsTextGlobal::Init(napi_env env, napi_value exportObj)
 {
     napi_property_descriptor properties[] = {

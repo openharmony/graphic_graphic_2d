@@ -1231,16 +1231,16 @@ HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabledWithoutCCMTest, Tes
 /**
  * @tc.name: GetHybridRenderCanvasEnabledTest
  * @tc.desc: Test GetHybridRenderCanvasEnabled covers all branches - cached return, WithoutCCM false path,
- *           and WithoutCCM true + isCanvasDrawingNodeClientRenderEnabled_ interaction
+ *           and WithoutCCM true + isCanvasDrawingNodeHybridRenderEnabled_ interaction
  * @tc.type: FUNC
  * @tc.require:
  */
 HWTEST_F(RSSystemPropertiesTest, GetHybridRenderCanvasEnabledTest, TestSize.Level1)
 {
     // Branch: GetHybridRenderCanvasEnabledWithoutCCM() returns true
-    // and isCanvasDrawingNodeClientRenderEnabled_ = true → result = true
+    // and isCanvasDrawingNodeHybridRenderEnabled_ = true → result = true
     if (RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM()) {
-        RSSystemProperties::isCanvasDrawingNodeClientRenderEnabled_ = true;
+        RSSystemProperties::isCanvasDrawingNodeHybridRenderEnabled_ = true;
         bool result = RSSystemProperties::GetHybridRenderCanvasEnabled();
         // Branch: cached path — second call returns same cached value
         EXPECT_EQ(RSSystemProperties::GetHybridRenderCanvasEnabled(), result);

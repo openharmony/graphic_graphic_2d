@@ -1462,6 +1462,7 @@ bool DoSetOverlayDisplayMode()
 
 bool DoSendVideoRateInfo()
 {
+#ifdef RS_ENABLE_TV_PQ_METADATA
     if (rsToServiceConn_ == nullptr) {
         return false;
     }
@@ -1471,6 +1472,7 @@ bool DoSendVideoRateInfo()
     std::unordered_map<std::string, std::string> videoRateInfo;
     videoRateInfo[key] = value;
     rsToServiceConn_->SendVideoRateInfo(videoRateInfo);
+#endif
     return true;
 }
 

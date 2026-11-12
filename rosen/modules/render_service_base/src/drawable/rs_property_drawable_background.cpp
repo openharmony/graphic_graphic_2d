@@ -23,17 +23,13 @@
 #endif
 #include "drawable/rs_effect_drawable_utils.h"
 #include "drawable/rs_property_drawable_utils.h"
-#include "effect/rs_render_filter_base.h"
-#include "effect/rs_render_shader_base.h"
 #include "effect/rs_render_shape_base.h"
 #include "effect/runtime_blender_builder.h"
-#include "gfx/performance/rs_perfmonitor_reporter.h"
 #include "memory/rs_tag_tracker.h"
 #ifdef ROSEN_OHOS
 #include "native_buffer_inner.h"
 #include "native_window.h"
 #endif
-#include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_recording_canvas.h"
 #include "pipeline/rs_render_node.h"
@@ -573,185 +569,6 @@ void RSBackgroundImageDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::R
     canvas->DetachBrush();
 }
 
-RSDrawable::Ptr RSBackgroundFilterDrawable::OnGenerate(const RSRenderNode& node)
-{
-    auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
-    if (rsFilter == nullptr && !node.NeedDrawBehindWindow()) {
-        return nullptr;
-    }
-
-    RSDrawable::Ptr filterDrawable = nullptr;
-    if (node.IsInstanceOf<RSEffectRenderNode>()) {
-        filterDrawable = std::make_shared<RSBackgroundEffectDrawable>();
-    } else {
-        filterDrawable = std::make_shared<RSBackgroundFilterDrawable>();
-    }
-    if (filterDrawable->OnUpdate(node)) {
-        return filterDrawable;
-    }
-    return nullptr;
-}
-
-bool RSBackgroundFilterDrawable::OnUpdate(const RSRenderNode& node)
-{
-    stagingNodeId_ = node.GetId();
-    stagingNodeName_ = node.GetNodeName();
-    auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
-    if (rsFilter != nullptr) {
-        const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-        RSPropertyDrawableUtils::ApplySDFShapeToFilter(node.GetRenderProperties(),
-            drawingFilter, node.GetId());
-        RecordFilterInfos(rsFilter);
-        needSync_ = true;
-        stagingFilter_ = rsFilter;
-        stagingNeedDrawBehindWindow_ = false;
-        PostUpdate(node);
-        return true;
-    }
-    if (node.NeedDrawBehindWindow()) {
-        auto behindWindowFilter = GetBehindWindowFilter(node);
-        if (behindWindowFilter == nullptr) {
-            return false;
-        }
-        RecordFilterInfos(behindWindowFilter);
-        needSync_ = true;
-        stagingFilter_ = behindWindowFilter;
-        stagingNeedDrawBehindWindow_ = true;
-        stagingDrawBehindWindowRegion_ = node.GetBehindWindowRegion();
-        PostUpdate(node);
-        return true;
-    }
-    return false;
-}
-
-std::shared_ptr<RSFilter> RSBackgroundFilterDrawable::GetBehindWindowFilter(const RSRenderNode& node)
-{
-    float radius = 0.f;
-    float saturation = 1.f;
-    float brightness = 1.f;
-    RSColor maskColor = {};
-    if (GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_RADIUS, radius) &&
-        GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_SATURATION, saturation) &&
-        GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_BRIGHTNESS, brightness) &&
-        GetBehindWindowFilterProperty(node, ModifierNG::RSPropertyType::BEHIND_WINDOW_FILTER_MASK_COLOR, maskColor)) {
-        return RSPropertyDrawableUtils::GenerateBehindWindowFilter(radius, saturation, brightness, maskColor);
-    }
-    return nullptr;
-}
-
-template<typename T>
-bool RSBackgroundFilterDrawable::GetBehindWindowFilterProperty(
-    const RSRenderNode& node, ModifierNG::RSPropertyType type, T& property)
-{
-    const auto modifier = node.GetModifierNG(ModifierNG::RSModifierType::BEHIND_WINDOW_FILTER);
-    if (!modifier) {
-        return false;
-    }
-    property = modifier->Getter<T>(type, T());
-    return true;
-}
-
-void RSBackgroundFilterDrawable::OnSync()
-{
-    if (needSync_) {
-        needDrawBehindWindow_ = stagingNeedDrawBehindWindow_;
-    }
-    drawBehindWindowRegion_ = stagingDrawBehindWindowRegion_;
-    RSFilterDrawable::OnSync();
-}
-
-bool RSBackgroundFilterDrawable::FuzePixelStretch(const RSRenderNode& node)
-{
-    return RSPropertyDrawableUtils::RSFilterSetPixelStretch(node.GetRenderProperties(), stagingFilter_);
-}
-
-void RSBackgroundFilterDrawable::RemovePixelStretch()
-{
-    RSPropertyDrawableUtils::RSFilterRemovePixelStretch(stagingFilter_);
-}
-
-bool RSBackgroundEffectDrawable::OnUpdate(const RSRenderNode& node)
-{
-    stagingNodeId_ = node.GetId();
-    stagingNodeName_ = node.GetNodeName();
-    auto& rsFilter = node.GetRenderProperties().GetBackgroundFilter();
-    if (rsFilter == nullptr) {
-        return false;
-    }
-    RecordFilterInfos(rsFilter);
-    needSync_ = true;
-    stagingFilter_ = rsFilter;
-    return true;
-}
-
-void RSBackgroundEffectDrawable::OnSync()
-{
-    RSFilterDrawable::OnSync();
-}
-
-void RSBackgroundEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
-{
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas*>(canvas);
-    Drawing::AutoCanvasRestore acr(*canvas, true);
-    if (rect) {
-        paintFilterCanvas->ClipRect(*rect);
-    }
-#ifdef RS_ENABLE_GPU
-    RSTagTracker tagTracker(canvas->GetGPUContext(),
-        RSTagTracker::SOURCETYPE::SOURCE_RSBACKGROUNDEFFECTDRAWABLE);
-#endif
-    RectF bound = rect != nullptr ?
-        RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF();
-    Drawing::RectI boundsRect = GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
-    if (boundsRect.IsEmpty()) {
-        RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect boundsRect is empty");
-        return;
-    }
-    if (rect) {
-        Drawing::Rect snapshotRect = renderRelativeRectInfo_ != nullptr ?
-            GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound) : *rect;
-        Drawing::Rect drawRect = renderRelativeRectInfo_ != nullptr ?
-            GetAbsRenderEffectRect(*canvas, EffectRectType::DRAW, bound) : *rect;
-        auto filter = std::static_pointer_cast<RSDrawingFilter>(filter_);
-        if (filter) {
-            filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
-                rect->GetWidth(), rect->GetHeight());
-        }
-    }
-    RS_TRACE_NAME_FMT("RSBackgroundEffectDrawable::DrawBackgroundEffect nodeId[%lld]", renderNodeId_);
-    RSPropertyDrawableUtils::DrawBackgroundEffect(
-        paintFilterCanvas, filter_, renderNodeId_, cacheManager_, boundsRect);
-}
-
-Drawing::RectI RSBackgroundEffectDrawable::GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
-    EffectRectType type, const RectF& bound) const
-{
-    auto surface = canvas.GetSurface();
-    if (!surface) {
-        ROSEN_LOGE("RSBackgroundEffectDrawable::GetAbsRenderEffectRect surface is nullptr.");
-        return Drawing::RectI();
-    }
-    RectF rect = GetRenderRelativeRect(type, bound);
-    auto drawingRect = RSPropertyDrawableUtils::Rect2DrawingRect(rect);
-
-    Drawing::Rect absRect;
-    canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas const*>(&canvas);
-    auto filterClipBounds = RSPropertyDrawableUtils::DrawingRectI2RectI(paintFilterCanvas->GetFilterClipBounds());
-    RectI clipBound = renderRelativeRectInfo_ == nullptr || filterClipBounds.IsEmpty() ?
-        RectI(0, 0, surface->Width(), surface->Height()) : filterClipBounds;
-    RectI bounds(std::ceil(absRect.GetLeft()), std::ceil(absRect.GetTop()), std::ceil(absRect.GetWidth()),
-        std::ceil(absRect.GetHeight()));
-    bounds = bounds.IntersectRect(clipBound);
-    Drawing::RectI boundsRect(bounds.GetLeft(), bounds.GetTop(), bounds.GetRight(), bounds.GetBottom());
-    // When the drawing area of a useEffect node is empty in the current frame,
-    // it won't be collected by the effect node, effect data is null(RSRenderNode::UpdateVisibleEffectChild).
-    // if useEffect is within a node group, it will draw with fallback branch,
-    // causing an increase in RSPropertyDrawableUtils::DrawBackgroundEffect g_blurCnt and
-    // triggering frequency boosting. so add check for boundsRect: skip DrawBackgroundEffect to reduce blur count.
-    return boundsRect;
-}
-
 RSDrawable::Ptr RSUseEffectDrawable::OnGenerate(const RSRenderNode& node)
 {
     if (!node.GetRenderProperties().GetUseEffect()) {
@@ -838,14 +655,16 @@ void RSUseEffectDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* r
         drawable->DrawImpl(*paintFilterCanvas, *rect, index);
         paintFilterCanvas->SetDisableFilterCache(disableFilterCache);
         if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
-            RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, paintFilterCanvas->GetDarkColorMode());
+            RSEffectDrawableUtils::DrawFilterWithDRM(
+                canvas, paintFilterCanvas->GetDarkColorMode(), rect, nullptr);
             return;
         }
         RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas, useEffectType_);
         return;
     }
     if (paintFilterCanvas->GetEffectIntersectWithDRM()) {
-        RSPropertyDrawableUtils::DrawFilterWithDRM(canvas, paintFilterCanvas->GetDarkColorMode());
+        RSEffectDrawableUtils::DrawFilterWithDRM(
+            canvas, paintFilterCanvas->GetDarkColorMode(), rect, nullptr);
         return;
     }
     RSPropertyDrawableUtils::DrawUseEffect(paintFilterCanvas, useEffectType_);
@@ -936,115 +755,6 @@ std::shared_ptr<Drawing::Blender> RSDynamicLightUpDrawable::MakeDynamicLightUpBl
     builder->SetUniform("dynamicLightUpRate", rate * alpha);
     builder->SetUniform("dynamicLightUpDeg", degree * alpha);
     return builder->MakeBlender();
-}
-
-RSDrawable::Ptr RSMaterialFilterDrawable::OnGenerate(const RSRenderNode& node)
-{
-    auto& rsFilter = node.GetRenderProperties().GetMaterialFilter();
-    if (!rsFilter) {
-        return nullptr;
-    }
-
-    if (auto ret = std::make_shared<RSMaterialFilterDrawable>(); ret->OnUpdate(node)) {
-        return std::move(ret);
-    }
-    return nullptr;
-}
-
-bool RSMaterialFilterDrawable::OnUpdate(const RSRenderNode& node)
-{
-    stagingNodeId_ = node.GetId();
-    stagingNodeName_ = node.GetNodeName();
-    auto& rsFilter = node.GetRenderProperties().GetMaterialFilter();
-    if (!rsFilter) {
-        return false;
-    }
-    const auto& drawingFilter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-    RSPropertyDrawableUtils::ApplySDFShapeToFilter(node.GetRenderProperties(),
-        drawingFilter, node.GetId());
-    stagingEmptyShape_ = node.GetRenderProperties().GetSDFShape() &&
-        node.GetRenderProperties().GetSDFShape()->GetType() == RSNGEffectType::SDF_EMPTY_SHAPE;
-    auto clipBounds = node.GetRenderProperties().GetClipBounds();
-    stagingClipPath_ = clipBounds
-        ? std::make_shared<Drawing::Path>(clipBounds->GetDrawingPath())
-        : nullptr;
-    RecordFilterInfos(rsFilter);
-    needSync_ = true;
-    stagingFilter_ = rsFilter;
-    PostUpdate(node);
-    return true;
-}
-
-void RSMaterialFilterDrawable::OnSync()
-{
-    if (needSync_) {
-        emptyShape_ = stagingEmptyShape_;
-        clipPath_ = std::move(stagingClipPath_);
-    }
-    RSFilterDrawable::OnSync();
-}
-
-void RSMaterialFilterDrawable::OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const
-{
-    if (emptyShape_) {
-        return;
-    }
-    auto filter = std::static_pointer_cast<RSDrawingFilter>(filter_);
-    Drawing::AutoCanvasRestore acr(*canvas, clipPath_ != nullptr);
-    if (clipPath_) {
-        canvas->ClipPath(*clipPath_, Drawing::ClipOp::INTERSECT, true);
-    }
-    if (renderIntersectWithDRM_) {
-        RSEffectDrawableUtils::DrawColorUsingSDFWithDRM(canvas, rect, renderIsDarkColorMode_,
-            filter->GetGEContainer(), Drawing::GE_FILTER_FROSTED_GLASS, Drawing::GE_FILTER_FROSTED_GLASS_SHAPE);
-        return;
-    }
-    RSPropertyDrawableUtils::ApplyAdaptiveFrostedGlassParams(canvas, filter);
-    RectF bound = (rect != nullptr ?
-        RectF(rect->GetLeft(), rect->GetTop(), rect->GetWidth(), rect->GetHeight()) : RectF());
-    Drawing::RectI snapshotRect = GetAbsRenderEffectRect(*canvas, EffectRectType::SNAPSHOT, bound);
-    Drawing::RectI drawRect = GetAbsRenderEffectRect(*canvas, EffectRectType::DRAW, bound);
-    RS_TRACE_NAME_FMT("RSMaterialFilterDrawable::OnDraw node[%llu] ", renderNodeId_);
-    if (rect) {
-        filter->SetGeometry(canvas->GetTotalMatrix(), Drawing::Rect(snapshotRect), Drawing::Rect(drawRect),
-            rect->GetWidth(), rect->GetHeight());
-    }
-    int64_t startBlurTime = Drawing::PerfmonitorReporter::GetCurrentTime();
-    RSPropertyDrawableUtils::DrawFilter(canvas, filter_,
-        cacheManager_, renderNodeId_, IsForeground(), snapshotRect, drawRect);
-    int64_t blurDuration = Drawing::PerfmonitorReporter::GetCurrentTime() - startBlurTime;
-    auto filterType = filter_->GetFilterType();
-    RSPerfMonitorReporter::GetInstance().RecordBlurNode(renderNodeName_, blurDuration,
-        RSPropertyDrawableUtils::IsBlurFilterType(filterType));
-    if (rect != nullptr) {
-        RSPerfMonitorReporter::GetInstance().RecordBlurPerfEvent(renderNodeId_, renderNodeName_,
-            static_cast<uint16_t>(filterType), RSPropertyDrawableUtils::GetBlurFilterRadius(filter_),
-            rect->GetWidth(), rect->GetHeight(), blurDuration,
-            RSPropertyDrawableUtils::IsBlurFilterType(filterType));
-    }
-}
-
-Drawing::RectI RSMaterialFilterDrawable::GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
-    EffectRectType type, const RectF& bound) const
-{
-    RectF rect = GetRenderRelativeRect(type, bound);
-    auto drawingRect = RSPropertyDrawableUtils::Rect2DrawingRect(rect);
-
-    Drawing::Rect absRect;
-    canvas.GetTotalMatrix().MapRect(absRect, drawingRect);
-    auto surface = canvas.GetSurface();
-    if (!surface) {
-        return Drawing::RectI();
-    }
-
-    Drawing::RectI absRectI = absRect.RoundOut();
-    auto paintFilterCanvas = static_cast<RSPaintFilterCanvas const*>(&canvas);
-    auto filterClipBounds = paintFilterCanvas->GetFilterClipBounds();
-    Drawing::RectI clipBound =
-        filterClipBounds.IsEmpty() ? Drawing::RectI(0, 0, surface->Width(), surface->Height()) : filterClipBounds;
-    // if absRectI.Intersect(deviceRect) is true,
-    // it means that absRectI intersects with deviceRect, and absRectI has been set to their intersection.
-    return absRectI.Intersect(clipBound) ? absRectI : Drawing::RectI();
 }
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

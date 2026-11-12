@@ -17,7 +17,7 @@
 
 #include "common/rs_obj_abs_geometry.h"
 #include "drawable/rs_drawable.h"
-#include "drawable/rs_property_drawable_background.h"
+#include "drawable/rs_filter_drawable.h"
 #include "params/rs_effect_render_params.h"
 #include "feature/filter_cache_manager/rs_cache_update_manager.h"
 #include "feature/filter_cache_manager/rs_filter_cache_manager.h"
@@ -267,7 +267,8 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterCacheFlagsTest, TestSize.Level1)
 {
     NodeId nodeId = 0;
     RSEffectRenderNode rsEffectRenderNode(nodeId);
-    auto filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable =
+        std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
     RSDirtyRegionManager dirtyManager;
     rsEffectRenderNode.MarkFilterCacheFlags(filterDrawable, dirtyManager, false);
     rsEffectRenderNode.isRotationChanged_ = true;
@@ -288,7 +289,8 @@ HWTEST_F(RSEffectRenderNodeTest, MarkFilterCacheFlagsWithForceClearFilterCache, 
 {
     RSEffectRenderNode node(1);
     std::shared_ptr<RSDirtyRegionManager> rsDirtyManager = std::make_shared<RSDirtyRegionManager>();
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable =
+        std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
     filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->cacheManager_ = std::make_unique<RSFilterCacheManager>();
     filterDrawable->MarkFilterForceClearCache();

@@ -86,6 +86,11 @@ typedef struct FontConfigJsonInfo {
 
 using FontFileMap = std::unordered_map<std::string, std::string>;
 using FullNameToPath = std::unordered_map<std::string, std::pair<size_t, std::string>>;
+typedef struct FontMappingEntry {
+    std::string srcFont;
+    std::vector<std::string> targetFonts;
+} FontMappingEntry;
+using FontMapTable = std::vector<FontMappingEntry>;
 
 class FontConfigJson : public FontConfig {
 public:
@@ -102,11 +107,18 @@ public:
     {
         return fontFileMap;
     }
+    int ParseFontMapTable(const char* fname = nullptr);
+    std::shared_ptr<FontMapTable> GetFontMapTable()
+    {
+        return fontMapTable_;
+    }
 
 private:
     int ParseConfigList(const char* fname);
     int ParseConfigListPath(const char* fname);
     int ParseFontMap(const cJSON* root, const char* key);
+    int ParseMapTable(const cJSON* root, const char* key);
+    static void ParseTargetFonts(FontMappingEntry& mappingEntry, const cJSON* entry, int index);
     int ParseDir(const cJSON* root);
     int ParseFonts(const cJSON* root);
     void AnalyseFont(const cJSON* root);
@@ -127,6 +139,7 @@ private:
     std::shared_ptr<FontFileMap> fontFileMap = nullptr;
     // because of some memory bugs, this place use shared ptr
     std::shared_ptr<std::unordered_map<std::string, size_t>> indexMap = nullptr;
+    std::shared_ptr<FontMapTable> fontMapTable_ = nullptr;
 };
 } // namespace TextEngine
 } // namespace Rosen

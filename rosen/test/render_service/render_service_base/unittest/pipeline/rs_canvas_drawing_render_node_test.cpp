@@ -361,13 +361,15 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, ResetSurface, TestSize.Level1)
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     rsCanvasDrawingRenderNode->surfaceHandler_ = std::make_shared<RSSurfaceHandler>(rsCanvasDrawingRenderNode->GetId());
-    rsCanvasDrawingRenderNode->sizeOutOfGpuLimit_ = false;
-    rsCanvasDrawingRenderNode->clientRender_ = true;
+    rsCanvasDrawingRenderNode->bufferDraw_ = true;
     ASSERT_TRUE(rsCanvasDrawingRenderNode->IsBufferDraw());
     width = 100000;
     height = 100000;
-    rsCanvasDrawingRenderNode->ResetSurface(width, height, height);
-    ASSERT_TRUE(rsCanvasDrawingRenderNode->sizeOutOfGpuLimit_);
+    rsCanvasDrawingRenderNode->ResetSurface(width, height, 0);
+    ASSERT_FALSE(rsCanvasDrawingRenderNode->bufferDraw_);
+    // Cover else branch: resetSurfaceMark > 0 sets bufferDraw_ = true
+    rsCanvasDrawingRenderNode->ResetSurface(width, height, 1);
+    ASSERT_TRUE(rsCanvasDrawingRenderNode->bufferDraw_);
 #endif
 #if (defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK))
     Drawing::Canvas canvas(1024, 1096);
@@ -864,15 +866,15 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, SplitDrawCmdListTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: InitClientRenderEnableTest
- * @tc.desc: Test InitClientRenderEnable with ccmEnabled
+ * @tc.name: InitHybridRenderEnableTest
+ * @tc.desc: Test InitHybridRenderEnable with ccmEnabled
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasDrawingRenderNodeTest, InitClientRenderEnableTest, TestSize.Level1)
+HWTEST_F(RSCanvasDrawingRenderNodeTest, InitHybridRenderEnableTest, TestSize.Level1)
 {
-    RSCanvasDrawingRenderNode::InitClientRenderEnable(false);
+    RSCanvasDrawingRenderNode::InitHybridRenderEnable(false);
     EXPECT_FALSE(RSCanvasDrawingRenderNode::hybridEnabled_);
-    RSCanvasDrawingRenderNode::InitClientRenderEnable(true);
+    RSCanvasDrawingRenderNode::InitHybridRenderEnable(true);
     EXPECT_EQ(RSCanvasDrawingRenderNode::hybridEnabled_, RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM());
 }
 
@@ -1075,14 +1077,14 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, AddDirtyTypeHasDrawCmdListTest, TestSize
 
 /**
  * @tc.name: UpdateBufferInfoHasDrawCmdListTest
- * @tc.desc: Test UpdateBufferInfo when clientRender_ and hasDrawCmdList_ are true
+ * @tc.desc: Test UpdateBufferInfo when bufferDraw_ and hasDrawCmdList_ are true
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoHasDrawCmdListTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(51);
     node->InitRenderParams();
-    node->clientRender_ = true;
+    node->bufferDraw_ = true;
     node->hasDrawCmdList_ = true;
     auto cmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
     node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmdList);
@@ -1099,14 +1101,14 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoHasDrawCmdListTest, Test
 
 /**
  * @tc.name: UpdateBufferInfoFirstBufferNoDrawCmdListTest
- * @tc.desc: Test UpdateBufferInfo when clientRender_ is true but hasDrawCmdList_ is false
+ * @tc.desc: Test UpdateBufferInfo when bufferDraw_ is true but hasDrawCmdList_ is false
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoFirstBufferNoDrawCmdListTest, TestSize.Level1)
 {
     auto node = std::make_shared<RSCanvasDrawingRenderNode>(52);
     node->InitRenderParams();
-    node->clientRender_ = true;
+    node->bufferDraw_ = true;
     node->hasDrawCmdList_ = false;
     auto cmdList = std::make_shared<RSSimpleDrawCmdList>(100, 100);
     node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].emplace_back(cmdList);
@@ -1118,6 +1120,24 @@ HWTEST_F(RSCanvasDrawingRenderNodeTest, UpdateBufferInfoFirstBufferNoDrawCmdList
     EXPECT_FALSE(node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].empty());
     node->UpdateBufferInfo(nullptr, ownerCount, damageRect, fence, nullptr, ownerCount);
     EXPECT_FALSE(node->drawCmdListsNG_[ModifierNG::RSModifierType::CONTENT_STYLE].empty());
+}
+
+/**
+ * @tc.name: DumpSubClassNodeBufferDrawTest
+ * @tc.desc: Test DumpSubClassNode appends bufferDraw flag only when bufferDraw_ is true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingRenderNodeTest, DumpSubClassNodeBufferDrawTest, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasDrawingRenderNode>(53);
+    node->bufferDraw_ = true;
+    std::string bufferDrawOut;
+    node->DumpSubClassNode(bufferDrawOut);
+    ASSERT_NE(bufferDrawOut.find(", bufferDraw: true"), std::string::npos);
+    node->bufferDraw_ = false;
+    std::string noBufferDrawOut;
+    node->DumpSubClassNode(noBufferDrawOut);
+    EXPECT_EQ(noBufferDrawOut.find(", bufferDraw: true"), std::string::npos);
 }
 #endif
 } // namespace OHOS::Rosen

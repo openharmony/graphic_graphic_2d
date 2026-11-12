@@ -132,7 +132,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest003, TestSize.Level0)
     std::vector<std::pair<TypographyConfig, TypographyConfig>> update = {
         {CreateConfig(), newConfig}
     };
-    
+
     EXPECT_EQ(effect_->UpdateTypography(update), TEXT_EFFECT_SUCCESS);
     EXPECT_EQ(effect_->typographyConfig_.rawTextRange.first, 5);
     EXPECT_EQ(effect_->typographyConfig_.rawTextRange.second, 15);
@@ -145,7 +145,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest003, TestSize.Level0)
 
     std::vector<std::pair<TypographyConfig, TypographyConfig>> emptyUpdate;
     EXPECT_EQ(effect_->UpdateTypography(emptyUpdate), TEXT_EFFECT_INVALID_INPUT);
-    
+
     auto anotherTypography = std::make_shared<MockTypography>();
     TypographyConfig anotherConfig = { anotherTypography, {5, 15} };
     std::vector<std::pair<TypographyConfig, TypographyConfig>> mismatchedUpdate = {
@@ -172,7 +172,7 @@ HWTEST_F(TextFlipEffectTest, TextFlipEffectTest004, TestSize.Level0)
     TypographyConfig config = CreateConfig();
     effect_->AppendTypography({config});
     effect_->RemoveTypography({config});
-    
+
     EXPECT_EQ(effect_->typographyConfig_.typography, nullptr);
     EXPECT_EQ(effect_->typographyConfig_.rawTextRange.first, 0);
     EXPECT_EQ(effect_->typographyConfig_.rawTextRange.second, 0);

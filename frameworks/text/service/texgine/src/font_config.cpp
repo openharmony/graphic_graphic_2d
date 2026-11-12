@@ -38,6 +38,7 @@ namespace TextEngine {
 
 const char* FONT_DEFAULT_CONFIG = "/system/etc/fontconfig_ohos.json";
 const char* FONT_FILE_MAP_CONFIG = "/system/etc/font_file_map.json";
+const char* FONT_MAP_TABLE_CONFIG = "/system/etc/fonts_map_table.json";
 
 FontConfig::FontConfig(const char* fname)
 {
@@ -194,6 +195,80 @@ int FontConfigJson::ParseFontFileMap(const char* fname)
         return err;
     }
     return SUCCESSED;
+}
+
+int FontConfigJson::ParseFontMapTable(const char* fname)
+{
+    if (fname == nullptr) {
+        TEXT_LOGD("Null file name");
+        fname = FONT_MAP_TABLE_CONFIG;
+    }
+
+    TEXT_LOGI_LIMIT3_MIN("Font map table file name: %{public}s", fname);
+    cJSON* root = CheckConfigFile(fname);
+    if (root == nullptr) {
+        TEXT_LOGE_LIMIT3_MIN("Failed to check font map table config file");
+        return FAILED;
+    }
+    fontMapTable_ = std::make_shared<FontMapTable>();
+    int err = ParseMapTable(root, "fontsMapTable");
+    cJSON_Delete(root);
+    if (err != 0) {
+        TEXT_LOGE_LIMIT3_MIN("Failed to parse fontsMapTable, ret %{public}d", err);
+        fontMapTable_ = nullptr; // Reset on failure to preserve previous cache
+        return err;
+    }
+    return SUCCESSED;
+}
+
+int FontConfigJson::ParseMapTable(const cJSON* root, const char* key)
+{
+    if (root == nullptr || fontMapTable_ == nullptr) {
+        TEXT_LOGE("Null root or fontMapTable_");
+        return FAILED;
+    }
+    cJSON* mapArray = cJSON_GetObjectItem(root, key);
+    if (mapArray == nullptr || !cJSON_IsArray(mapArray)) {
+        TEXT_LOGE("Failed to get fontsMapTable array");
+        return FAILED;
+    }
+    int size = cJSON_GetArraySize(mapArray);
+    for (int i = 0; i < size; i++) {
+        cJSON* entry = cJSON_GetArrayItem(mapArray, i);
+        if (entry == nullptr || !cJSON_IsObject(entry)) {
+            TEXT_LOGE("Invalid entry at index %{public}d", i);
+            continue;
+        }
+        FontMappingEntry mappingEntry;
+        // Parse "srcFont"
+        cJSON* srcFont = cJSON_GetObjectItem(entry, "srcFont");
+        if (srcFont != nullptr && cJSON_IsString(srcFont)) {
+            mappingEntry.srcFont = srcFont->valuestring;
+        } else {
+            TEXT_LOGE("Missing or invalid srcFont at index %{public}d", i);
+            continue;
+        }
+        // Parse "targetFonts" array
+        ParseTargetFonts(mappingEntry, entry, i);
+        fontMapTable_->emplace_back(mappingEntry);
+    }
+    return SUCCESSED;
+}
+
+void FontConfigJson::ParseTargetFonts(FontMappingEntry& mappingEntry, const cJSON* entry, int index)
+{
+    cJSON* targetFonts = cJSON_GetObjectItem(entry, "targetFonts");
+    if (targetFonts == nullptr || !cJSON_IsArray(targetFonts)) {
+        TEXT_LOGE("Missing or invalid targetFonts at index %{public}d", index);
+        return;
+    }
+    int targetSize = cJSON_GetArraySize(targetFonts);
+    for (int j = 0; j < targetSize; j++) {
+        cJSON* target = cJSON_GetArrayItem(targetFonts, j);
+        if (target != nullptr && cJSON_IsString(target)) {
+            mappingEntry.targetFonts.emplace_back(target->valuestring);
+        }
+    }
 }
 
 void FontConfigJson::EmplaceFontJson(const FontJson& fontJson)

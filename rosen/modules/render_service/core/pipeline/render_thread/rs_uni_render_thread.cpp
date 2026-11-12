@@ -24,6 +24,7 @@
 #include "common/rs_optional_trace.h"
 #include "common/rs_singleton.h"
 #include "drawable/rs_screen_render_node_drawable.h"
+#include "drawable/rs_effect_drawable_utils.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "drawable/rs_surface_render_node_drawable.h"
 #include "engine/rs_uni_render_engine.h"
@@ -673,7 +674,7 @@ void RSUniRenderThread::PerfForBlurIfNeeded()
 
     // delay 100ms
     handler_->PostTask(task, PERF_FOR_BLUR_IF_NEEDED_TASK_NAME, 100);
-    int blurCnt = RSPropertyDrawableUtils::GetAndResetBlurCnt();
+    int blurCnt = DrawableV2::RSEffectDrawableUtils::GetAndResetBlurCnt();
     // clamp blurCnt to 0~3.
     blurCnt = std::clamp<int>(blurCnt, 0, 3);
     cnt = (blurCnt < preBlurCnt) ? (cnt + 1) : 0;

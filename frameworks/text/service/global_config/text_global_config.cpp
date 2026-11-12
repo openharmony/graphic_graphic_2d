@@ -23,7 +23,6 @@
 #include "utils/text_log.h"
 
 namespace OHOS::Rosen::SrvText {
-
 using namespace OHOS::Rosen::Drawing;
 
 uint32_t TextGlobalConfig::SetTextHighContrast(uint32_t textHighContrast)

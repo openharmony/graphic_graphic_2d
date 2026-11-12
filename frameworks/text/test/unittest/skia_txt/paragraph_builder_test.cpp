@@ -276,14 +276,14 @@ HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest014, TestSize.Level0)
  */
 HWTEST_F(ParagraphBuilderTest, ParagraphBuilderTest016, TestSize.Level0)
 {
-     skia::textlayout::ParagraphStyle skStyle;
-     ParagraphStyle txt;
-     txt.enableAutoSpace = true;
-     txt.compressHeadPunctuation = true;
-     skStyle.setEnableAutoSpace(txt.enableAutoSpace);
-     skStyle.setCompressHeadPunctuation(txt.compressHeadPunctuation);
-     EXPECT_EQ(skStyle.getEnableAutoSpace(), txt.enableAutoSpace);
-     EXPECT_EQ(skStyle.getCompressHeadPunctuation(), txt.compressHeadPunctuation);
+    skia::textlayout::ParagraphStyle skStyle;
+    ParagraphStyle txt;
+    txt.enableAutoSpace = true;
+    txt.compressHeadPunctuation = true;
+    skStyle.setEnableAutoSpace(txt.enableAutoSpace);
+    skStyle.setCompressHeadPunctuation(txt.compressHeadPunctuation);
+    EXPECT_EQ(skStyle.getEnableAutoSpace(), txt.enableAutoSpace);
+    EXPECT_EQ(skStyle.getCompressHeadPunctuation(), txt.compressHeadPunctuation);
 }
 
 /*

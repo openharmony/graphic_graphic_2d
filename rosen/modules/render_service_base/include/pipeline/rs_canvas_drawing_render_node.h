@@ -62,7 +62,7 @@ public:
 
     void AddDirtyType(ModifierNG::RSModifierType modifierType) override;
     void ClearOp();
-    void ResetSurface(int width, int height, uint32_t resetSurfaceIndex);
+    void ResetSurface(int width, int height, uint32_t resetSurfaceMark);
     bool IsNeedProcess() const;
     void ContentStyleSlotUpdate();
     void SetNeedProcess(bool needProcess);
@@ -84,7 +84,7 @@ public:
 
     bool IsNodeMemClearEnable() override;
 
-    static void InitClientRenderEnable(bool ccmEnabled);
+    static void InitHybridRenderEnable(bool ccmEnabled);
  
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     const std::shared_ptr<RSSurfaceHandler> GetSurfaceHandler() const
@@ -106,7 +106,7 @@ public:
  
     void OnDestoryTokenNode();
  
-    bool IsBufferDraw();
+    bool IsBufferDraw() const;
 
     bool IsBufferDirty() const override
     {
@@ -167,12 +167,13 @@ private:
     bool modifiersApplied_ = false;
     bool hasDrawCmdList_ = false;
 
+    // Indicates whether the hybrid render system switch is enabled, not whether the current frame uses hybrid render
     static inline bool hybridEnabled_ = false;
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     std::shared_ptr<RSSurfaceHandler> surfaceHandler_ = nullptr;
-    bool sizeOutOfGpuLimit_ = false;
-    bool clientRender_ = false;
+    // Whether the current frame uses hybrid render
+    bool bufferDraw_ = false;
     bool bufferDirty_ = false;
 #endif
 

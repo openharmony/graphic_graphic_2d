@@ -431,7 +431,7 @@ private:
 
     static inline bool isUniRenderEnabled_ = false;
     static inline bool isBackgroundRebuildEnabled_ = false;
-    static inline bool isCanvasDrawingNodeClientRenderEnabled_ = false;
+    static inline bool isCanvasDrawingNodeHybridRenderEnabled_ = false;
     inline static bool isDrawTextAsBitmap_ = false;
     inline static std::atomic_bool cacheEnabledForRotation_ = false;
     static inline std::atomic<bool> forceHpsBlurDisabled_{false};

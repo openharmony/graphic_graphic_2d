@@ -16,6 +16,8 @@
 #include <codecvt>
 #include <filesystem>
 #include <fstream>
+#include <memory>
+#include <vector>
 
 #include "drawing_font_collection.h"
 #include "drawing_register_font.h"
@@ -965,5 +967,194 @@ HWTEST_F(NdkFontDescriptorTest, GetFontPathsByTypeInvalidInput, TestSize.Level0)
     EXPECT_EQ(pathCount, 0);
     fontPaths = OH_Drawing_GetFontPathsByType(static_cast<OH_Drawing_SystemFontType>(UINT16_MAX), nullptr);
     EXPECT_EQ(fontPaths, nullptr);
+}
+
+class NdkFontFamilyMappingTest : public testing::Test {
+public:
+    void SetUp() override
+    {
+        backupMapTable_ = FontDescriptorMgrInstance.GetFontMapTable();
+    }
+
+    void TearDown() override
+    {
+        FontDescriptorMgrInstance.SetFontMapTable(backupMapTable_);
+    }
+
+private:
+    std::shared_ptr<OHOS::Rosen::TextEngine::FontMapTable> backupMapTable_;
+};
+
+namespace {
+std::shared_ptr<OHOS::Rosen::TextEngine::FontMapTable> CreateFontMapTable()
+{
+    auto mapTable = std::make_shared<OHOS::Rosen::TextEngine::FontMapTable>();
+    OHOS::Rosen::TextEngine::FontMappingEntry entry1;
+    entry1.srcFont = "Arial";
+    entry1.targetFonts = { "DejaVu Sans", "Liberation Sans" };
+    mapTable->push_back(entry1);
+    OHOS::Rosen::TextEngine::FontMappingEntry entry2;
+    entry2.srcFont = "Courier New";
+    mapTable->push_back(entry2);
+    return mapTable;
+}
+} // namespace
+
+/*
+ * @tc.name: CopyFontFamilyMappingsNullPointer
+ * @tc.desc: test for CopyFontFamilyMappings with null output pointers
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFamilyMappingTest, CopyFontFamilyMappingsNullPointer, TestSize.Level0)
+{
+    uint32_t count = 0;
+    EXPECT_EQ(OH_Drawing_CopyFontFamilyMappings(nullptr, &count), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    const OH_Drawing_FontFamilyMapping** mappings = nullptr;
+    EXPECT_EQ(OH_Drawing_CopyFontFamilyMappings(&mappings, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+}
+
+/*
+ * @tc.name: CopyFontFamilyMappingsEmptyTable
+ * @tc.desc: test for CopyFontFamilyMappings when the map table is empty
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFamilyMappingTest, CopyFontFamilyMappingsEmptyTable, TestSize.Level0)
+{
+    auto emptyTable = std::make_shared<OHOS::Rosen::TextEngine::FontMapTable>();
+    FontDescriptorMgrInstance.SetFontMapTable(emptyTable);
+
+    const OH_Drawing_FontFamilyMapping** mappings = reinterpret_cast<const OH_Drawing_FontFamilyMapping**>(0x1);
+    uint32_t count = UINT32_MAX;
+    EXPECT_EQ(OH_Drawing_CopyFontFamilyMappings(&mappings, &count), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(mappings, nullptr);
+    EXPECT_EQ(count, 0);
+}
+
+/*
+ * @tc.name: CopyFontFamilyMappingsSuccess
+ * @tc.desc: test for CopyFontFamilyMappings with a valid map table
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFamilyMappingTest, CopyFontFamilyMappingsSuccess, TestSize.Level0)
+{
+    FontDescriptorMgrInstance.SetFontMapTable(CreateFontMapTable());
+
+    const OH_Drawing_FontFamilyMapping** mappings = nullptr;
+    uint32_t count = 0;
+    OH_Drawing_ErrorCode errorCode = OH_Drawing_CopyFontFamilyMappings(&mappings, &count);
+    EXPECT_EQ(errorCode, OH_DRAWING_SUCCESS);
+    ASSERT_NE(mappings, nullptr);
+    EXPECT_EQ(count, 2);
+    EXPECT_EQ(mappings[count], nullptr);
+
+    const char* sourceFamily = nullptr;
+    uint32_t targetCount = 0;
+    const char* targetFamily = nullptr;
+
+    EXPECT_EQ(OH_Drawing_GetSourceFamilyFromMapping(mappings[0], &sourceFamily), OH_DRAWING_SUCCESS);
+    EXPECT_STREQ(sourceFamily, "Arial");
+    EXPECT_EQ(OH_Drawing_GetTargetCountFromMapping(mappings[0], &targetCount), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(targetCount, 2);
+    EXPECT_EQ(OH_Drawing_GetTargetFamilyFromMapping(mappings[0], 0, &targetFamily), OH_DRAWING_SUCCESS);
+    EXPECT_STREQ(targetFamily, "DejaVu Sans");
+    EXPECT_EQ(OH_Drawing_GetTargetFamilyFromMapping(mappings[0], 1, &targetFamily), OH_DRAWING_SUCCESS);
+    EXPECT_STREQ(targetFamily, "Liberation Sans");
+    EXPECT_EQ(OH_Drawing_GetTargetFamilyFromMapping(mappings[0], 2, &targetFamily),
+        OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+
+    EXPECT_EQ(OH_Drawing_GetSourceFamilyFromMapping(mappings[1], &sourceFamily), OH_DRAWING_SUCCESS);
+    EXPECT_STREQ(sourceFamily, "Courier New");
+    EXPECT_EQ(OH_Drawing_GetTargetCountFromMapping(mappings[1], &targetCount), OH_DRAWING_SUCCESS);
+    EXPECT_EQ(targetCount, 0);
+    EXPECT_EQ(OH_Drawing_GetTargetFamilyFromMapping(mappings[1], 0, &targetFamily),
+        OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE);
+
+    OH_Drawing_FreeFontFamilyMappings(mappings);
+}
+
+/*
+ * @tc.name: FreeFontFamilyMappingsNullPointer
+ * @tc.desc: test for FreeFontFamilyMappings with null pointer
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFamilyMappingTest, FreeFontFamilyMappingsNullPointer, TestSize.Level0)
+{
+    OH_Drawing_FreeFontFamilyMappings(nullptr);
+}
+
+/*
+ * @tc.name: FreeFontFamilyMappingsValid
+ * @tc.desc: test for FreeFontFamilyMappings with a valid copied array
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFamilyMappingTest, FreeFontFamilyMappingsValid, TestSize.Level0)
+{
+    FontDescriptorMgrInstance.SetFontMapTable(CreateFontMapTable());
+
+    const OH_Drawing_FontFamilyMapping** mappings = nullptr;
+    uint32_t count = 0;
+    EXPECT_EQ(OH_Drawing_CopyFontFamilyMappings(&mappings, &count), OH_DRAWING_SUCCESS);
+    ASSERT_NE(mappings, nullptr);
+    EXPECT_EQ(count, 2);
+    OH_Drawing_FreeFontFamilyMappings(mappings);
+}
+
+/*
+ * @tc.name: GetSourceFamilyFromMappingInvalidInput
+ * @tc.desc: test for GetSourceFamilyFromMapping with invalid input
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFamilyMappingTest, GetSourceFamilyFromMappingInvalidInput, TestSize.Level0)
+{
+    const char* sourceFamily = nullptr;
+    EXPECT_EQ(OH_Drawing_GetSourceFamilyFromMapping(nullptr, &sourceFamily), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+
+    FontDescriptorMgrInstance.SetFontMapTable(CreateFontMapTable());
+    const OH_Drawing_FontFamilyMapping** mappings = nullptr;
+    uint32_t count = 0;
+    ASSERT_EQ(OH_Drawing_CopyFontFamilyMappings(&mappings, &count), OH_DRAWING_SUCCESS);
+    ASSERT_NE(mappings, nullptr);
+    EXPECT_EQ(OH_Drawing_GetSourceFamilyFromMapping(mappings[0], nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_FreeFontFamilyMappings(mappings);
+}
+
+/*
+ * @tc.name: GetTargetCountFromMappingInvalidInput
+ * @tc.desc: test for GetTargetCountFromMapping with invalid input
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFamilyMappingTest, GetTargetCountFromMappingInvalidInput, TestSize.Level0)
+{
+    uint32_t targetCount = 0;
+    EXPECT_EQ(OH_Drawing_GetTargetCountFromMapping(nullptr, &targetCount), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+
+    FontDescriptorMgrInstance.SetFontMapTable(CreateFontMapTable());
+    const OH_Drawing_FontFamilyMapping** mappings = nullptr;
+    uint32_t count = 0;
+    ASSERT_EQ(OH_Drawing_CopyFontFamilyMappings(&mappings, &count), OH_DRAWING_SUCCESS);
+    ASSERT_NE(mappings, nullptr);
+    EXPECT_EQ(OH_Drawing_GetTargetCountFromMapping(mappings[0], nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_FreeFontFamilyMappings(mappings);
+}
+
+/*
+ * @tc.name: GetTargetFamilyFromMappingInvalidInput
+ * @tc.desc: test for GetTargetFamilyFromMapping with invalid input
+ * @tc.type: FUNC
+ */
+HWTEST_F(NdkFontFamilyMappingTest, GetTargetFamilyFromMappingInvalidInput, TestSize.Level0)
+{
+    const char* targetFamily = nullptr;
+    EXPECT_EQ(OH_Drawing_GetTargetFamilyFromMapping(nullptr, 0, &targetFamily), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+
+    FontDescriptorMgrInstance.SetFontMapTable(CreateFontMapTable());
+    const OH_Drawing_FontFamilyMapping** mappings = nullptr;
+    uint32_t count = 0;
+    ASSERT_EQ(OH_Drawing_CopyFontFamilyMappings(&mappings, &count), OH_DRAWING_SUCCESS);
+    ASSERT_NE(mappings, nullptr);
+    EXPECT_EQ(OH_Drawing_GetTargetFamilyFromMapping(mappings[0], 0, nullptr), OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    EXPECT_EQ(OH_Drawing_GetTargetFamilyFromMapping(mappings[0], UINT32_MAX, nullptr),
+        OH_DRAWING_ERROR_INCORRECT_PARAMETER);
+    OH_Drawing_FreeFontFamilyMappings(mappings);
 }
 } // namespace OHOS

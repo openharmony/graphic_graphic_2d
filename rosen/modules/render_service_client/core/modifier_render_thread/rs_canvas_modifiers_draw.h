@@ -17,7 +17,6 @@
 #define RENDER_SERVICE_CLIENT_CORE_MODIFIER_RENDER_THREAD_RS_CANVAS_MODIFIERS_DRAW_H
 
 #include <future>
-#include <mutex>
 #include <unordered_map>
 
 #include "event_handler.h"
@@ -26,7 +25,6 @@
 
 #include "common/rs_common_def.h"
 #include "platform/drawing/rs_surface.h"
-#include "transaction/rs_buffer_transaction.h"
 #include "transaction/rs_render_interface.h"
 
 namespace OHOS {
@@ -34,7 +32,8 @@ namespace Media {
 class PixelMap;
 }
 namespace Rosen {
-namespace TaskDetail {
+struct DestroySemaphoreInfo;
+namespace CanvasTaskDetail {
 template<typename Task>
 class ScheduledTask : public RefBase {
 public:
@@ -56,9 +55,40 @@ private:
     using Return = std::invoke_result_t<Task>;
     std::packaged_task<Return()> task_;
 };
-} // namespace TaskDetail
+} // namespace CanvasTaskDetail
 
-struct DestroySemaphoreInfo;
+class RSC_EXPORT RSCanvasModifiersContext {
+public:
+    RSCanvasModifiersContext() = delete;
+    RSCanvasModifiersContext(std::weak_ptr<RSRenderInterface> weakRenderInterface);
+    ~RSCanvasModifiersContext() = default;
+
+private:
+    std::shared_ptr<Drawing::GPUContext> GetGpuContext();
+
+    void ReleaseGpuContext();
+
+    void CleanGpuCache();
+
+    void GetGpuCacheLimits();
+
+    void RestoreGpuCacheLimits();
+
+    std::string cacheDir_;
+
+    std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
+
+    std::shared_ptr<RenderContext> renderContext_ = nullptr;
+
+    static inline size_t maxGpuResourceBytes_ = 0;
+
+    bool needRestoreGpuCacheLimit_ = false;
+
+    std::weak_ptr<RSRenderInterface> weakRenderInterface_;
+
+    friend class RSCanvasModifiersDraw;
+    friend class RSCanvasModifiersDrawable;
+};
 
 class RSC_EXPORT RSCanvasModifiersDrawable {
 public:
@@ -67,49 +97,48 @@ public:
 
 private:
     void Reset();
-    void CreateProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface,
-        std::shared_ptr<Drawing::GPUContext> gpuContext, size_t& maxGpuResourceBytes);
-    void ReleaseProducerSurface(std::weak_ptr<RSRenderInterface> weakRenderInterface);
-    void ResetSurface(int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace);
+    void CreateProducerSurface(
+        std::shared_ptr<RSCanvasModifiersContext> canvasModifiersContext, GraphicColorGamut colorSpace);
+    void ReleaseProducerSurface(std::shared_ptr<RSCanvasModifiersContext> canvasModifiersContext);
+    void ResetSurface(int width, int height, bool sizeOutOfGpuLimit);
     void UpdateContent(Drawing::DrawCmdListPtr drawCmdList, bool forceFlushBuffer);
-    void Draw();
-    std::unique_ptr<RSSurfaceFrame> RequestBufferAndDrawHistory();
+    void Draw(bool forceFlushBuffer);
+    bool RequestBufferAndDrawHistory(int width, int height, bool needResetCanvas);
     void Playback(const Drawing::DrawCmdListPtr& cmdList);
 
     sptr<SurfaceBuffer> GetBuffer(bool needFlushBuffer);
-    void OnDirtyBufferCollected(int64_t lastFlushBufferTime);
+    void OnDirtyBufferCollected(int64_t lastBufferExpiredTime);
 
     bool IsFree(int64_t now, int64_t maxDuration);
     void CleanBuffer();
 
     bool GetPixelMap(std::shared_ptr<Media::PixelMap> pixelMap, const Drawing::Rect* rect,
-        Drawing::DrawCmdListPtr drawCmdList, std::shared_ptr<Drawing::GPUContext> gpuContext);
+        Drawing::DrawCmdListPtr drawCmdList, std::shared_ptr<RSCanvasModifiersContext> canvasModifiersContext);
 
-    bool GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<Drawing::GPUContext> gpuContext);
+    bool GetBitmap(Drawing::Bitmap& bitmap, std::shared_ptr<RSCanvasModifiersContext> canvasModifiersContext);
 
     std::shared_ptr<Drawing::Image> GetImage(
-        const Drawing::BitmapFormat& bitmapFormat, std::shared_ptr<Drawing::GPUContext> gpuContext);
+        const Drawing::BitmapFormat& bitmapFormat, std::shared_ptr<RSCanvasModifiersContext> canvasModifiersContext);
 
     NodeId nodeId_ = 0;
     int width_ = 0;
     int height_ = 0;
-    bool forceFlushBuffer_ = false;
-    bool needResetCanvas_ = false;
     bool hasDrawn_ = false;
-    int64_t lastFlushBufferTime_ = 0;
+    bool bufferRequested_ = false;
+    bool bufferDirty_ = false;
+    int64_t lastBufferExpiredTime_ = 0;
     RSNodeState nodeState_ = RSNodeState::ACTIVE;
     std::shared_ptr<RSSurface> producerSurface_ = nullptr;
     std::shared_ptr<Drawing::Surface> drawingSurface_ = nullptr;
-    std::unique_ptr<RSSurfaceFrame> surfaceFrame_ = nullptr;
     std::unique_ptr<std::vector<Drawing::DrawCmdListPtr>> drawCmdListCache_ = nullptr;
-    std::shared_ptr<RenderContext> renderContext_ = nullptr;
 
     friend class RSCanvasModifiersDraw;
 };
 
 class RSC_EXPORT RSCanvasModifiersDraw : public std::enable_shared_from_this<RSCanvasModifiersDraw> {
 public:
-    RSCanvasModifiersDraw() = default;
+    RSCanvasModifiersDraw() = delete;
+    RSCanvasModifiersDraw(std::weak_ptr<RSRenderInterface> weakRenderInterface);
     ~RSCanvasModifiersDraw() = default;
     RSCanvasModifiersDraw(const RSCanvasModifiersDraw&) = delete;
     RSCanvasModifiersDraw(const RSCanvasModifiersDraw&&) = delete;
@@ -119,7 +148,6 @@ public:
 private:
     // Thread-related methods
     void StartThread();
-    void WaitAllTasksFinish();
     void Destroy();
     void PostTask(const std::function<void()>& task, const std::string& name = std::string(), int64_t delayTime = 0);
     void PostSyncTask(const std::function<void()>& task);
@@ -128,23 +156,25 @@ private:
     template<typename Task, typename Return = std::invoke_result_t<Task>>
     std::future<Return> ScheduleTask(Task&& task)
     {
-        auto [scheduledTask, taskFuture] = TaskDetail::ScheduledTask<Task>::Create(std::forward<Task&&>(task));
+        auto [scheduledTask, taskFuture] = CanvasTaskDetail::ScheduledTask<Task>::Create(std::forward<Task&&>(task));
         PostTask([scheduledTask_(std::move(scheduledTask))]() { scheduledTask_->Run(); });
         return std::move(taskFuture);
     }
     // End of thread-related methods
 
-    std::shared_ptr<Drawing::GPUContext> GetGpuContext();
+    bool RemoveCleanFreeBuffersTask();
+
+    void ReleaseResource();
 
     void SetCacheDir(const std::string& cacheDir);
 
-    void OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);
+    void OnNodeCreate(NodeId nodeId, GraphicColorGamut colorSpace);
 
-    void OnNodeRelease(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);
+    void OnNodeRelease(NodeId nodeId);
 
     void OnNodeStateChanged(NodeId nodeId, RSNodeState nodeState);
 
-    void ResetSurface(NodeId nodeId, int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace);
+    void ResetSurface(NodeId nodeId, int width, int height, bool sizeOutOfGpuLimit);
 
     bool GetBitmap(NodeId nodeId, Drawing::Bitmap& bitmap);
 
@@ -162,13 +192,11 @@ private:
 
     void AppendTransactionConfig(NodeId nodeId, sptr<SurfaceBuffer> buffer, sptr<SyncFence> fence);
 
-    void SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList);
+    std::unique_ptr<RSCommand> SyncAndWait();
 
     void CleanFreeBuffers(bool immediately);
 
     void DoCleanFreeBuffers(int64_t maxDuration);
-
-    void RestoreGpuCacheLimits();
 
     // Thread-related members
     std::shared_ptr<AppExecFwk::EventRunner> runner_ = nullptr;
@@ -177,18 +205,13 @@ private:
     std::atomic<bool> threadDestroyed_ = false;
     // End of thread-related members
 
-    std::shared_ptr<Drawing::GPUContext> gpuContext_ = nullptr;
-    std::shared_ptr<RenderContext> renderContext_ = nullptr;
+    std::shared_ptr<RSCanvasModifiersContext> canvasModifiersContext_ = nullptr;
 
     DestroySemaphoreInfo* destroySemaphoreInfo_ = nullptr;
 
-    std::string cacheDir_;
-
-    static inline size_t maxGpuResourceBytes_ = 0;
-
-    bool needRestoreGpuCacheLimit_ = false;
-
     int64_t lastGpuContextActiveTime_ = 0;
+
+    bool needForceSubmit_ = false;
 
     std::unordered_map<NodeId, RSCanvasModifiersDrawable> drawableMap_;
 
