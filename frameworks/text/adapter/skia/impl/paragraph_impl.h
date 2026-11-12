@@ -230,7 +230,6 @@ private:
     {
         updateAttr = true;
     }
-
     std::unique_ptr<skt::Paragraph> paragraph_;
     std::vector<PaintRecord> paints_;
     std::optional<std::vector<LineMetrics>> lineMetrics_;

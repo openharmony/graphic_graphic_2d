@@ -29,7 +29,6 @@
 
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 #include <ibuffer_consumer_listener.h>
-#include "render_context/render_context.h"
 #endif
 
 #include "rs_trace.h"
@@ -702,7 +701,7 @@ void RSCanvasDrawingRenderNode::ClearOp()
     drawCmdListsNG_.clear();
 }
 
-void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t resetSurfaceIndex)
+void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t resetSurfaceMark)
 {
     {
         std::lock_guard<std::mutex> lock(drawCmdListsMutex_);
@@ -726,23 +725,18 @@ void RSCanvasDrawingRenderNode::ResetSurface(int width, int height, uint32_t res
         stagingRenderParams->SetCanvasDrawingSurfaceChanged(true);
         stagingRenderParams->SetCanvasDrawingSurfaceParams(width, height, colorSpace);
 #endif
-        stagingRenderParams->SetCanvasDrawingResetSurfaceIndex(resetSurfaceIndex);
+        stagingRenderParams->SetCanvasDrawingResetSurfaceIndex(resetSurfaceMark);
     }
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     if (surfaceHandler_ != nullptr) {
-        static uint32_t maxGpuSupportedWidth = 0;
-        static uint32_t maxGpuSupportedHeight = 0;
-        static std::once_flag flag;
-        std::call_once(flag,
-            []() { RenderContext::Create()->QueryMaxGpuBufferSize(maxGpuSupportedWidth, maxGpuSupportedHeight); });
-        sizeOutOfGpuLimit_ = width > static_cast<int>(maxGpuSupportedWidth) ||
-            height > static_cast<int>(maxGpuSupportedHeight) || width <= 0 || height <= 0;
+        // resetSurfaceMark > 0 has dual semantics: in hybrid path it means "within GPU limit"
+        // (thus enabling hybrid render), in non-hybrid path it is a DMA resetSurfaceIndex.
+        // The surfaceHandler_ guard ensures this assignment only runs for hybrid-path nodes.
+        bufferDraw_ = resetSurfaceMark > 0;
+        UpdateBufferInfo(
+            nullptr, nullptr, {}, nullptr, surfaceHandler_->GetBuffer(), surfaceHandler_->GetBufferOwnerCount());
         if (stagingRenderParams != nullptr) {
             stagingRenderParams->SetBufferDraw(IsBufferDraw());
-        }
-        if (sizeOutOfGpuLimit_) {
-            clientRender_ = false;
-            UpdateBufferInfo(nullptr, nullptr, {}, nullptr, nullptr, nullptr);
         }
     }
 #endif
@@ -857,7 +851,7 @@ bool RSCanvasDrawingRenderNode::IsNodeMemClearEnable()
     return false;
 }
 
-void RSCanvasDrawingRenderNode::InitClientRenderEnable(bool ccmEnabled)
+void RSCanvasDrawingRenderNode::InitHybridRenderEnable(bool ccmEnabled)
 {
     hybridEnabled_ = ccmEnabled && RSSystemProperties::GetHybridRenderCanvasEnabledWithoutCCM();
 }
@@ -883,7 +877,7 @@ void RSCanvasDrawingRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buff
     if (buffer != nullptr) {
         // If the previous frame did not use client rendering, in which case hasDrawCmdList_ is true,
         // clear previous OPs when receiving a buffer (already in client rendering mode)
-        if (!clientRender_ || hasDrawCmdList_) {
+        if (!bufferDraw_ || hasDrawCmdList_) {
             ClearOp();
         }
         if (hasDrawCmdList_) {
@@ -891,7 +885,9 @@ void RSCanvasDrawingRenderNode::UpdateBufferInfo(const sptr<SurfaceBuffer>& buff
             // Mark CONTENT_STYLE dirty to clean up the residual RSCustomModifierDrawable
             dirtyTypesNG_.set(static_cast<size_t>(ModifierNG::RSModifierType::CONTENT_STYLE), true);
         }
-        clientRender_ = true;
+        // When switching from background to foreground, the Node may be recreated without calling ResetSurface,
+        // so bufferDraw_ needs to be updated here
+        bufferDraw_ = true;
     }
     if (canvasParams->IsBufferSynced()) {
         canvasParams->SetPreBuffer(preBuffer, preBufferOwnerCount);
@@ -949,9 +945,9 @@ void RSCanvasDrawingRenderNode::SetSurfaceHandler(std::shared_ptr<RSSurfaceHandl
     }
 }
  
-bool RSCanvasDrawingRenderNode::IsBufferDraw()
+bool RSCanvasDrawingRenderNode::IsBufferDraw() const
 {
-    return surfaceHandler_ != nullptr && !sizeOutOfGpuLimit_ && clientRender_;
+    return bufferDraw_;
 }
  
 bool RSCanvasDrawingRenderNode::IsHybridEnabled()

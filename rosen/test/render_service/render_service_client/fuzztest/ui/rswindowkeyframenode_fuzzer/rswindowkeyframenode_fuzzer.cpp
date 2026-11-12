@@ -18,8 +18,11 @@
 #include <fuzzer/FuzzedDataProvider.h>
 
 #include "feature/window_keyframe/rs_window_keyframe_node.h"
-#include "pipeline/rs_render_node_gc.h"
 #include "ui/rs_ui_context.h"
+#include "ui/rs_ui_context_manager.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "transaction/rs_interfaces.h"
+
 
 namespace OHOS {
 namespace Rosen {
@@ -97,8 +100,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     FuzzedDataProvider fdp(data, size);
     bool isRenderServiceNode = fdp.ConsumeBool();
     bool isTextureExportNode = fdp.ConsumeBool();
-    OHOS::sptr<OHOS::IRemoteObject> connectToRenderRemote;
-    auto rsUIContext = std::make_shared<OHOS::Rosen::RSUIContext>(0, connectToRenderRemote);
+    auto screenId = OHOS::Rosen::RSInterfaces::GetInstance().GetDefaultScreenId();
+    OHOS::sptr<OHOS::IRemoteObject> connectToRender =
+        OHOS::Rosen::RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    auto rsUIContext = OHOS::Rosen::RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
     OHOS::Rosen::g_keyframeNode = OHOS::Rosen::RSWindowKeyFrameNode::Create(isRenderServiceNode,
         isTextureExportNode, rsUIContext);
 

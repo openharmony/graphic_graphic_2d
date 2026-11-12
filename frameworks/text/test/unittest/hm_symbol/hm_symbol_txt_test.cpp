@@ -640,7 +640,7 @@ HWTEST_F(OHHmSymbolTxtTest, GradientColorTest001, TestSize.Level1)
     symbolTxt.SetSymbolColor(symbolColor);
     auto localSymbolColor = symbolTxt.GetSymbolColor();
     EXPECT_FALSE(localSymbolColor.gradients.empty());
-    EXPECT_EQ(localSymbolColor.colorType, SymbolColorType::GRADIENT_TYPE); // 2 is colors size
+    EXPECT_EQ(localSymbolColor.colorType, SymbolColorType::GRADIENT_TYPE);
     EXPECT_EQ(localSymbolColor.gradients.size(), 2); // 2 is colors size
 }
 

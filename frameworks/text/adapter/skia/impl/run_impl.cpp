@@ -14,6 +14,7 @@
  */
 
 #include "run_impl.h"
+
 #include "drawing_painter_impl.h"
 #include "typography_types.h"
 #include "text/font.h"
@@ -106,7 +107,6 @@ TextDirection RunImpl::GetTextDirection() const
     if (runBase_ == nullptr) {
         return TextDirection::LTR;
     }
-
     if (runBase_->getTextDirection() == skia::textlayout::TextDirection::kRtl) {
         return TextDirection::RTL;
     } else {

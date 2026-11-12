@@ -31,7 +31,6 @@
 
 namespace OHOS::Rosen {
 class RSProperties;
-class RSFilter;
 namespace Drawing {
 class GEShader;
 class RuntimeEffect;
@@ -154,36 +153,6 @@ private:
     Drawing::Rect boundsRect_;
 };
 
-class RSBackgroundFilterDrawable : public RSFilterDrawable {
-public:
-    RSBackgroundFilterDrawable() = default;
-    ~RSBackgroundFilterDrawable() override = default;
-
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override;
-    void RemovePixelStretch();
-    bool FuzePixelStretch(const RSRenderNode& node);
-
-private:
-    static std::shared_ptr<RSFilter> GetBehindWindowFilter(const RSRenderNode& node);
-    template<typename T>
-    static bool GetBehindWindowFilterProperty(const RSRenderNode& node, ModifierNG::RSPropertyType type, T& property);
-};
-
-class RSBackgroundEffectDrawable : public RSFilterDrawable {
-public:
-    RSBackgroundEffectDrawable() = default;
-    ~RSBackgroundEffectDrawable() override = default;
-
-    bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override;
-    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-private:
-    Drawing::RectI GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
-        EffectRectType type, const RectF& bound) const override;
-};
-
 class RSUseEffectDrawable : public RSDrawable {
 public:
     RSUseEffectDrawable() = default;
@@ -230,25 +199,6 @@ private:
         return true;
     }
 #endif
-};
-
-class RSMaterialFilterDrawable : public RSFilterDrawable {
-public:
-    RSMaterialFilterDrawable() = default;
-    ~RSMaterialFilterDrawable() override = default;
-
-    static RSDrawable::Ptr OnGenerate(const RSRenderNode& node);
-    bool OnUpdate(const RSRenderNode& node) override;
-    void OnSync() override;
-    void OnDraw(Drawing::Canvas* canvas, const Drawing::Rect* rect) const override;
-
-    Drawing::RectI GetAbsRenderEffectRect(const Drawing::Canvas& canvas,
-        EffectRectType type, const RectF& bound) const override;
-private:
-    bool stagingEmptyShape_ = false;
-    bool emptyShape_ = false;
-    std::shared_ptr<Drawing::Path> stagingClipPath_;
-    std::shared_ptr<Drawing::Path> clipPath_;
 };
 } // namespace DrawableV2
 } // namespace OHOS::Rosen

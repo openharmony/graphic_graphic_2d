@@ -30,10 +30,10 @@ static uint32_t GetTextHighContrast()
 }
 
 /*
-* @tc.name: TextHighContrastTest01
-* @tc.desc: test for text high contrast mode
-* @tc.type: FUNC
-*/
+ * @tc.name: TextHighContrastTest01
+ * @tc.desc: test for text high contrast mode
+ * @tc.type: FUNC
+ */
 HWTEST_F(TextGlobalConfigTest, TextHighContrastTest01, TestSize.Level0)
 {
     auto result = TextGlobalConfig::SetTextHighContrast(TEXT_FOLLOW_SYSTEM_HIGH_CONTRAST);
@@ -50,10 +50,10 @@ HWTEST_F(TextGlobalConfigTest, TextHighContrastTest01, TestSize.Level0)
 }
 
 /*
-* @tc.name: TextHighContrastTest02
-* @tc.desc: test for text high contrast mode（Invalid）
-* @tc.type: FUNC
-*/
+ * @tc.name: TextHighContrastTest02
+ * @tc.desc: test for text high contrast mode（Invalid）
+ * @tc.type: FUNC
+ */
 HWTEST_F(TextGlobalConfigTest, TextHighContrastTest02, TestSize.Level0)
 {
     uint32_t preValue = GetTextHighContrast();
@@ -64,10 +64,10 @@ HWTEST_F(TextGlobalConfigTest, TextHighContrastTest02, TestSize.Level0)
 
 
 /*
-* @tc.name: TextUndefinedGlyphDisplayTest01
-* @tc.desc: test for text high contrast mode（Invalid）
-* @tc.type: FUNC
-*/
+ * @tc.name: TextUndefinedGlyphDisplayTest01
+ * @tc.desc: test for text high contrast mode（Invalid）
+ * @tc.type: FUNC
+ */
 HWTEST_F(TextGlobalConfigTest, TextUndefinedGlyphDisplayTest01, TestSize.Level0)
 {
     uint32_t result = TextGlobalConfig::SetTextUndefinedGlyphDisplay(UNDEFINED_GLYPH_USE_DEFAULT);

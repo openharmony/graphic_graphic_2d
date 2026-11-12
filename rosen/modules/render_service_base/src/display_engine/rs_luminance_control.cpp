@@ -199,6 +199,12 @@ bool RSLuminanceControl::IsHdrPictureOn()
         rSLuminanceControlInterface_->IsHdrPictureOn() : false;
 }
 
+bool RSLuminanceControl::IsHdrPicEnable(ScreenId screenId)
+{
+    return (rSLuminanceControlInterface_ != nullptr) ?
+        rSLuminanceControlInterface_->IsHdrPicEnable(screenId) : false;
+}
+
 bool RSLuminanceControl::IsForceCloseHdr()
 {
     return (rSLuminanceControlInterface_ != nullptr) ?

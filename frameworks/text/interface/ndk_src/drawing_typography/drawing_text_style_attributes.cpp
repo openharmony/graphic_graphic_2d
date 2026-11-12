@@ -54,21 +54,6 @@ namespace OHOS::Rosen::Text {
         return OH_DRAWING_SUCCESS;
     }
 
-    OH_Drawing_ErrorCode SetTextStyleFontWidth(TextStyle* style, int value)
-    {
-        if (value < FONT_WIDTH_ULTRA_CONDENSED || value > FONT_WIDTH_ULTRA_EXPANDED) {
-            return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
-        }
-        style->fontWidth = FontWidth(value);
-        return OH_DRAWING_SUCCESS;
-    }
-
-    OH_Drawing_ErrorCode GetTextStyleFontWidth(const TextStyle* style, int* value)
-    {
-        *value = static_cast<int>(style->fontWidth);
-        return OH_DRAWING_SUCCESS;
-    }
-
     OH_Drawing_ErrorCode SetTextStyleLineHeightStyle(TextStyle* style, int value)
     {
         if (value < 0 || value > static_cast<int>(OHOS::Rosen::LineHeightStyle::kFontHeight)) {
@@ -81,6 +66,21 @@ namespace OHOS::Rosen::Text {
     OH_Drawing_ErrorCode GetTextStyleLineHeightStyle(const TextStyle* style, int* value)
     {
         *value = static_cast<int>(style->lineHeightStyle);
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode SetTextStyleFontWidth(TextStyle* style, int value)
+    {
+        if (value < FONT_WIDTH_ULTRA_CONDENSED || value > FONT_WIDTH_ULTRA_EXPANDED) {
+            return OH_DRAWING_ERROR_PARAMETER_OUT_OF_RANGE;
+        }
+        style->fontWidth = FontWidth(value);
+        return OH_DRAWING_SUCCESS;
+    }
+
+    OH_Drawing_ErrorCode GetTextStyleFontWidth(const TextStyle* style, int* value)
+    {
+        *value = static_cast<int>(style->fontWidth);
         return OH_DRAWING_SUCCESS;
     }
 

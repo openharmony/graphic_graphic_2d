@@ -15,6 +15,9 @@
 
 #include "gtest/gtest.h"
 
+#ifdef RS_MODIFIERS_DRAW_ENABLE
+#include "modifier_render_thread/rs_canvas_modifiers_draw_agent.h"
+#endif
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "ui/rs_canvas_drawing_node.h"
 #include "command/rs_canvas_drawing_node_command.h"
@@ -482,7 +485,7 @@ HWTEST_F(RSCanvasDrawingNodeTest, DestructorWithDmaBufferTest, TestSize.Level1)
 
 /**
  * @tc.name: GetPixelmapForHybridTest
- * @tc.desc: Test GetPixelmapForClientRender with canvasModifiersDrawAgent
+ * @tc.desc: Test GetPixelmapForHybridTest
  * @tc.type: FUNC
  */
 HWTEST_F(RSCanvasDrawingNodeTest, GetPixelmapForHybridTest, TestSize.Level1)
@@ -585,7 +588,8 @@ HWTEST_F(RSCanvasDrawingNodeTest, RenderInClientTest001, TestSize.Level1)
 
     auto uidirector = CreateRSUIDirector();
     auto rsUIContext = uidirector->GetRSUIContext();
-    rsUIContext->canvasModifiersDrawAgent_ = std::make_shared<RSCanvasModifiersDrawAgent>();
+    rsUIContext->canvasModifiersDrawAgent_ =
+        std::make_shared<RSCanvasModifiersDrawAgent>(rsUIContext->rsRenderInterface_);
     drawingNode = RSCanvasDrawingNode::Create(true, false, rsUIContext);
     drawingNode->hybridEnabled_ = true;
     drawingNode->sizeOutOfGpuLimit_ = false;
@@ -769,6 +773,129 @@ HWTEST_F(RSCanvasDrawingNodeTest, OnFinishRecordingContentStyleHybridTest, TestS
         ASSERT_NE(cmdList, nullptr);
     }
     ASSERT_NE(canvasNode, nullptr);
+}
+
+/**
+ * @tc.name: GetBitmap_HybridEnabledSizeOutOfGpuLimit001
+ * @tc.desc: Test GetBitmap with hybridEnabled_=true and sizeOutOfGpuLimit_=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, GetBitmap_HybridEnabledSizeOutOfGpuLimit001, TestSize.Level1)
+{
+    auto node = RSCanvasDrawingNode::Create(true, true);
+    ASSERT_NE(node, nullptr);
+    node->hybridEnabled_ = true;
+    node->sizeOutOfGpuLimit_ = true;
+    Drawing::Bitmap bitmap;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    Drawing::Rect rect(0, 0, 10, 10);
+    bool result = node->GetBitmap(bitmap, drawCmdList, &rect);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: GetBitmap_HybridEnabledSizeWithinGpuLimit001
+ * @tc.desc: Test GetBitmap with hybridEnabled_=true and sizeOutOfGpuLimit_=false
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, GetBitmap_HybridEnabledSizeWithinGpuLimit001, TestSize.Level1)
+{
+    auto node = RSCanvasDrawingNode::Create(true, true);
+    ASSERT_NE(node, nullptr);
+    node->hybridEnabled_ = true;
+    node->sizeOutOfGpuLimit_ = false;
+    Drawing::Bitmap bitmap;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    Drawing::Rect rect(0, 0, 10, 10);
+    // hybridEnabled_ && !sizeOutOfGpuLimit_ → tries canvasModifiersDrawAgent path
+    // Without a valid agent, returns false
+    bool result = node->GetBitmap(bitmap, drawCmdList, &rect);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: GetBitmap_HybridDisabledSizeOutOfGpuLimit001
+ * @tc.desc: Test GetBitmap with hybridEnabled_=false and sizeOutOfGpuLimit_=true
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, GetBitmap_HybridDisabledSizeOutOfGpuLimit001, TestSize.Level1)
+{
+    auto node = RSCanvasDrawingNode::Create(true, true);
+    ASSERT_NE(node, nullptr);
+    node->hybridEnabled_ = false;
+    node->sizeOutOfGpuLimit_ = true;
+    Drawing::Bitmap bitmap;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    Drawing::Rect rect(0, 0, 10, 10);
+    bool result = node->GetBitmap(bitmap, drawCmdList, &rect);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: GetBitmap_HybridEnabledGetBitmapSuccess001
+ * @tc.desc: Test GetBitmap when hybridEnabled is true and GetBitmap from agent succeeds
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, GetBitmap_HybridEnabledGetBitmapSuccess001, TestSize.Level1)
+{
+    auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+    sptr<IRemoteObject> connectToRender = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    auto rsUIContext = RSUIContextManager::MutableInstance().CreateRSUIContext(connectToRender);
+    ASSERT_NE(rsUIContext, nullptr);
+    auto node = RSCanvasDrawingNode::Create(true, false, rsUIContext);
+    ASSERT_NE(node, nullptr);
+    node->hybridEnabled_ = true;
+    node->sizeOutOfGpuLimit_ = false;
+    auto agent = rsUIContext->GetCanvasModifiersDrawAgent();
+    ASSERT_NE(agent, nullptr);
+    ASSERT_NE(agent->canvasModifiersDraw_, nullptr);
+    agent->canvasModifiersDraw_->StartThread();
+    agent->canvasModifiersDraw_->canvasModifiersContext_->cacheDir_ = "/data/local/tmp";
+    // All initialisation on the modifier draw thread for correct GPU context
+    bool gpuReady = false;
+    agent->canvasModifiersDraw_->PostSyncTask(
+        [canvasModifiersDraw = agent->canvasModifiersDraw_, nodeId = node->GetId(), &gpuReady]() {
+            canvasModifiersDraw->canvasModifiersContext_->GetGpuContext();
+            if (canvasModifiersDraw->canvasModifiersContext_->gpuContext_ == nullptr) {
+                return;
+            }
+            gpuReady = true;
+            // Create drawable entry and manually set drawingSurface_ via GPU render target
+            // since CreateCanvasDrawingNodeSurface needs IPC which fails in test
+            auto& drawable = canvasModifiersDraw->drawableMap_[nodeId];
+            drawable.nodeId_ = nodeId;
+            drawable.width_ = 10;
+            drawable.height_ = 10;
+            drawable.drawCmdListCache_ = std::make_unique<std::vector<Drawing::DrawCmdListPtr>>();
+            auto gpuContext = canvasModifiersDraw->canvasModifiersContext_->gpuContext_;
+            auto imageInfo = Drawing::ImageInfo::MakeN32Premul(10, 10);
+            drawable.drawingSurface_ = Drawing::Surface::MakeRenderTarget(gpuContext.get(), false, imageInfo);
+        });
+    Drawing::Bitmap bitmap;
+    auto drawCmdList = std::make_shared<Drawing::DrawCmdList>();
+    Drawing::Rect rect(0, 0, 10, 10);
+    bool result = node->GetBitmap(bitmap, drawCmdList, &rect);
+    ASSERT_EQ(gpuReady, result);
+    // Verify drawable was set up correctly in the map
+    auto& drawableMap = agent->canvasModifiersDraw_->drawableMap_;
+    ASSERT_EQ(drawableMap.count(node->GetId()), 1u);
+    auto& drawable = drawableMap[node->GetId()];
+    EXPECT_EQ(drawable.width_, 10);
+    EXPECT_EQ(drawable.height_, 10);
+    EXPECT_NE(drawable.drawingSurface_, nullptr);
+    EXPECT_NE(drawable.drawCmdListCache_, nullptr);
+    // Proper cleanup: release GPU resources before destroying the thread.
+    // WaitAllTasksFinish posts ReleaseResource (clears drawableMap_ and GPU context)
+    // when RemoveCleanFreeBuffersTask returns true. Then Destroy stops the thread.
+    // Without this, GPU resources survive until process exit and crash in Vulkan
+    // destructors (VulkanImageView::~VulkanImageView SIGSEGV).
+    agent->canvasModifiersDraw_->OnNodeRelease(node->GetId());
+    agent->WaitAllTasksFinish();
+    agent->Destroy();
+    // After cleanup, GPU context should be released
+    EXPECT_EQ(agent->canvasModifiersDraw_->canvasModifiersContext_->gpuContext_, nullptr);
+    rsUIContext->DestroyModifiersDraw();
+    RSUIContextManager::MutableInstance().DestroyContext(rsUIContext->GetToken());
 }
 #endif
 } // namespace OHOS::Rosen

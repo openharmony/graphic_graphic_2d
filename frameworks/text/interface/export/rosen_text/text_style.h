@@ -161,6 +161,7 @@ struct RS_EXPORT TextStyle {
     TextStyle(const TextStyle& other) = default;
     TextStyle& operator=(const TextStyle& other) = default;
     bool operator ==(const TextStyle &rhs) const;
+
     bool EqualByFonts(const TextStyle &rhs) const;
     bool MatchOneAttribute(StyleType styleType, const TextStyle &rhs) const;
     void SetFontTypefaces(const std::vector<std::shared_ptr<Drawing::Typeface>>& typefaces);

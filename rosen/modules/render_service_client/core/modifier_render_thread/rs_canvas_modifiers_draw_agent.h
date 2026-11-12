@@ -19,14 +19,15 @@
 #include "modifier_render_thread/rs_canvas_modifiers_draw.h"
 
 namespace OHOS::Rosen {
-class RSModifiersDrawThread;
+class RSModifiersDraw;
 class RSUIContext;
 class RSUIDirector;
 class RSCanvasDrawingNode;
 class RSC_EXPORT RSCanvasModifiersDrawAgent final {
 public:
-    RSCanvasModifiersDrawAgent();
-    ~RSCanvasModifiersDrawAgent();
+    RSCanvasModifiersDrawAgent() = delete;
+    RSCanvasModifiersDrawAgent(std::weak_ptr<RSRenderInterface> weakRenderInterface);
+    ~RSCanvasModifiersDrawAgent() = default;
 
     RSCanvasModifiersDrawAgent(const RSCanvasModifiersDrawAgent&) = delete;
     RSCanvasModifiersDrawAgent(const RSCanvasModifiersDrawAgent&&) = delete;
@@ -36,13 +37,13 @@ public:
 private:
     void SetCacheDir(const std::string& cacheDir);
 
-    void OnNodeCreate(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);
+    void OnNodeCreate(NodeId nodeId, GraphicColorGamut colorSpace);
 
-    void OnNodeRelease(NodeId nodeId, std::weak_ptr<RSRenderInterface> weakRenderInterface);
+    void OnNodeRelease(NodeId nodeId);
 
     void OnNodeStateChanged(NodeId nodeId, RSNodeState state);
 
-    void ResetSurface(NodeId nodeId, int width, int height, bool sizeOutOfGpuLimit, GraphicColorGamut colorSpace);
+    void ResetSurface(NodeId nodeId, int width, int height, bool sizeOutOfGpuLimit);
 
     bool GetBitmap(NodeId nodeId, Drawing::Bitmap& bitmap);
 
@@ -53,7 +54,7 @@ private:
 
     void SubmitAndCollectCanvasBuffers();
 
-    void SwapTransactionConfigList(std::vector<RSTransactionConfig>& transactionConfigList);
+    std::unique_ptr<RSCommand> SyncAndWait();
 
     void WaitAllTasksFinish();
 
@@ -61,7 +62,7 @@ private:
 
     std::shared_ptr<RSCanvasModifiersDraw> canvasModifiersDraw_ = nullptr;
 
-    friend class RSModifiersDrawThread;
+    friend class RSModifiersDraw;
     friend class RSUIContext;
     friend class RSUIDirector;
     friend class RSCanvasDrawingNode;

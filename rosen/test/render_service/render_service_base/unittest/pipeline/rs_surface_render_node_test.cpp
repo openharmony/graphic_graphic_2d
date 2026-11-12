@@ -24,6 +24,7 @@
 
 #include "common/rs_common_hook.h"
 #include "display_engine/rs_luminance_control.h"
+#include "drawable/rs_filter_drawable.h"
 #include "ipc_callbacks/buffer_clear_callback_proxy.h"
 #include "gmock/gmock.h"
 #include "feature/filter_cache_manager/rs_filter_cache_manager.h"
@@ -1952,7 +1953,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckValidFilterCacheFullyCoverTargetTest, Tes
     RSEffectRenderNode filterNode2(id + 2);
     node->CheckValidFilterCacheFullyCoverTarget(filterNode2, targetRect);
     EXPECT_FALSE(node->isFilterCacheStatusChanged_);
-    auto drawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    auto drawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
     if (RSFilterCacheManager::IsFilterCacheEnabled()) {
         drawable->stagingCacheManager_->isFilterCacheValid_ = true;
     }
