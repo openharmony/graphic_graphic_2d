@@ -39,13 +39,12 @@ void RSCanvasNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTex
     const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
     std::shared_ptr<RSCanvasRenderNode> node;
 
-    auto pid = ExtractPid(id);
     bool scbPoolEnabled = RSSystemProperties::GetBoolSystemProperty("persist.debug.rs.scb_pool_enabled", true);
     bool useScbPool = scbPoolEnabled && isSceneBoard;
 
     RS_OPTIONAL_TRACE_NAME_FMT("CanvasNodeCreate route, id=%" PRIu64 ", pid=%d, scbPid=%d, scbEnabled=%d,"
         " useScbPool=%d",
-        id, pid, RSRenderNodeGC::Instance().GetScbPid(),
+        id, ExtractPid(id), RSRenderNodeGC::Instance().GetScbPid(),
         scbPoolEnabled ? 1 : 0, useScbPool ? 1 : 0);
 
     if (useScbPool) {

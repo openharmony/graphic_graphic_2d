@@ -17,7 +17,9 @@
 
 #include <algorithm>
 #include <cstdlib>
+#ifdef _WIN32
 #include <malloc.h>
+#endif
 #include <new>
 
 #include "common/rs_optional_trace.h"
