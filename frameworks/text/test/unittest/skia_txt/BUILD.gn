@@ -18,6 +18,7 @@ import("//foundation/graphic/graphic_2d/graphic_config.gni")
 text_unittest("rosen_text_skia_txt_test") {
   sources = [
     "asset_font_manager_test.cpp",
+    "default_family_name_mgr_test.cpp",
     "drawing_painter_impl_test.cpp",
     "font_collection_mgr_test.cpp",
     "font_collection_test.cpp",

@@ -14,6 +14,7 @@
 import("//build/ohos.gni")
 import("//build/ohos_var.gni")
 import("//foundation/graphic/graphic_2d/ace_platforms.gni")
+import("//foundation/graphic/graphic_2d/graphic_config.gni")
 import("//foundation/graphic/graphic_2d/frameworks/text/config.gni")
 
 template("skia_libtxt") {
@@ -71,7 +72,6 @@ template("skia_libtxt") {
       "txt/paragraph_builder.cpp",
       "txt/paragraph_style.cpp",
       "txt/placeholder_run.cpp",
-      "txt/platform.cpp",
       "txt/sp_convert.cpp",
       "txt/text_bundle_config_parser.cpp",
       "txt/text_style.cpp",
@@ -93,6 +93,13 @@ template("skia_libtxt") {
         "samgr:samgr_proxy",
       ]
       sources += [ "common_utils/pixel_map_util.cpp" ]
+    }
+
+    # 2d_graphics carries the single platform.cpp copy (via font_asset) only
+    # when enable_text_gine && !is_arkui_x. On builds without that carrier
+    # this so must stay self-contained, so keep compiling the local copy there.
+    if (is_arkui_x || !enable_text_gine) {
+      sources += [ "txt/platform.cpp" ]
     }
 
     if (is_arkui_x) {
