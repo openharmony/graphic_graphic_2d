@@ -303,12 +303,50 @@ EffectErrorCode OH_Filter_GammaCorrection(OH_Filter* filter, float gamma);
  *
  * @param filter The OH_Filter pointer will be operated.
  * @param nativeBuffer The OH_NativeBuffer pointer will be operated.
+ * @param releaseGpuContext Deprecated: kept for compatibility and has no effect. GPU memory
+ *        is reclaimed only via the explicit release APIs.
  * @return Returns {@link EffectErrorCode}.
  * @since 24
  * @version 1.0
  */
 EffectErrorCode OH_Filter_GetEffectNativeBuffer(
     OH_Filter *filter, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd, bool releaseGpuContext);
+
+/**
+ * @brief Releases all memory used by this process that is associated with the GPU device.
+ *
+ * Call this API only when the process will not perform rendering again in the near future;
+ * otherwise, the next rendering incurs additional resource reallocation overhead.
+ *
+ * @param filter [in] Filter pointer, which needs to be created through OH_Filter_CreateEffect. Cannot be NULL.
+ * @return <ul>
+ *         <li>{@link EffectErrorCode#EFFECT_SUCCESS} if the operation is successful.</li>
+ *         <li>{@link EffectErrorCode#EFFECT_BAD_PARAMETER} if filter is NULL.</li>
+ *         <li>{@link EffectErrorCode#EFFECT_NO_GPU_ENVIRONMENT} if there is no available GPU environment.</li>
+ *         <li>{@link EffectErrorCode#EFFECT_RESOURCE_RELEASE_ERROR} if the GPU resource release fails.</li>
+ *         </ul>
+ * @since 26.1.0
+ */
+EffectErrorCode OH_Filter_ReleaseCaches(OH_Filter* filter);
+
+/**
+ * @brief Releases the image buffers used by this process and the memory used by this thread that
+ * is associated with the GPU device.
+ *
+ * Call this API only when the process will not perform
+ * rendering again in the near future; otherwise, the next rendering incurs additional
+ * resource reallocation overhead.
+ *
+ * @param filter [in] Filter pointer, which needs to be created through OH_Filter_CreateEffect. Cannot be NULL.
+ * @return <ul>
+ *         <li>{@link EffectErrorCode#EFFECT_SUCCESS} if the operation is successful.</li>
+ *         <li>{@link EffectErrorCode#EFFECT_BAD_PARAMETER} if filter is NULL.</li>
+ *         <li>{@link EffectErrorCode#EFFECT_NO_GPU_ENVIRONMENT} if there is no available GPU environment.</li>
+ *         <li>{@link EffectErrorCode#EFFECT_RESOURCE_RELEASE_ERROR} if the GPU resource release fails.</li>
+ *         </ul>
+ * @since 26.1.0
+ */
+EffectErrorCode OH_Filter_ReleaseGpuContext(OH_Filter* filter);
 
 #ifdef __cplusplus
 }

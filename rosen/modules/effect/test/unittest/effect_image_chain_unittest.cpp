@@ -15,17 +15,30 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <atomic>
+#include <future>
+#include <thread>
+#include <vector>
 #include "effect_image_chain.h"
+#include "effect_types.h"
 #include "ge_linear_gradient_shader_mask.h"
 #include "platform/common/rs_system_properties.h"
 #include "surface_buffer.h"
 #include "render/rs_pixel_map_util.h"
+#if defined(RS_ENABLE_VK)
+#include "vulkan_context/rs_vulkan_context.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS {
 namespace Rosen {
+static constexpr float TEST_BLUR_RADIUS = 0.5f;
+#if defined(RS_ENABLE_VK)
+static constexpr int32_t TEST_CONCURRENT_THREAD_COUNT = 4;
+#endif
+
 class EffectImageChainUnittest : public testing::Test {
 public:
     static void SetUpTestCase() {};
@@ -1473,5 +1486,633 @@ HWTEST_F(EffectImageChainUnittest, InitWithoutCanvasImageNullTest001, TestSize.L
 #endif
 }
 
+/**
+ * @tc.name: EffectImageChainUnittest.GpuContextThreadLocalHoldsContext
+ * @tc.desc: test the thread-local gpuContext_ keeps the GPUContext alive
+ */
+HWTEST_F(EffectImageChainUnittest, GpuContextThreadLocalHoldsContext, TestSize.Level1)
+{
+    EffectImageChain::gpuContext_.reset();
+    EXPECT_EQ(EffectImageChain::gpuContext_, nullptr);
+
+    auto ctx = std::make_shared<Drawing::GPUContext>();
+    EffectImageChain::gpuContext_ = ctx;
+    EXPECT_EQ(EffectImageChain::gpuContext_.get(), ctx.get());
+    EXPECT_EQ(EffectImageChain::gpuContext_, ctx);
+
+    // thread-local cache holds the GPUContext even after the original holder is gone
+    ctx = nullptr;
+    EXPECT_NE(EffectImageChain::gpuContext_, nullptr);
+
+    EffectImageChain::gpuContext_.reset();
+    EXPECT_EQ(EffectImageChain::gpuContext_, nullptr);
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.ProcessVkContextLazyCreateAndClear
+ * @tc.desc: test EnsureVkContext lazily creates the process-wide EFFECT_KIT context once
+ */
+HWTEST_F(EffectImageChainUnittest, ProcessVkContextLazyCreateAndClear, TestSize.Level1)
+{
+    RsVulkanContext* stale = EffectImageChain::processVkContext_.exchange(nullptr);
+    EffectImageChain::ReleaseVkContext(stale);
+    EXPECT_EQ(EffectImageChain::processVkContext_.load(), nullptr);
+
+    EffectImageChain::EnsureVkContext();
+    RsVulkanContext* created = EffectImageChain::processVkContext_.load();
+    ASSERT_NE(created, nullptr);
+
+    EffectImageChain::EnsureVkContext();
+    EXPECT_EQ(EffectImageChain::processVkContext_.load(), created);
+
+    EffectImageChain::processVkContext_.store(nullptr);
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.ReleaseCachesIdempotentWhenEmpty
+ * @tc.desc: test ReleaseCaches on empty
+ */
+HWTEST_F(EffectImageChainUnittest, ReleaseCachesIdempotentWhenEmpty, TestSize.Level1)
+{
+    int32_t errorCode = -1;
+    EffectImageChain::ReleaseCaches(&errorCode);
+    EXPECT_TRUE(errorCode == EFFECT_NO_GPU_ENVIRONMENT || errorCode == 0);
+
+    int32_t errorCodeAgain = -1;
+    EffectImageChain::ReleaseCaches(&errorCodeAgain);
+    EXPECT_TRUE(errorCodeAgain == EFFECT_NO_GPU_ENVIRONMENT || errorCodeAgain == 0);
+
+    int32_t threadErrorCode = -1;
+    EffectImageChain::ReleaseGpuContext(&threadErrorCode);
+    EXPECT_TRUE(threadErrorCode == EFFECT_NO_GPU_ENVIRONMENT || threadErrorCode == 0 ||
+        threadErrorCode == EFFECT_RESOURCE_RELEASE_ERROR);
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.ReleaseCachesZeroesGpuResources
+ * @tc.desc: test ReleaseCaches destroys the process device;
+ */
+HWTEST_F(EffectImageChainUnittest, ReleaseCachesZeroesGpuResources, TestSize.Level1)
+{
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+    EffectImageChain::gpuContext_.reset();
+    Media::InitializationOptions opts;
+    opts.size = { 4, 4 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    {
+        EffectImageChain chain;
+        ASSERT_EQ(chain.Prepare(srcPixelMap, false), DrawingError::ERR_OK);
+        ASSERT_EQ(chain.ApplyBlur(TEST_BLUR_RADIUS, Drawing::TileMode::CLAMP), DrawingError::ERR_OK);
+        ASSERT_EQ(chain.Draw(), DrawingError::ERR_OK);
+        ASSERT_NE(EffectImageChain::gpuContext_, nullptr);
+        ASSERT_NE(EffectImageChain::processVkContext_.load(), nullptr);
+    }
+    // chain destruction must not free the cached GPUContext held by the thread-local
+    ASSERT_TRUE(EffectImageChain::gpuEnvInitialized_.load());
+    EXPECT_NE(EffectImageChain::gpuContext_, nullptr);
+    ASSERT_NE(EffectImageChain::processVkContext_.load(), nullptr);
+
+    int32_t errorCode = -1;
+    EffectImageChain::ReleaseCaches(&errorCode);
+    ASSERT_TRUE(errorCode == 0 || errorCode == EFFECT_RESOURCE_RELEASE_ERROR);
+    EXPECT_EQ(EffectImageChain::gpuContext_, nullptr);
+    EXPECT_EQ(EffectImageChain::processVkContext_.load(), nullptr);
+#else
+    GTEST_SKIP() << "Skip: GPU release path requires RS_ENABLE_GPU && !ROSEN_ARKUI_X";
+#endif
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.ReleaseGpuContextZeroesThreadResources
+ * @tc.desc: test ReleaseGpuContext drops only the calling thread's context and keeps the process device (AC-2.1)
+ */
+HWTEST_F(EffectImageChainUnittest, ReleaseGpuContextZeroesThreadResources, TestSize.Level1)
+{
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+    EffectImageChain::gpuContext_.reset();
+    Media::InitializationOptions opts;
+    opts.size = { 4, 4 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    {
+        EffectImageChain chain;
+        ASSERT_EQ(chain.Prepare(srcPixelMap, false), DrawingError::ERR_OK);
+        ASSERT_EQ(chain.Draw(), DrawingError::ERR_OK);
+        ASSERT_NE(EffectImageChain::gpuContext_, nullptr);
+    }
+    // chain destruction must not free the cached GPUContext held by the thread-local
+    ASSERT_TRUE(EffectImageChain::gpuEnvInitialized_.load());
+    EXPECT_NE(EffectImageChain::gpuContext_, nullptr);
+
+    int32_t errorCode = -1;
+    EffectImageChain::ReleaseGpuContext(&errorCode);
+    ASSERT_TRUE(errorCode == 0 || errorCode == EFFECT_RESOURCE_RELEASE_ERROR);
+    EXPECT_EQ(EffectImageChain::gpuContext_, nullptr);
+    EXPECT_NE(EffectImageChain::processVkContext_.load(), nullptr);
+#else
+    GTEST_SKIP() << "Skip: GPU release path requires RS_ENABLE_GPU && !ROSEN_ARKUI_X";
+#endif
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.RenderAfterReleaseProducesSameOutput
+ * @tc.desc: test re-rendering after ReleaseCaches produces pixel-identical output (AC-1.3/AC-2.2)
+ */
+HWTEST_F(EffectImageChainUnittest, RenderAfterReleaseProducesSameOutput, TestSize.Level1)
+{
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+    Media::InitializationOptions opts;
+    opts.size = { 4, 4 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+
+    std::shared_ptr<Media::PixelMap> baseline;
+    {
+        EffectImageChain chain;
+        ASSERT_EQ(chain.Prepare(srcPixelMap, false), DrawingError::ERR_OK);
+        ASSERT_EQ(chain.ApplyBlur(TEST_BLUR_RADIUS, Drawing::TileMode::CLAMP), DrawingError::ERR_OK);
+        ASSERT_EQ(chain.Draw(), DrawingError::ERR_OK);
+        baseline = chain.GetPixelMap();
+        ASSERT_NE(baseline, nullptr);
+    }
+
+    int32_t errorCode = -1;
+    EffectImageChain::ReleaseCaches(&errorCode);
+    ASSERT_TRUE(errorCode == 0 || errorCode == EFFECT_NO_GPU_ENVIRONMENT || errorCode == EFFECT_RESOURCE_RELEASE_ERROR);
+
+    std::shared_ptr<Media::PixelMap> afterRelease;
+    {
+        EffectImageChain chain;
+        ASSERT_EQ(chain.Prepare(srcPixelMap, false), DrawingError::ERR_OK);
+        ASSERT_EQ(chain.ApplyBlur(TEST_BLUR_RADIUS, Drawing::TileMode::CLAMP), DrawingError::ERR_OK);
+        ASSERT_EQ(chain.Draw(), DrawingError::ERR_OK);
+        afterRelease = chain.GetPixelMap();
+        ASSERT_NE(afterRelease, nullptr);
+    }
+    ASSERT_EQ(baseline->GetWidth(), afterRelease->GetWidth());
+    ASSERT_EQ(baseline->GetHeight(), afterRelease->GetHeight());
+    for (int32_t y = 0; y < baseline->GetHeight(); y++) {
+        for (int32_t x = 0; x < baseline->GetWidth(); x++) {
+            ASSERT_EQ(*baseline->GetPixel32(x, y), *afterRelease->GetPixel32(x, y))
+                << "pixel mismatch at (" << x << "," << y << ")";
+        }
+    }
+#else
+    GTEST_SKIP() << "Skip: GPU release path requires RS_ENABLE_GPU && !ROSEN_ARKUI_X";
+#endif
+}
+
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+static std::shared_ptr<Media::PixelMap> RenderBlurOnThread(
+    const std::shared_ptr<Media::PixelMap>& srcPixelMap)
+{
+    std::promise<std::shared_ptr<Media::PixelMap>> resultPromise;
+    auto resultFuture = resultPromise.get_future();
+    std::thread worker([&srcPixelMap, &resultPromise]() {
+        EffectImageChain chain;
+        if (chain.Prepare(srcPixelMap, false) != DrawingError::ERR_OK ||
+            chain.ApplyBlur(TEST_BLUR_RADIUS, Drawing::TileMode::CLAMP) != DrawingError::ERR_OK ||
+            chain.Draw() != DrawingError::ERR_OK) {
+            resultPromise.set_value(nullptr);
+            return;
+        }
+        resultPromise.set_value(chain.GetPixelMap());
+    });
+    worker.join();
+    return resultFuture.get();
+}
+
+static void ExpectSamePixels(const std::shared_ptr<Media::PixelMap>& baseline,
+    const std::shared_ptr<Media::PixelMap>& result)
+{
+    ASSERT_EQ(baseline->GetWidth(), result->GetWidth());
+    ASSERT_EQ(baseline->GetHeight(), result->GetHeight());
+    for (int32_t y = 0; y < baseline->GetHeight(); y++) {
+        for (int32_t x = 0; x < baseline->GetWidth(); x++) {
+            ASSERT_EQ(*baseline->GetPixel32(x, y), *result->GetPixel32(x, y))
+                << "pixel mismatch at (" << x << "," << y << ")";
+        }
+    }
+}
+
+static bool RenderAndReleaseGpuContextOnNewThread()
+{
+    Media::InitializationOptions opts;
+    opts.size = { 4, 4 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    if (srcPixelMap == nullptr) {
+        return false;
+    }
+    {
+        EffectImageChain chain;
+        if (chain.Prepare(srcPixelMap, false) != DrawingError::ERR_OK ||
+            chain.Draw() != DrawingError::ERR_OK) {
+            return false;
+        }
+    }
+    int32_t errorCode = -1;
+    EffectImageChain::ReleaseGpuContext(&errorCode);
+    return errorCode == 0 || errorCode == EFFECT_RESOURCE_RELEASE_ERROR;
+}
+#endif
+
+/**
+ * @tc.name: EffectImageChainUnittest.CrossThreadReleaseThenRerender
+ * @tc.desc: test ReleaseCaches destroys the device once the worker thread is already clean (L1);
+ */
+HWTEST_F(EffectImageChainUnittest, CrossThreadReleaseThenRerender, TestSize.Level1)
+{
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+    Media::InitializationOptions opts;
+    opts.size = { 4, 4 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+
+    auto baseline = RenderBlurOnThread(srcPixelMap);
+    ASSERT_NE(baseline, nullptr);
+
+    int32_t errorCode = -1;
+    EffectImageChain::ReleaseCaches(&errorCode);
+    ASSERT_TRUE(errorCode == 0 || errorCode == EFFECT_RESOURCE_RELEASE_ERROR);
+    EXPECT_EQ(EffectImageChain::processVkContext_.load(), nullptr);
+
+    auto rerendered = RenderBlurOnThread(srcPixelMap);
+    ASSERT_NE(rerendered, nullptr);
+
+    ExpectSamePixels(baseline, rerendered);
+#else
+    GTEST_SKIP() << "Skip: GPU release path requires RS_ENABLE_GPU && !ROSEN_ARKUI_X";
+#endif
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.WorkerReleaseDoesNotAffectMainThread
+ * @tc.desc: test worker's ReleaseGpuContext keeps main thread context alive and rendering correctly (AC-2.3)
+ */
+HWTEST_F(EffectImageChainUnittest, WorkerReleaseDoesNotAffectMainThread, TestSize.Level1)
+{
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+    Media::InitializationOptions opts;
+    opts.size = { 4, 4 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+
+    std::shared_ptr<Media::PixelMap> baseline;
+    std::unique_ptr<EffectImageChain> mainChain = std::make_unique<EffectImageChain>();
+    ASSERT_EQ(mainChain->Prepare(srcPixelMap, false), DrawingError::ERR_OK);
+    ASSERT_EQ(mainChain->Draw(), DrawingError::ERR_OK);
+    baseline = mainChain->GetPixelMap();
+    ASSERT_NE(baseline, nullptr);
+    ASSERT_NE(EffectImageChain::gpuContext_, nullptr);
+
+    std::promise<bool> workerDone;
+    auto workerFuture = workerDone.get_future();
+    std::thread worker([&workerDone]() {
+        workerDone.set_value(RenderAndReleaseGpuContextOnNewThread());
+    });
+    worker.join();
+    ASSERT_TRUE(workerFuture.get());
+
+    EXPECT_EQ(mainChain->gpuContextRef_.get(), EffectImageChain::gpuContext_.get());
+
+    mainChain.reset();
+
+    std::shared_ptr<Media::PixelMap> afterWorkerRelease;
+    {
+        EffectImageChain chain;
+        ASSERT_EQ(chain.Prepare(srcPixelMap, false), DrawingError::ERR_OK);
+        ASSERT_EQ(chain.Draw(), DrawingError::ERR_OK);
+        afterWorkerRelease = chain.GetPixelMap();
+        ASSERT_NE(afterWorkerRelease, nullptr);
+    }
+
+    ExpectSamePixels(baseline, afterWorkerRelease);
+#else
+    GTEST_SKIP() << "Skip: GPU release path requires RS_ENABLE_GPU && !ROSEN_ARKUI_X";
+#endif
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.LiveChainBlocksRelease
+ * @tc.desc: test ReleaseCaches is rejected (EFFECT_RESOURCE_RELEASE_ERROR) while any chain is alive
+ */
+HWTEST_F(EffectImageChainUnittest, LiveChainBlocksRelease, TestSize.Level1)
+{
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+    // isolate from the thread-local context left by previous tests on this thread
+    EffectImageChain::gpuContext_.reset();
+    Media::InitializationOptions opts;
+    opts.size = { 4, 4 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+
+    std::promise<void> renderStarted;
+    std::promise<void> releaseFinished;
+    auto startedFuture = renderStarted.get_future();
+    auto releaseFuture = releaseFinished.get_future();
+    std::thread worker([&srcPixelMap, &renderStarted, &releaseFuture]() {
+        EffectImageChain chain;
+        if (chain.Prepare(srcPixelMap, false) == DrawingError::ERR_OK) {
+            chain.Draw();
+        }
+        renderStarted.set_value();
+        releaseFuture.wait();
+    });
+    startedFuture.wait();
+
+    int32_t errorCode = -1;
+    EffectImageChain::ReleaseCaches(&errorCode);
+    ASSERT_TRUE(errorCode == EFFECT_RESOURCE_RELEASE_ERROR);
+    EXPECT_NE(EffectImageChain::processVkContext_.load(), nullptr);
+    EXPECT_EQ(EffectImageChain::gpuContext_, nullptr);
+    releaseFinished.set_value();
+    worker.join();
+#else
+    GTEST_SKIP() << "Skip: GPU release path requires RS_ENABLE_GPU && !ROSEN_ARKUI_X";
+#endif
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.RepeatedReleaseIdempotent
+ * @tc.desc: test repeated ReleaseCaches/ReleaseGpuContext calls after a real release stay idempotent (EX-3)
+ */
+HWTEST_F(EffectImageChainUnittest, RepeatedReleaseIdempotent, TestSize.Level1)
+{
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+    Media::InitializationOptions opts;
+    opts.size = { 4, 4 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    {
+        EffectImageChain chain;
+        ASSERT_EQ(chain.Prepare(srcPixelMap, false), DrawingError::ERR_OK);
+        ASSERT_EQ(chain.Draw(), DrawingError::ERR_OK);
+        ASSERT_NE(EffectImageChain::processVkContext_.load(), nullptr);
+    }
+    // chain destruction must not free the cached GPUContext held by the thread-local
+    ASSERT_TRUE(EffectImageChain::gpuEnvInitialized_.load());
+    EXPECT_NE(EffectImageChain::gpuContext_, nullptr);
+    ASSERT_NE(EffectImageChain::processVkContext_.load(), nullptr);
+
+    int32_t firstCode = -1;
+    EffectImageChain::ReleaseCaches(&firstCode);
+    ASSERT_TRUE(firstCode == 0 || firstCode == EFFECT_RESOURCE_RELEASE_ERROR);
+
+    for (int i = 0; i < 2; i++) {
+        int32_t repeatCode = -1;
+        EffectImageChain::ReleaseCaches(&repeatCode);
+        EXPECT_TRUE(repeatCode == 0 || repeatCode == EFFECT_RESOURCE_RELEASE_ERROR);
+        int32_t threadCode = -1;
+        EffectImageChain::ReleaseGpuContext(&threadCode);
+        EXPECT_TRUE(threadCode == 0 || threadCode == EFFECT_RESOURCE_RELEASE_ERROR);
+    }
+    EXPECT_EQ(EffectImageChain::processVkContext_.load(), nullptr);
+    EXPECT_EQ(EffectImageChain::gpuContext_, nullptr);
+#else
+    GTEST_SKIP() << "Skip: GPU release path requires RS_ENABLE_GPU && !ROSEN_ARKUI_X";
+#endif
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.ThreadCacheReuseRendersTwice
+ * @tc.desc: test two sequential renders on the same thread reuse the cached GPUContext (thread-cache hit branch)
+ */
+HWTEST_F(EffectImageChainUnittest, ThreadCacheReuseRendersTwice, TestSize.Level1)
+{
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+    EffectImageChain::gpuContext_.reset();
+    Media::InitializationOptions opts;
+    opts.size = { 4, 4 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+
+    std::shared_ptr<Drawing::GPUContext> firstContext;
+    {
+        EffectImageChain chain;
+        ASSERT_EQ(chain.Prepare(srcPixelMap, false), DrawingError::ERR_OK);
+        ASSERT_EQ(chain.Draw(), DrawingError::ERR_OK);
+        firstContext = EffectImageChain::gpuContext_;
+        ASSERT_NE(firstContext, nullptr);
+    }
+    // second render on the same thread must hit the thread cache without recreating the context
+    {
+        EffectImageChain chain;
+        ASSERT_EQ(chain.Prepare(srcPixelMap, false), DrawingError::ERR_OK);
+        ASSERT_EQ(chain.Draw(), DrawingError::ERR_OK);
+        EXPECT_EQ(EffectImageChain::gpuContext_, firstContext);
+    }
+    EXPECT_TRUE(EffectImageChain::gpuEnvInitialized_.load());
+    // drop the extra holder before ReleaseCaches: the DDGRGPUContext must die while its
+    // underlying VkDevice (owned by processVkContext_) is still alive, otherwise the
+    // deferred ~TimelineSemaphore runs against a destroyed device
+    firstContext = nullptr;
+    // call without errorCode to also cover the null error-out defensive branch
+    EffectImageChain::ReleaseCaches();
+    EXPECT_EQ(EffectImageChain::gpuContext_, nullptr);
+#else
+    GTEST_SKIP() << "Skip: GPU release path requires RS_ENABLE_GPU && !ROSEN_ARKUI_X";
+#endif
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.ReleaseApisTolerateNullArgs
+ * @tc.desc: test ReleaseContext/ReleaseCaches/ReleaseGpuContext tolerate null inputs (defensive branches)
+ */
+HWTEST_F(EffectImageChainUnittest, ReleaseApisTolerateNullArgs, TestSize.Level1)
+{
+    // null context is a no-op; null vkContext is a no-op
+    EffectImageChain::ReleaseContext(nullptr);
+    EffectImageChain::ReleaseVkContext(nullptr);
+    // default parameter errorCode = nullptr must not crash on either release API
+    EffectImageChain::ReleaseCaches();
+    EffectImageChain::ReleaseGpuContext();
+    EXPECT_EQ(EffectImageChain::gpuContext_, nullptr);
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.EnsureVkContextConcurrent
+ * @tc.desc: test concurrent EnsureVkContext ends up with exactly one process-wide context (double-check branch);
+ * the double-check hit path is racy, assertions only require the final invariant
+ */
+HWTEST_F(EffectImageChainUnittest, EnsureVkContextConcurrent, TestSize.Level1)
+{
+#if defined(RS_ENABLE_VK)
+    // reset so every thread races through the slow path
+    RsVulkanContext* stale = EffectImageChain::processVkContext_.exchange(nullptr);
+    EffectImageChain::ReleaseVkContext(stale);
+
+    std::atomic<int32_t> readyCount(0);
+    std::atomic<bool> goFlag(false);
+    std::vector<std::thread> workers;
+    for (int32_t i = 0; i < TEST_CONCURRENT_THREAD_COUNT; i++) {
+        workers.emplace_back([&readyCount, &goFlag]() {
+            readyCount.fetch_add(1, std::memory_order_relaxed);
+            while (!goFlag.load(std::memory_order_acquire)) {
+            }
+            EffectImageChain::EnsureVkContext();
+        });
+    }
+    while (readyCount.load(std::memory_order_acquire) < TEST_CONCURRENT_THREAD_COUNT) {
+    }
+    goFlag.store(true, std::memory_order_release);
+    for (auto& worker : workers) {
+        worker.join();
+    }
+
+    EXPECT_NE(EffectImageChain::processVkContext_.load(), nullptr);
+    // leave a clean state for subsequent tests
+    RsVulkanContext* created = EffectImageChain::processVkContext_.exchange(nullptr);
+    EffectImageChain::ReleaseVkContext(created);
+    EXPECT_EQ(EffectImageChain::processVkContext_.load(), nullptr);
+#else
+    GTEST_SKIP() << "Skip: concurrent double-check requires RS_ENABLE_VK";
+#endif
+}
+
+#if defined(RS_ENABLE_VK)
+namespace {
+std::shared_ptr<Media::PixelMap> CreateRgbaPixelMap(int32_t width, int32_t height)
+{
+    OHOS::Media::InitializationOptions opts = {
+        .size =
+            {
+                .width = width,
+                .height = height,
+            },
+        .srcPixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
+        .pixelFormat = OHOS::Media::PixelFormat::RGBA_8888,
+        .alphaType = OHOS::Media::AlphaType::IMAGE_ALPHA_TYPE_PREMUL,
+    };
+    return Media::PixelMap::Create(opts);
+}
+
+OH_NativeBuffer* AllocRgbaNativeBuffer(int32_t width, int32_t height)
+{
+    OH_NativeBuffer_Config config {
+        .width = width,
+        .height = height,
+        .format = GRAPHIC_PIXEL_FMT_RGBA_8888,
+        .usage = BUFFER_USAGE_CPU_READ | BUFFER_USAGE_CPU_WRITE | BUFFER_USAGE_MEM_DMA
+    };
+    return OH_NativeBuffer_Alloc(&config);
+}
+} // namespace
+#endif
+
+/**
+ * @tc.name: EffectImageChainUnittest.PrepareNativeBufferFailsWhenVkContextInvalid
+ * @tc.desc: test PrepareNativeBuffer/Prepare failure paths when the EFFECT_KIT vulkan context is invalid
+ */
+HWTEST_F(EffectImageChainUnittest, PrepareNativeBufferFailsWhenVkContextInvalid, TestSize.Level1)
+{
+#if defined(RS_ENABLE_VK)
+    EffectImageChain::gpuContext_.reset();
+    EffectImageChain::EnsureVkContext();
+    RsVulkanContext* vkCtx = EffectImageChain::processVkContext_.load();
+    ASSERT_NE(vkCtx, nullptr);
+
+    std::shared_ptr<RsVulkanInterface> savedIface = vkCtx->GetRsVulkanInterface();
+    vkCtx->GetRsVulkanInterface().reset();
+    ASSERT_FALSE(vkCtx->IsValid());
+
+    auto srcPixelMap = CreateRgbaPixelMap(200, 200);
+    ASSERT_NE(srcPixelMap, nullptr);
+    OH_NativeBuffer* dstBuffer = AllocRgbaNativeBuffer(200, 200);
+    ASSERT_NE(dstBuffer, nullptr);
+    std::shared_ptr<OH_NativeBuffer> dst(dstBuffer, [](OH_NativeBuffer* buffer) {});
+
+    {
+        EffectImageChain chain;
+        auto ret = chain.PrepareNativeBuffer(srcPixelMap, dst);
+        EXPECT_EQ(ret, DrawingError::ERR_ILLEGAL_INPUT);
+        EXPECT_FALSE(chain.prepared_);
+        EXPECT_EQ(EffectImageChain::gpuContext_, nullptr);
+    }
+    {
+        EffectImageChain chain;
+        auto ret = chain.Prepare(srcPixelMap, false);
+        EXPECT_EQ(ret, DrawingError::ERR_SURFACE);
+        EXPECT_FALSE(chain.prepared_);
+    }
+    OH_NativeBuffer_Unreference(dstBuffer);
+    vkCtx->GetRsVulkanInterface() = savedIface;
+    ASSERT_TRUE(vkCtx->IsValid());
+    EffectImageChain::gpuContext_.reset();
+#else
+    GTEST_SKIP() << "Skip: vk-context-invalid injection requires RS_ENABLE_VK";
+#endif
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.PrepareNativeBufferFailsWhenVkInterfaceMissing
+ * @tc.desc: test PrepareNativeBuffer returns ERR_SURFACE when no dedicated vulkan interface exists
+ */
+HWTEST_F(EffectImageChainUnittest, PrepareNativeBufferFailsWhenVkInterfaceMissing, TestSize.Level1)
+{
+#if defined(RS_ENABLE_VK)
+    EffectImageChain::gpuContext_.reset();
+    auto srcPixelMap = CreateRgbaPixelMap(200, 200);
+    ASSERT_NE(srcPixelMap, nullptr);
+    OH_NativeBuffer* dstBuffer = AllocRgbaNativeBuffer(200, 200);
+    ASSERT_NE(dstBuffer, nullptr);
+    std::shared_ptr<OH_NativeBuffer> dst(dstBuffer, [](OH_NativeBuffer* buffer) {});
+
+    {
+        EffectImageChain warm;
+        auto ret = warm.Prepare(srcPixelMap, false);
+        ASSERT_EQ(ret, DrawingError::ERR_OK);
+    }
+    ASSERT_NE(EffectImageChain::gpuContext_, nullptr);
+
+    RsVulkanContext* stale = EffectImageChain::processVkContext_.exchange(nullptr);
+    ASSERT_NE(stale, nullptr);
+
+    {
+        EffectImageChain chain;
+        auto ret = chain.PrepareNativeBuffer(srcPixelMap, dst);
+        EXPECT_EQ(ret, DrawingError::ERR_SURFACE);
+        EXPECT_FALSE(chain.prepared_);
+    }
+
+    OH_NativeBuffer_Unreference(dstBuffer);
+    EffectImageChain::processVkContext_.store(stale);
+#else
+    GTEST_SKIP() << "Skip: vk-interface-missing injection requires RS_ENABLE_VK";
+#endif
+}
+
+/**
+ * @tc.name: EffectImageChainUnittest.DrawNativeBufferFailsWhenVkInterfaceMissing
+ * @tc.desc: test DrawNativeBuffer returns ERR_SURFACE and resets fenceId when no dedicated vulkan interface exists
+ */
+HWTEST_F(EffectImageChainUnittest, DrawNativeBufferFailsWhenVkInterfaceMissing, TestSize.Level1)
+{
+#if defined(RS_ENABLE_VK)
+    EffectImageChain chain;
+    auto srcPixelMap = CreateRgbaPixelMap(200, 200);
+    ASSERT_NE(srcPixelMap, nullptr);
+    OH_NativeBuffer* dstBuffer = AllocRgbaNativeBuffer(200, 200);
+    ASSERT_NE(dstBuffer, nullptr);
+    std::shared_ptr<OH_NativeBuffer> dst(dstBuffer, [](OH_NativeBuffer* buffer) {});
+
+    auto ret = chain.PrepareNativeBuffer(srcPixelMap, dst);
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+    ret = chain.DrawNativeBuffer();
+    ASSERT_EQ(ret, DrawingError::ERR_OK);
+
+    RsVulkanContext* stale = EffectImageChain::processVkContext_.exchange(nullptr);
+    ASSERT_NE(stale, nullptr);
+
+    ret = chain.DrawNativeBuffer();
+    EXPECT_EQ(ret, DrawingError::ERR_SURFACE);
+    EXPECT_EQ(chain.GetfenceId(), -1);
+
+    OH_NativeBuffer_Unreference(dstBuffer);
+    EffectImageChain::processVkContext_.store(stale);
+#else
+    GTEST_SKIP() << "Skip: draw vk-interface-missing injection requires RS_ENABLE_VK";
+#endif
+}
 } // namespace Rosen
 } // namespace OHOS

@@ -60,6 +60,7 @@ ohos_unittest("EffectTest") {
   external_deps = [
     "cJSON:cjson",
     "c_utils:utils",
+    "graphic_surface:surface",
     "graphics_effect:graphics_effect_core",
     "googletest:gtest_main",
     "googletest:gmock_main",
@@ -81,6 +82,7 @@ config("effect_test_config") {
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
     "$graphic_2d_root/rosen/modules/effect/effect_common/include",
     "$graphic_2d_root/rosen/modules/effect/effect_ndk/include",
+    "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/utils/color_manager/export",
     "$graphic_2d_root/rosen/modules/2d_graphics",
   ]

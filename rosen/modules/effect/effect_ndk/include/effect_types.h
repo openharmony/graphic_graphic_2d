@@ -128,6 +128,17 @@ typedef enum {
     EFFECT_BAD_PARAMETER = 401,
     /** Unsupported operation. */
     EFFECT_UNSUPPORTED_OPERATION = 7600201,
+    /**
+     * No available GPU environment. Possible causes include that the GPU device is not
+     * initialized or does not support the operation.
+     * @since 26.1.0
+     */
+    EFFECT_NO_GPU_ENVIRONMENT = 7600501,
+    /**
+     * Failed to release the GPU resources. Possible causes include abnormal GPU device status.
+     * @since 26.1.0
+     */
+    EFFECT_RESOURCE_RELEASE_ERROR = 7600502,
     /** Unknown error. */
     EFFECT_UNKNOWN_ERROR = 7600901,
 } EffectErrorCode;

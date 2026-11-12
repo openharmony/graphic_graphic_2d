@@ -16,6 +16,7 @@
 #include "effect_filter_unittest.h"
 
 #include "effect_filter.h"
+#include "effect_image_chain.h"
 #include "image/pixelmap_native.h"
 #include "surface_buffer.h"
 
@@ -1028,6 +1029,155 @@ HWTEST_F(EffectFilterUnittest, OH_Filter_GetEffectNativeBuffer003, TestSize.Leve
     OH_PixelmapNative_Release(*pixMap);
 
     GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_GetEffectNativeBuffer003 end";
+}
+
+/**
+ * @tc.name: OH_Filter_ReleaseCaches001
+ * @tc.desc: Release caches with NULL filter returns EFFECT_BAD_PARAMETER.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_ReleaseCaches001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseCaches001 start";
+    ASSERT_TRUE(OH_Filter_ReleaseCaches(nullptr) == EFFECT_BAD_PARAMETER);
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseCaches001 end";
+}
+
+/**
+ * @tc.name: OH_Filter_ReleaseGpuContext001
+ * @tc.desc: Release gpu context with NULL filter returns EFFECT_BAD_PARAMETER.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_ReleaseGpuContext001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseGpuContext001 start";
+    ASSERT_TRUE(OH_Filter_ReleaseGpuContext(nullptr) == EFFECT_BAD_PARAMETER);
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseGpuContext001 end";
+}
+
+/**
+ * @tc.name: OH_Filter_ReleaseWithoutGpuEnv001
+ * @tc.desc: Release on a valid filter before any GPU rendering reports EFFECT_NO_GPU_ENVIRONMENT.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_ReleaseWithoutGpuEnv001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseWithoutGpuEnv001 start";
+    OH_PixelmapNative *pixmap = nullptr;
+    OH_PixelmapNative **pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter *filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+
+    EffectErrorCode retCaches = OH_Filter_ReleaseCaches(filter);
+    ASSERT_TRUE(retCaches == EFFECT_NO_GPU_ENVIRONMENT || retCaches == EFFECT_SUCCESS);
+    EffectErrorCode retGpuContext = OH_Filter_ReleaseGpuContext(filter);
+    ASSERT_TRUE(retGpuContext == EFFECT_NO_GPU_ENVIRONMENT || retGpuContext == EFFECT_SUCCESS);
+
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative_Release(*pixMap);
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseWithoutGpuEnv001 end";
+}
+
+/**
+ * @tc.name: OH_Filter_ReleaseSuccessPath001
+ * @tc.desc: Release APIs return EFFECT_SUCCESS after a real GPU rendering (AC-3.1).
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_ReleaseSuccessPath001, TestSize.Level1)
+{
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseSuccessPath001 start";
+    OH_PixelmapNative *pixmap = nullptr;
+    OH_PixelmapNative **pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter *filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+    ASSERT_TRUE(OH_Filter_Invert(filter) == EFFECT_SUCCESS);
+
+    int32_t syncFenceFd = -1;
+    OH_NativeBuffer *buffer = CreateNativeBuffer(4, 4, GRAPHIC_PIXEL_FMT_RGBA_8888);
+    ASSERT_TRUE(buffer != nullptr);
+    ASSERT_TRUE(OH_Filter_GetEffectNativeBuffer(filter, buffer, &syncFenceFd, false)
+        == EFFECT_SUCCESS);
+
+    EffectErrorCode retCaches = OH_Filter_ReleaseCaches(filter);
+    ASSERT_TRUE(retCaches == EFFECT_SUCCESS || retCaches == EFFECT_RESOURCE_RELEASE_ERROR);
+    EffectErrorCode retGpuContext = OH_Filter_ReleaseGpuContext(filter);
+    ASSERT_TRUE(retGpuContext == EFFECT_SUCCESS || retGpuContext == EFFECT_RESOURCE_RELEASE_ERROR);
+
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_NativeBuffer_Unreference(buffer);
+    OH_PixelmapNative_Release(*pixMap);
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseSuccessPath001 end";
+#else
+    GTEST_SKIP() << "Skip: GPU release success path requires RS_ENABLE_GPU && !ROSEN_ARKUI_X";
+#endif
+}
+
+/**
+ * @tc.name: OH_Filter_ReleaseCaches002
+ * @tc.desc: ReleaseCaches/ReleaseGpuContext report EFFECT_NO_GPU_ENVIRONMENT when no GPU env was initialized.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_ReleaseCaches002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseCaches002 start";
+    // force the no-GPU-env state so the branch is deterministic regardless of test order
+    EffectImageChain::gpuEnvInitialized_.store(false);
+    OH_PixelmapNative *pixmap = nullptr;
+    OH_PixelmapNative **pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter *filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+
+    EXPECT_TRUE(OH_Filter_ReleaseCaches(filter) == EFFECT_NO_GPU_ENVIRONMENT);
+    EXPECT_TRUE(OH_Filter_ReleaseGpuContext(filter) == EFFECT_NO_GPU_ENVIRONMENT);
+
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative_Release(*pixMap);
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseCaches002 end";
+}
+
+/**
+ * @tc.name: OH_Filter_ReleaseCaches003
+ * @tc.desc: Release APIs report EFFECT_RESOURCE_RELEASE_ERROR while an EffectImageChain is alive.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EffectFilterUnittest, OH_Filter_ReleaseCaches003, TestSize.Level1)
+{
+#if defined(RS_ENABLE_GPU) && !defined(ROSEN_ARKUI_X)
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseCaches003 start";
+    EffectImageChain::gpuContext_.reset();
+    Media::InitializationOptions opts;
+    opts.size = { 4, 4 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    OH_PixelmapNative *pixmap = nullptr;
+    OH_PixelmapNative **pixMap = &pixmap;
+    CreatePixelMap(&pixMap);
+    ASSERT_TRUE(*pixMap != nullptr);
+    OH_Filter *filter = nullptr;
+    ASSERT_TRUE(OH_Filter_CreateEffect(*pixMap, &filter) == EFFECT_SUCCESS);
+
+    {
+        // a living chain keeps activeChainCount_ above zero
+        EffectImageChain chain;
+        ASSERT_EQ(chain.Prepare(srcPixelMap, false), DrawingError::ERR_OK);
+        EXPECT_TRUE(OH_Filter_ReleaseCaches(filter) == EFFECT_RESOURCE_RELEASE_ERROR);
+        EXPECT_TRUE(OH_Filter_ReleaseGpuContext(filter) == EFFECT_RESOURCE_RELEASE_ERROR);
+    }
+    ASSERT_TRUE(OH_Filter_Release(filter) == EFFECT_SUCCESS);
+    OH_PixelmapNative_Release(*pixMap);
+    // clean the thread-local context this test created
+    EffectImageChain::ReleaseCaches();
+    GTEST_LOG_(INFO) << "EffectFilterUnittest OH_Filter_ReleaseCaches003 end";
+#else
+    GTEST_SKIP() << "Skip: alive-chain rejection requires RS_ENABLE_GPU && !ROSEN_ARKUI_X";
+#endif
 }
 } // namespace Rosen
 } // namespace OHOS

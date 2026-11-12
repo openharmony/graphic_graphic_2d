@@ -23,6 +23,7 @@
 #include <unordered_map>
 
 #include "effect_errors.h"
+#include "effect_image_chain.h"
 #include "effect_utils.h"
 #include "effect/shader_effect.h"
 #include "filter_napi.h"
@@ -313,6 +314,28 @@ ani_object AniFilter::kitTransferDynamicEffect(ani_env* env,  ani_class cls, ani
     return result;
 }
 
+void AniFilter::ReleaseCaches(ani_env* env, ani_object obj)
+{
+    AniFilter* thisFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
+    if (thisFilter == nullptr) {
+        EFFECT_LOG_E("AniFilter ReleaseCaches GetFilterFromEnv fail");
+        return;
+    }
+    // ArkTS API is void: the internal release result is not surfaced to ArkTS.
+    EffectImageChain::ReleaseCaches(nullptr);
+}
+
+void AniFilter::ReleaseGpuContext(ani_env* env, ani_object obj)
+{
+    AniFilter* thisFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
+    if (thisFilter == nullptr) {
+        EFFECT_LOG_E("AniFilter ReleaseGpuContext GetFilterFromEnv fail");
+        return;
+    }
+    // ArkTS API is void: the internal release result is not surfaced to ArkTS.
+    EffectImageChain::ReleaseGpuContext(nullptr);
+}
+
 ani_status AniFilter::Init(ani_env* env)
 {
     static const char* className = ANI_CLASS_FILTER.c_str();
@@ -342,6 +365,10 @@ ani_status AniFilter::Init(ani_env* env)
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::SetColorMatrix) },
         ani_native_function { "getPixelMapNative", ":C{@ohos.multimedia.image.image.PixelMap}",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetPixelMap) },
+        ani_native_function { "releaseCachesNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::ReleaseCaches) },
+        ani_native_function { "releaseGpuContextNative", nullptr,
+            reinterpret_cast<void*>(OHOS::Rosen::AniFilter::ReleaseGpuContext) },
     };
     ani_status ret = env->Class_BindNativeMethods(cls, methods.data(), methods.size());
     if (ret != ANI_OK) {

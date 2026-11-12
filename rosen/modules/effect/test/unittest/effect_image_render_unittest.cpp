@@ -219,20 +219,20 @@ HWTEST_F(EffectImageRenderUnittest, RenderTest003, TestSize.Level1)
     EffectImageRender imageRender;
     int32_t syncFenceFdValue = 0;
     int32_t* syncFenceFd = &syncFenceFdValue;
-    auto ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd, true);
+    auto ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd, false);
+    ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(nullptr, dst, imageFilter, syncFenceFd, true);
+    ret = imageRender.RenderNativeBuffer(nullptr, dst, imageFilter, syncFenceFd);
     ASSERT_NE(ret, DrawingError::ERR_OK);
     std::shared_ptr<OH_NativeBuffer> nullBuffer = nullptr;
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, nullBuffer, imageFilter, syncFenceFd, true);
+    ret = imageRender.RenderNativeBuffer(srcPixelMap, nullBuffer, imageFilter, syncFenceFd);
     ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, nullBuffer, imageFilter, syncFenceFd, true);
+    ret = imageRender.RenderNativeBuffer(srcPixelMap, nullBuffer, imageFilter, syncFenceFd);
     ASSERT_NE(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd, true);
+    ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, syncFenceFd);
     ASSERT_EQ(ret, DrawingError::ERR_OK);
-    ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, nullptr, true);
+    ret = imageRender.RenderNativeBuffer(srcPixelMap, dst, imageFilter, nullptr);
     ASSERT_NE(ret, DrawingError::ERR_OK);
     OH_NativeBuffer_Unreference(dstBuffer);
 }
