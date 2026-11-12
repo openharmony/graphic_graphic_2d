@@ -184,7 +184,10 @@ ohos_static_library("font_asset") {
       cfi_vcall_icall_only = true
       debug = false
     }
-    external_deps += [ "init:libbegetutil" ]
+    external_deps += [
+      "config_policy:configpolicy_util",
+      "init:libbegetutil",
+    ]
   } else {
     defines += [ "MODULE_FONT" ]
   }

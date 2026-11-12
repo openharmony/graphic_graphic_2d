@@ -100,6 +100,7 @@ ohos_source_set("libtexgine_source") {
   if (platform_is_ohos) {
     external_deps += [
       "c_utils:utils",
+      "config_policy:configpolicy_util",
       "hitrace:hitrace_meter",
       "icu:shared_icuuc",
       "init:libbegetutil",

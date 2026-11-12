@@ -27,6 +27,9 @@
 #ifdef BUILD_NON_SDK_VER
 #include "securec.h"
 #endif
+#ifdef ENABLE_OHOS_ENHANCE
+#include "config_policy_utils.h"
+#endif
 #include "utils/text_log.h"
 
 namespace OHOS {
@@ -38,7 +41,7 @@ namespace TextEngine {
 
 const char* FONT_DEFAULT_CONFIG = "/system/etc/fontconfig_ohos.json";
 const char* FONT_FILE_MAP_CONFIG = "/system/etc/font_file_map.json";
-const char* FONT_MAP_TABLE_CONFIG = "/system/etc/fonts_map_table.json";
+const char* FONT_MAP_TABLE_CFG_PATH = "etc/fonts/fonts_map_table.json";
 
 FontConfig::FontConfig(const char* fname)
 {
@@ -199,9 +202,24 @@ int FontConfigJson::ParseFontFileMap(const char* fname)
 
 int FontConfigJson::ParseFontMapTable(const char* fname)
 {
+    // Holds the resolved path when fname is null; must outlive the if-block below,
+    // otherwise fname would point to freed memory (use-after-free).
+    std::string mapTablePath;
     if (fname == nullptr) {
         TEXT_LOGD("Null file name");
-        fname = FONT_MAP_TABLE_CONFIG;
+#ifdef ENABLE_OHOS_ENHANCE
+        char pathBuff[MAX_PATH_LEN] = {'\0'};
+        char* cfgFilePath = GetOneCfgFile(FONT_MAP_TABLE_CFG_PATH, pathBuff, MAX_PATH_LEN);
+        if (cfgFilePath == nullptr) {
+            TEXT_LOGE_LIMIT3_MIN("Failed to find %{public}s", FONT_MAP_TABLE_CFG_PATH);
+            return FAILED;
+        }
+        mapTablePath = cfgFilePath;
+        fname = mapTablePath.c_str();
+#else
+        TEXT_LOGD("Fonts map table is not supported on non-OHOS platforms");
+        return FAILED;
+#endif
     }
 
     TEXT_LOGI_LIMIT3_MIN("Font map table file name: %{public}s", fname);
