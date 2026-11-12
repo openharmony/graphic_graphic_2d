@@ -239,9 +239,9 @@ HWTEST_F(RSMultiDisplayPostProcessingUtilsTest, Process002, TestSize.Level2)
  */
 HWTEST_F(RSMultiDisplayPostProcessingUtilsTest, Process003, TestSize.Level1)
 {
-    constexpr uint32_t THREAD_NUM = 8;
+    constexpr uint32_t threadNum = 8;
     std::vector<std::thread> threads;
-    for (uint32_t i = 0; i < THREAD_NUM; i++) {
+    for (uint32_t i = 0; i < threadNum; i++) {
         threads.emplace_back([]() {
             auto surface = Drawing::Surface::MakeRasterN32Premul(FAKE_WIDTH, FAKE_HEIGHT);
             ASSERT_TRUE(surface != nullptr);
