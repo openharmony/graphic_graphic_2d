@@ -46,7 +46,9 @@ namespace Rosen {
 namespace Drawing {
 #ifdef RS_ENABLE_GPU
 static constexpr int TEXTURE_SAMPLE_COUNT = 0;
+#ifndef ACE_DISABLE_GL
 static constexpr int FB_SAMPLE_COUNT = 0;
+#endif
 static constexpr uint32_t SURFACE_PROPS_FLAGS = 0;
 #endif
 namespace {
@@ -176,6 +178,7 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
         LOGD("SkiaSurface bind FBO failed: gpuContext is invalid");
         return false;
     }
+#ifndef ACE_DISABLE_GL
     auto skiaContext = frameBuffer.gpuContext->GetImpl<SkiaGPUContext>();
 
     GrGLFramebufferInfo framebufferInfo;
@@ -213,6 +216,10 @@ bool SkiaSurface::Bind(const FrameBuffer& frameBuffer)
         return false;
     }
     return true;
+#else
+    LOGD("SkiaSurface bind FBO failed: GL backend is disabled");
+    return false;
+#endif
 }
 
 #ifdef RS_ENABLE_VK
