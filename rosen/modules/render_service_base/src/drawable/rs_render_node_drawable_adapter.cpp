@@ -54,6 +54,7 @@ std::map<NodeId, RSRenderNodeDrawableAdapter::WeakPtr> RSRenderNodeDrawableAdapt
 RSRenderNodeDrawableAdapter::DrawableVec RSRenderNodeDrawableAdapter::toClearDrawableVec_;
 RSRenderNodeDrawableAdapter::CmdListVec RSRenderNodeDrawableAdapter::toClearCmdListVec_;
 std::unordered_map<NodeId, Drawing::Matrix> RSRenderNodeDrawableAdapter::unobscuredUECMatrixMap_;
+std::mutex RSRenderNodeDrawableAdapter::unobscuredUECMatrixMapMutex_;
 #ifdef ROSEN_OHOS
 thread_local RSRenderNodeDrawableAdapter* RSRenderNodeDrawableAdapter::curDrawingCacheRoot_ = nullptr;
 thread_local NodeId RSRenderNodeDrawableAdapter::curDrawingCacheRootId_ = 0;
@@ -556,13 +557,28 @@ void RSRenderNodeDrawableAdapter::CollectInfoForNodeWithoutFilter(Drawing::Canva
     withoutFilterMatrixMap[GetId()] = canvas.GetTotalMatrix();
 }
 
+bool RSRenderNodeDrawableAdapter::TryGetUnobscuredUECMatrix(NodeId nodeId, Drawing::Matrix& matrix) const
+{
+    std::lock_guard<std::mutex> lock(unobscuredUECMatrixMapMutex_);
+    auto iter = unobscuredUECMatrixMap_.find(nodeId);
+    if (iter == unobscuredUECMatrixMap_.end()) {
+        return false;
+    }
+    matrix = iter->second;
+    return true;
+}
+
 void RSRenderNodeDrawableAdapter::CollectInfoForUnobscuredUEC(Drawing::Canvas& canvas)
 {
     if (!UECChildrenIds_ || UECChildrenIds_->empty()) {
         return;
     }
+    const auto totalMatrix = canvas.GetTotalMatrix();
     for (auto childId : *UECChildrenIds_) {
-        unobscuredUECMatrixMap_[childId] = canvas.GetTotalMatrix();
+        {
+            std::lock_guard<std::mutex> lock(unobscuredUECMatrixMapMutex_);
+            unobscuredUECMatrixMap_[childId] = totalMatrix;
+        }
         auto drawable = GetDrawableById(childId);
         if (drawable) {
             drawable->SetUIExtensionNeedToDraw(true);

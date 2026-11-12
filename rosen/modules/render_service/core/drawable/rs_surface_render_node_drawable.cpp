@@ -568,12 +568,12 @@ void RSSurfaceRenderNodeDrawable::PreprocessUnobscuredUEC(RSPaintFilterCanvas& c
         return;
     }
     canvas.ResetMatrix();
-    auto& unobscuredUECMatrixMap = GetUnobscuredUECMatrixMap();
-    if (unobscuredUECMatrixMap.find(GetId()) == unobscuredUECMatrixMap.end()) {
+    Drawing::Matrix matrix;
+    if (!TryGetUnobscuredUECMatrix(GetId(), matrix)) {
         RS_LOGE("PreprocessUnobscuredUEC can't find matrix of cached node in unobscuredMatrixMap");
         return;
     }
-    canvas.ConcatMatrix(unobscuredUECMatrixMap.at(GetId()));
+    canvas.ConcatMatrix(matrix);
 }
 
 bool RSSurfaceRenderNodeDrawable::DrawCacheImageForMultiScreenView(RSPaintFilterCanvas& canvas,

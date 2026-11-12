@@ -89,9 +89,17 @@ public:
         : RSRenderNodeDrawableAdapter(std::move(node))
     {}
     void Draw(Drawing::Canvas& canvas) {}
-    
-    // Expose protected method for testing
+
+    // Expose protected methods for testing
     using RSRenderNodeDrawableAdapter::AlignRectToDevicePixels;
+    using RSRenderNodeDrawableAdapter::CollectInfoForUnobscuredUEC;
+    using RSRenderNodeDrawableAdapter::UECChildrenIds_;
+
+    static void EraseUnobscuredUECMatrix(NodeId nodeId)
+    {
+        std::lock_guard<std::mutex> lock(unobscuredUECMatrixMapMutex_);
+        unobscuredUECMatrixMap_.erase(nodeId);
+    }
 };
 
 void RSRenderNodeDrawableAdapterTest::SetUpTestCase() {}
@@ -1109,4 +1117,32 @@ HWTEST(RSRenderNodeDrawableAdapterTest, OnTreeStateChangedTest, TestSize.Level1)
     canvasDrawingNode->OnTreeStateChanged();
 }
 #endif
+
+/**
+ * @tc.name: UnobscuredUECMatrixMapTest
+ * @tc.desc: Test synchronized write and lookup of the unobscured UEC matrix map
+ * @tc.type: FUNC
+ * @tc.require: issue26790
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, UnobscuredUECMatrixMapTest, TestSize.Level1)
+{
+    constexpr NodeId TEST_PARENT_NODE_ID = 1000;
+    constexpr NodeId TEST_CHILD_NODE_ID = 1001;
+    constexpr float TEST_TRANSLATE_X = 5.0f;
+    auto node = std::make_shared<RSRenderNode>(TEST_PARENT_NODE_ID);
+    auto adapter = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(std::move(node));
+    adapter->UECChildrenIds_->insert(TEST_CHILD_NODE_ID);
+
+    Drawing::Matrix expectedMatrix;
+    expectedMatrix.Set(Drawing::Matrix::TRANS_X, TEST_TRANSLATE_X);
+    Drawing::Canvas canvas;
+    canvas.SetMatrix(expectedMatrix);
+    adapter->CollectInfoForUnobscuredUEC(canvas);
+
+    Drawing::Matrix actualMatrix;
+    EXPECT_TRUE(adapter->TryGetUnobscuredUECMatrix(TEST_CHILD_NODE_ID, actualMatrix));
+    EXPECT_EQ(actualMatrix, expectedMatrix);
+    EXPECT_FALSE(adapter->TryGetUnobscuredUECMatrix(TEST_CHILD_NODE_ID + 1, actualMatrix));
+    ConcreteRSRenderNodeDrawableAdapter::EraseUnobscuredUECMatrix(TEST_CHILD_NODE_ID);
 }
+} // namespace OHOS::Rosen

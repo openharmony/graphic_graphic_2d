@@ -227,10 +227,7 @@ public:
     void SetLastDrawnFilterNodeId(NodeId nodeId);
     NodeId GetLastDrawnFilterNodeId() const;
 
-    const std::unordered_map<NodeId, Drawing::Matrix>& GetUnobscuredUECMatrixMap() const
-    {
-        return unobscuredUECMatrixMap_;
-    }
+    bool TryGetUnobscuredUECMatrix(NodeId nodeId, Drawing::Matrix& matrix) const;
 
     virtual void SetShouldClipHole(bool value) {}
     virtual bool ShouldClipHole() const
@@ -379,6 +376,7 @@ protected:
     DrawCmdIndex drawCmdIndex_;
     std::unique_ptr<RSRenderParams> renderParams_;
     static std::unordered_map<NodeId, Drawing::Matrix> unobscuredUECMatrixMap_;
+    static std::mutex unobscuredUECMatrixMapMutex_;
     std::shared_ptr<std::unordered_set<NodeId>> UECChildrenIds_ = std::make_shared<std::unordered_set<NodeId>>();
     RSDrawable::DrawList drawCmdList_;
     Drawing::Region unifiedFilterRegion_;
