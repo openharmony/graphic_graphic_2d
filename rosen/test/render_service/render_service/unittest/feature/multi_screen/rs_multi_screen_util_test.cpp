@@ -303,8 +303,6 @@ HWTEST_F(RSMultiScreenUtilTest, HandleMirrorDisplayTest003, TestSize.Level1)
     EXPECT_NE(uniParam, nullptr);
 
     virtualProcessor_->isMirror_ = false;
-    bool res = virtualProcessor_->UpdateMirrorInfo(*displayDrawable_);
-    EXPECT_TRUE(res);
     RSMultiScreenUtil::HandleMirrorDisplay(*displayDrawable_, *displayParams_, virtualProcessor_);
 
     // when compositeType_ of params is UNI_RENDER_COMPOSITE

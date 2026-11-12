@@ -393,7 +393,7 @@ void InitNativeTokenInfo()
         .perms = perms,
         .acls = NULL,
         .processName = "rs_display_capture_format_demo",
-        .aplStr = "system_basic",
+        .aplStr = "system_core",
     };
     tokenId = GetAccessTokenId(&infoInstance);
     SetSelfTokenID(tokenId);
