@@ -376,8 +376,8 @@ ohos_executable("render_service_client_display_capture_format_demo") {
   defines = []
   if (graphic_2d_support_access_token) {
     external_deps += [
-      "access_token:libnativetoken",
-      "access_token:libtoken_setproc",
+      "access_token:libnativetoken_shared",
+      "access_token:libtokensetproc_shared",
     ]
     defines += [ "SUPPORT_ACCESS_TOKEN" ]
   }
