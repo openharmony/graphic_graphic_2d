@@ -261,7 +261,6 @@ std::unique_ptr<RSRenderFrame> RSScreenRenderNodeDrawable::RequestFrame(
         } else {
             RS_TRACE_NAME("RSScreenRenderNodeDrawable::SetBufferReallocFlag succeed");
             surface->SetBufferReallocFlag(true);
-            RS_LOGI("RSScreenRenderNodeDrawable::SetBufferReallocFlag succeed");
         }
     }
     SetLastPixelFormat(params.GetNewPixelFormat());
