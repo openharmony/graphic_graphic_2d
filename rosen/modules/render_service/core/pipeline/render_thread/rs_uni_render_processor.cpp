@@ -749,6 +749,7 @@ void RSUniRenderProcessor::ConfigureSolidColorLayer(RSLayerPtr& layer, NodeId no
     layerAlpha.enGlobalAlpha = true;
     layerAlpha.gAlpha = static_cast<uint8_t>(std::clamp(layerInfo.alpha, 0.0f, 1.0f) * RGBA_MAX);
     layer->SetAlpha(layerAlpha);
+    layer->SetBlendType(GraphicBlendType::GRAPHIC_BLEND_SRCOVER);
     layer->SetLayerSize(boundsDst);
     layer->SetCropRect(boundsSrc);
     std::vector<GraphicIRect> visibleRegions;

@@ -400,6 +400,8 @@ void RSUniHwcVisitor::DisableSolidLayerByDstRectNEBounds(RSSurfaceRenderNode& no
     if (stagingSurfaceParams == nullptr || !stagingSurfaceParams->GetIsHwcEnabledBySolidLayer()) {
         return;
     }
+    // A no-buffer surface node does not clip a hole (no self-drawing area), so it is
+    // not subject to the dstRect-vs-bounds disable below.
     bool hasBuffer = node.GetRSSurfaceHandler() && node.GetRSSurfaceHandler()->GetBuffer();
     if (IsSolidLayerEnabledNoBuffer(node, hasBuffer)) {
         return;
