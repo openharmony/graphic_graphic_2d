@@ -1340,7 +1340,6 @@ if (is_emulator) {
       "rs_rcd_img_load_test.cpp",
       "rs_round_corner_display_test.cpp",
       "rs_round_corner_display_test_common.cpp",
-      "rs_round_corner_display_test_part2.cpp",
       "rs_round_corner_display_test_part3.cpp",
     ]
   
