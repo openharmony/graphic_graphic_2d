@@ -146,8 +146,10 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
     bool isRenderServiceNode, bool isTextureExportNode, std::shared_ptr<RSUIContext> rsUIContext)
 {
     SharedPtr node(new RSCanvasDrawingNode(isRenderServiceNode, isTextureExportNode, rsUIContext));
+    bool isSceneBoard = false;
     if (rsUIContext != nullptr) {
         rsUIContext->GetMutableNodeMap().RegisterNode(node);
+        isSceneBoard = rsUIContext->IsSceneBoard();
     } else {
         RSNodeMap::MutableInstance().RegisterNode(node);
     }
@@ -156,7 +158,7 @@ RSCanvasDrawingNode::SharedPtr RSCanvasDrawingNode::Create(
     static std::once_flag hybridEnabledFlag;
     std::call_once(
         hybridEnabledFlag, []() { globalHybridEnabled_ = RSSystemProperties::GetHybridRenderCanvasEnabled(); });
-    node->hybridEnabled_ = globalHybridEnabled_ && !isTextureExportNode;
+    node->hybridEnabled_ = globalHybridEnabled_ && !isTextureExportNode && !isSceneBoard;
 #endif
     if (node->hybridEnabled_) {
 #ifdef RS_MODIFIERS_DRAW_ENABLE
