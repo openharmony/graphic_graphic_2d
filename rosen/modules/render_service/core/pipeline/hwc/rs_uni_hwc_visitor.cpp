@@ -29,7 +29,7 @@
 
 #undef LOG_TAG
 #define LOG_TAG "RSUniHwcVisitor"
-//
+
 namespace OHOS {
 namespace Rosen {
 namespace {
@@ -416,6 +416,22 @@ void RSUniHwcVisitor::DisableSolidLayerByDstRectNEBounds(RSSurfaceRenderNode& no
         RS_OPTIONAL_TRACE_FMT("hwc debug: name:%s id:%" PRIu64 " disabled by solidLayer and "
             "dstRect smaller than boundsRect", node.GetName().c_str(), node.GetId());
     }
+}
+
+bool RSUniHwcVisitor::IsSurfaceOpaque(RSSurfaceRenderNode& node)
+{
+    auto surfaceHandler = node.GetMutableRSSurfaceHandler();
+    auto consumer = surfaceHandler->GetConsumer();
+    if (consumer != nullptr) {
+        auto fwkType = consumer->GetSurfaceAppFrameworkType();
+        auto surfaceOpaqueType = RsCommonHook::Instance().GetSurfaceOpaqueType();
+        RS_LOGI("xhj234 %{public}s", surfaceOpaqueType.c_str());
+        bool surfaceType = fwkType.find(surfaceOpaqueType) != std::string::npos;
+        if (surfaceType) {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool RSUniHwcVisitor::IsTargetSolidLayer(RSSurfaceRenderNode& node)
