@@ -390,8 +390,8 @@ void RSBufferManager::ReleaseBufferById(uint64_t bufferId)
     }
 
     auto mergedFence = TryMergeFence(info.mergedFences_);
-    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseBufferById bufferId %" PRIu64 " Fence %d",
-        buffer->GetBufferId(), mergedFence ? mergedFence->Get() : -1);
+    RS_OPTIONAL_TRACE_NAME_FMT("RSBufferManager::ReleaseBufferById bufferId %" PRIu64 " Fence %d, seqnum=%u",
+        buffer->GetBufferId(), mergedFence ? mergedFence->Get() : -1, buffer->GetSeqNum());
     auto ret = consumer->ReleaseBuffer(buffer, mergedFence);
     if (ret != OHOS::SURFACE_ERROR_OK) {
         RS_LOGD_IF(DEBUG_PIPELINE, "RSBufferManager::ReleaseBufferById ReleaseBuffer failed(bufferId:%{public}" PRIu64
