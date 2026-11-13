@@ -314,13 +314,13 @@ ErrCode RSClientToRenderConnection::ExecuteSynchronousTask(const std::shared_ptr
 }
 
 ErrCode RSClientToRenderConnection::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
-    bool& success)
+    bool& success, bool isSceneBoard)
 {
     if (renderPipelineAgent_ == nullptr) {
         success = false;
         return ERR_INVALID_VALUE;
     }
-    return renderPipelineAgent_->CreateDisplayNode(displayNodeConfig, nodeId, success);
+    return renderPipelineAgent_->CreateDisplayNode(displayNodeConfig, nodeId, success, isSceneBoard);
 }
 
 ErrCode RSClientToRenderConnection::CreateNode(const RSSurfaceRenderNodeConfig& config, bool& success)
@@ -333,12 +333,12 @@ ErrCode RSClientToRenderConnection::CreateNode(const RSSurfaceRenderNodeConfig& 
 }
 
 ErrCode RSClientToRenderConnection::CreateNodeAndSurface(
-    const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured)
+    const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured, bool isSceneBoard)
 {
     if (renderPipelineAgent_ == nullptr) {
         return ERR_INVALID_VALUE;
     }
-    return renderPipelineAgent_->CreateNodeAndSurface(config, sfc, unobscured);
+    return renderPipelineAgent_->CreateNodeAndSurface(config, sfc, unobscured, isSceneBoard);
 }
 
 // LCOV_EXCL_START

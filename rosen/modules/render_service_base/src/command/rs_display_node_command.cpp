@@ -47,7 +47,8 @@ bool TrySetScreenNodeByScreenId(RSContext& context, ScreenId id, Lambda&& lambda
     return nodeExists;
 }
 
-void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config)
+void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDisplayNodeConfig& config,
+    uint64_t token)
 {
     if (config.mirrorSourceRotation > static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)) {
         RS_LOGE("DisplayNodeCommandHelper::Create invalid mirrorSourceRotation[%{public}" PRIu32 "]",
@@ -57,8 +58,10 @@ void DisplayNodeCommandHelper::Create(RSContext& context, NodeId id, const RSDis
     RS_TRACE_NAME_FMT("DisplayNodeCommandHelper::%s displayNodeId[%" PRIu64 "], %s", __func__, id,
         config.ToString().c_str());
 
+    const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
     auto node = std::shared_ptr<RSLogicalDisplayRenderNode>(new RSLogicalDisplayRenderNode(id,
         config, context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
+    node->ApplyInstanceIdentity(token, isSceneBoard);
     auto& nodeMap = context.GetMutableNodeMap();
     nodeMap.RegisterRenderNode(node);
 

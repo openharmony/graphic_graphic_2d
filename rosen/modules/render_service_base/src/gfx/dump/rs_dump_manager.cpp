@@ -61,9 +61,13 @@ RSDumpManager& RSDumpManager::GetInstance()
 void RSDumpManager::Register(RSDumpHander rsDumpHander)
 {
     RSDumpID rsDumpId = rsDumpHander.rsDumpId;
+
     if (rsDumpHanderMap_.find(rsDumpId) != rsDumpHanderMap_.end()) {
         // If the module ID already exists, output a warning message
-        RS_LOGW("RSDumpManager::Register, rsDumpId %{public}d is already exist.", static_cast<int>(rsDumpId));
+        RSDumpHander existingHander = rsDumpHanderMap_[rsDumpId];
+        RS_LOGW("RSDumpManager::Register, rsDumpId %{public}d is already exist. "
+                "Existing tag = %{public}s, New tag = %{public}s",
+            static_cast<int>(rsDumpId), existingHander.tag.c_str(), rsDumpHander.tag.c_str());
     } else {
         rsDumpHanderMap_[rsDumpId] = rsDumpHander;
     }

@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "command/rs_canvas_node_command.h"
 #include "command/rs_ui_director_command.h"
 #include "common/rs_common_def.h"
 #include "pipeline/rs_background_rebuild_param.h"
@@ -190,6 +191,136 @@ HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperGoStopInvalidModeTest, 
     EXPECT_EQ(director->GetCurrentState(), RSUIDirectorLifecycleState::STOP);
 
     RSBackgroundRebuildParam::Instance().SetGoStopNodeMapMode(GoStopNodeMapMode::REMOVE_SURFACE_NODE_MAP);
+}
+
+/**
+ * @tc.name: UIDirectorCommandHelperMarkSceneBoardTest
+ * @tc.desc: Test MarkSceneBoard marks an existing director one-way; repeat marks are idempotent.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperMarkSceneBoardTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 700;
+    constexpr uint64_t token = 701;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+    auto director = rsContext.GetUIRenderDirector(pid, token);
+    ASSERT_NE(director, nullptr);
+    EXPECT_FALSE(director->IsSceneBoard());
+
+    RSUIDirectorCommandHelper::MarkSceneBoard(rsContext, nodeId, token);
+    EXPECT_TRUE(director->IsSceneBoard());
+    EXPECT_TRUE(rsContext.IsSceneBoardToken(pid, token));
+
+    // One-way identity: repeated marks keep the flag true (no clear path on the server).
+    RSUIDirectorCommandHelper::MarkSceneBoard(rsContext, nodeId, token);
+    EXPECT_TRUE(director->IsSceneBoard());
+}
+
+/**
+ * @tc.name: UIDirectorCommandHelperMarkSceneBoardNoCreateTest
+ * @tc.desc: Test MarkSceneBoard never creates a director when it is missing.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, UIDirectorCommandHelperMarkSceneBoardNoCreateTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 710;
+    constexpr uint64_t token = 711;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+
+    // Out-of-order (before GoCreate): update-only, no director is created.
+    RSUIDirectorCommandHelper::MarkSceneBoard(rsContext, nodeId, token);
+    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token), nullptr);
+
+    // Late (after GoDestroy): must not resurrect a destroyed director.
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+    RSUIDirectorCommandHelper::GoDestroy(rsContext, nodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(rsContext, nodeId, token);
+    EXPECT_EQ(rsContext.GetUIRenderDirector(pid, token), nullptr);
+}
+
+/**
+ * @tc.name: RSContextIsSceneBoardTokenTest
+ * @tc.desc: Test IsSceneBoardToken hit/miss/pid-mismatch paths.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, RSContextIsSceneBoardTokenTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 720;
+    constexpr uint64_t token = 721;
+    constexpr uint64_t otherToken = 722;
+    constexpr pid_t otherPid = 723;
+    constexpr NodeId nodeId = MakeNodeId(pid, 0);
+
+    EXPECT_FALSE(rsContext.IsSceneBoardToken(pid, token));
+
+    RSUIDirectorCommandHelper::GoCreate(rsContext, nodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(rsContext, nodeId, token);
+    EXPECT_TRUE(rsContext.IsSceneBoardToken(pid, token));
+    // same pid, unknown token: process-level fallback marks the whole pid
+    EXPECT_TRUE(rsContext.IsSceneBoardToken(pid, otherToken));
+    // known token value under another pid must not match (double-dimension query)
+    EXPECT_FALSE(rsContext.IsSceneBoardToken(otherPid, token));
+    // zero token is a token miss, so the process-level fallback still reports the marked pid
+    EXPECT_TRUE(rsContext.IsSceneBoardToken(pid, 0));
+}
+
+/**
+ * @tc.name: RSContextIsSceneBoardProcessFallbackTest
+ * @tc.desc: Node Create with a token of an unmarked instance in a marked process still
+ *           gets the SceneBoard mark (process identity), on both the query and the node.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUIDirectorCommandTest, RSContextIsSceneBoardProcessFallbackTest, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr pid_t pid = 730;
+    constexpr uint64_t markedToken = 731;
+    constexpr uint64_t unmarkedToken = 732;
+    constexpr NodeId markedDirectorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId unmarkedDirectorNodeId = MakeNodeId(pid, 1);
+    constexpr NodeId nodeA = MakeNodeId(pid, 2);
+    constexpr NodeId nodeB = MakeNodeId(pid, 3);
+
+    // Marked instance and a sibling unmarked instance in the same process.
+    RSUIDirectorCommandHelper::GoCreate(rsContext, markedDirectorNodeId, markedToken);
+    RSUIDirectorCommandHelper::MarkSceneBoard(rsContext, markedDirectorNodeId, markedToken);
+    RSUIDirectorCommandHelper::GoCreate(rsContext, unmarkedDirectorNodeId, unmarkedToken);
+
+    // Query: the unmarked sibling token falls back to the process identity.
+    EXPECT_TRUE(rsContext.IsSceneBoardToken(pid, unmarkedToken));
+
+    // Node creation through the unmarked instance token is still marked.
+    RSCanvasNodeCommandHelper::Create(rsContext, nodeA, false, unmarkedToken);
+    auto node = rsContext.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeA);
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(node->IsSceneBoard());
+    EXPECT_EQ(node->GetUIContextToken(), unmarkedToken);
+
+    // An unmarked process (no marked instance at all) stays unmarked.
+    constexpr pid_t plainPid = 740;
+    constexpr uint64_t plainToken = 741;
+    constexpr NodeId plainDirectorNodeId = MakeNodeId(plainPid, 0);
+    constexpr NodeId plainNode = MakeNodeId(plainPid, 1);
+    RSUIDirectorCommandHelper::GoCreate(rsContext, plainDirectorNodeId, plainToken);
+    RSCanvasNodeCommandHelper::Create(rsContext, plainNode, false, plainToken);
+    auto plainNodeObj = rsContext.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(plainNode);
+    ASSERT_NE(plainNodeObj, nullptr);
+    EXPECT_FALSE(plainNodeObj->IsSceneBoard());
+
+    // Same-shape control on the marked token itself.
+    RSCanvasNodeCommandHelper::Create(rsContext, nodeB, false, markedToken);
+    auto nodeBObj = rsContext.GetNodeMap().GetRenderNode<RSCanvasRenderNode>(nodeB);
+    ASSERT_NE(nodeBObj, nullptr);
+    EXPECT_TRUE(nodeBObj->IsSceneBoard());
 }
 
 } // namespace OHOS::Rosen

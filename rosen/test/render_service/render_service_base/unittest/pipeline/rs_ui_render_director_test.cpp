@@ -121,4 +121,24 @@ HWTEST_F(RSUIRenderDirectorTest, RenderNodeUnregisterAndClear, TestSize.Level1)
     EXPECT_EQ(director.GetRenderNode(nodeId), nullptr);
 }
 
+/**
+ * @tc.name: SceneBoardFlagSetAndGet
+ * @tc.desc: Test MarkSceneBoard/IsSceneBoard: one-way mark, default false, repeat mark keeps true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUIRenderDirectorTest, SceneBoardFlagSetAndGet, TestSize.Level1)
+{
+    constexpr uint64_t token = 1;
+    RSUIRenderDirector director(token);
+
+    // Branch: default false.
+    EXPECT_FALSE(director.IsSceneBoard());
+
+    // Branch: one-way mark; repeated marks are idempotent.
+    director.MarkSceneBoard();
+    EXPECT_TRUE(director.IsSceneBoard());
+    director.MarkSceneBoard();
+    EXPECT_TRUE(director.IsSceneBoard());
+}
+
 } // namespace OHOS::Rosen

@@ -505,11 +505,13 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             uint8_t displayMode{0};
             uint32_t mirrorSourceRotation{static_cast<uint32_t>(ScreenRotation::INVALID_SCREEN_ROTATION)};
             float positionZ{0.0f};
+            bool isSceneBoard{false};
             if (!data.ReadUint64(mirrorId) ||
                 !data.ReadUint64(screenId) ||
                 !data.ReadUint8(displayMode) ||
                 !data.ReadUint32(mirrorSourceRotation) ||
-                !data.ReadFloat(positionZ)) {
+                !data.ReadFloat(positionZ) ||
+                !data.ReadBool(isSceneBoard)) {
                 ret = ERR_INVALID_DATA;
                 break;
             }
@@ -531,8 +533,15 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .mirrorSourceRotation = mirrorSourceRotation,
                 .positionZ = positionZ,
             };
+            // Fail closed: honor isSceneBoard only for system callers with a valid token
+            // type (TOKEN_INVALID reports isNonSystemCalling=false, so check both).
+            if (isSceneBoard && (isNonSystemCalling || !isTokenTypeValid)) {
+                RS_LOGW("CREATE_DISPLAY_NODE untrusted caller[%{public}d] faking isSceneBoard, ignored",
+                    static_cast<int32_t>(callingPid));
+                isSceneBoard = false;
+            }
             bool success = false;
-            if (CreateDisplayNode(config, id, success) != ERR_OK || !reply.WriteBool(success)) {
+            if (CreateDisplayNode(config, id, success, isSceneBoard) != ERR_OK || !reply.WriteBool(success)) {
                 ret = ERR_INVALID_REPLY;
             }
             break;
@@ -554,9 +563,11 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
             bool isSync { false };
             uint8_t surfaceWindowType { 0 };
             bool unobscured { false };
+            bool isSceneBoard { false };
             bool readBuffer = false;
             if (!data.ReadString(surfaceName) || !data.ReadUint8(type) || !data.ReadBool(isTextureExportNode) ||
-                !data.ReadBool(isSync) || !data.ReadUint8(surfaceWindowType) || !data.ReadBool(unobscured)) {
+                !data.ReadBool(isSync) || !data.ReadUint8(surfaceWindowType) || !data.ReadBool(unobscured) ||
+                !data.ReadBool(isSceneBoard)) {
                 RS_LOGE("RSClientToRenderConnectionStub::CREATE_NODE_AND_SURFACE read surfaceRenderNodeConfig failed!");
                 ret = ERR_INVALID_DATA;
                 break;
@@ -589,8 +600,16 @@ int RSClientToRenderConnectionStub::OnRemoteRequest(
                 .isSync = isSync,
                 .surfaceWindowType = static_cast<SurfaceWindowType>(surfaceWindowType),
                 .bundleName = GetBundleName(ExtractPid(nodeId)) };
+            // Fail closed: honor isSceneBoard only for system callers with a valid token
+            // type (TOKEN_INVALID reports isNonSystemAppCalling=false, so check both),
+            // otherwise a normal app could fake the SceneBoard identity.
+            if (isSceneBoard && (isNonSystemAppCalling || !isTokenTypeValid)) {
+                RS_LOGW("CREATE_NODE_AND_SURFACE untrusted caller[%{public}d] faking isSceneBoard, ignored",
+                    static_cast<int32_t>(callingPid));
+                isSceneBoard = false;
+            }
             sptr<Surface> surface = nullptr;
-            ErrCode err = CreateNodeAndSurface(config, surface, unobscured);
+            ErrCode err = CreateNodeAndSurface(config, surface, unobscured, isSceneBoard);
             if ((err != ERR_OK) || (surface == nullptr)) {
                 ret = ERR_NULL_OBJECT;
                 break;

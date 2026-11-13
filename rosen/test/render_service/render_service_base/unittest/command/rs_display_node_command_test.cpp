@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "include/command/rs_display_node_command.h"
+#include "common/rs_common_def.h"
+#include "command/rs_ui_director_command.h"
 #include "pipeline/rs_logical_display_render_node.h"
 
 using namespace testing;
@@ -407,4 +409,27 @@ HWTEST_F(RSDisplayNodeCommandTest, SetDisplayModeInvalidRotation001, TestSize.Le
     DisplayNodeCommandHelper::SetDisplayMode(context, id, badConfig);
     EXPECT_NE(context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(id), nullptr);
 }
+
+/**
+ * @tc.name: CreateSceneBoardBranchTest001
+ * @tc.desc: Create with a marked token covers the SceneBoard branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDisplayNodeCommandTest, CreateSceneBoardBranchTest001, TestSize.Level1)
+{
+    constexpr pid_t pid = 816;
+    constexpr uint64_t token = 817;
+    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId nodeId = MakeNodeId(pid, 1);
+    RSContext context;
+    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
+    RSDisplayNodeConfig config = {};
+    DisplayNodeCommandHelper::Create(context, nodeId, config, token);
+    auto node = context.GetNodeMap().GetRenderNode<RSLogicalDisplayRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(node->IsSceneBoard());
+    EXPECT_EQ(node->GetUIContextToken(), token);
+}
+
 } // namespace OHOS::Rosen

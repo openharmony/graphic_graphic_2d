@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 class RSDepthNodeCommandUtils {
 public:
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDepthNodeCreate, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSDepthNodeCreate, Uint64, Bool, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSDepthNodeSetType, Uint64, DepthSpaceType);
 };
 } // namespace Rosen

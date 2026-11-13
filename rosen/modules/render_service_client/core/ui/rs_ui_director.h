@@ -304,6 +304,12 @@ public:
     std::shared_ptr<RSUIContext> GetRSUIContext() const;
 
     /**
+     * @brief One-way, idempotent SceneBoard identity declaration for this director's
+     *        context, synced to the render service. Call before creating the first node.
+     */
+    void MarkAsSceneBoard();
+
+    /**
      * @brief Sets the root node for the UI director.
      *
      * @param rootNode A std::shared_ptr pointing to the RSRootNode object to be set.
@@ -359,8 +365,8 @@ private:
     void ReleaseRenderNode();
     void ExecuteGoDestroy(bool isTextureExport);
     void AttachSurface();
-    template<typename CommandType>
-    void AddUIDirectorCommand();
+    template<typename CommandType, typename... ExtraArgs>
+    void AddUIDirectorCommand(ExtraArgs&&... extraArgs);
     static std::shared_ptr<RSUIDirector> CreateRSUIDirector();
     static void RecvMessages();
     static void RecvMessages(std::shared_ptr<RSTransactionData> cmds);

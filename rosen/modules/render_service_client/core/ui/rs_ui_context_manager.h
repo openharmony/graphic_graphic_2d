@@ -69,6 +69,15 @@ public:
     const std::shared_ptr<RSUIContext> GetRSUIContext(uint64_t token) const;
 
     /**
+     * @brief Whether any context of this process is marked as SceneBoard (process-level
+     *        fallback for the sync-IPC isSceneBoard value: unmarked instances of a
+     *        SceneBoard process also create marked nodes).
+     *
+     * @return True if any existing context is marked.
+     */
+    bool HasSceneBoardInstance() const;
+
+    /**
      * @brief Creates a new RSUIContext.
      *
      * @return A shared pointer to the newly created RSUIContext.

@@ -22,7 +22,7 @@
 namespace OHOS {
 namespace Rosen {
 
-void EffectNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
+void EffectNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode, uint64_t token)
 {
     if (context.GetNodeMap().GetNodeCountByPid(ExtractPid(id)) > MAX_NODE_COUNT_PER_PID) {
         RS_LOGE_LIMIT(__func__, __line__,
@@ -30,8 +30,10 @@ void EffectNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextu
             MAX_NODE_COUNT_PER_PID, static_cast<uint32_t>(ExtractPid(id)));
         return;
     }
+    const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
     auto node = std::shared_ptr<RSEffectRenderNode>(new RSEffectRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+    node->ApplyInstanceIdentity(token, isSceneBoard);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

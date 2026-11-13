@@ -22,11 +22,34 @@
 #include "dfx/rs_pipeline_dump_manager.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
+#include "pipeline/rs_render_node_allocator.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_scb_node_memory_pool.h"
 
 using namespace testing;
 using namespace testing::ext;
 
 namespace OHOS::Rosen {
+
+// Ensure the GC / allocator / SCB-pool singletons are constructed BEFORE the
+// RSMainThread static instance. All static locals register destruction callbacks
+// with __cxa_atexit, which runs them in reverse construction order (LIFO).
+// The dump paths covered below create drawables bound to nodes owned by
+// RSMainThread's RSContext; their deleters call RSRenderNodeGC::DrawableDestructor.
+// If the GC instance were constructed after RSMainThread (first touched inside a
+// test body), it would be destroyed BEFORE ~RSMainThread at process exit, and the
+// drawable deleter running inside ~RSContext would crash on the dead GC singleton
+// (exit-time SIGSEGV seen in cppcrash-RSPipelineDumperTest logs). Constructing it
+// first here guarantees RSRenderNodeGC outlives RSMainThread, keeping the exit path safe.
+namespace {
+const bool g_gcSingletonsPreInitialized = []() {
+    (void)RSRenderNodeGC::Instance();
+    (void)RSRenderNodeAllocator::Instance();
+    (void)RSScbNodeMemoryPool::Instance();
+    return true;
+}();
+} // namespace
+
 class RSPipelineDumperTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -2357,6 +2380,446 @@ HWTEST_F(RSPipelineDumperTest, RegisterContextStatesFuncs_ValidManager, TestSize
     EXPECT_FALSE(out.empty());
 }
 
+/*
+ * @tc.name: RegisterScbPoolFuncs_ValidManager
+ * @tc.desc: Test RegisterScbPoolFuncs registers the scbpool handler and it can be executed
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, RegisterScbPoolFuncs_ValidManager, TestSize.Level1)
+{
+    ASSERT_NE(dumpManager_, nullptr);
+    // The handler dispatches through ScheduleTask, which needs a real main handler;
+    // the fixture's default dumper has none and would silently drop the dump.
+    auto runner = AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    ASSERT_NE(handler, nullptr);
+    auto dumper = std::make_unique<RSPipelineDumper>(handler);
+
+    dumper->RenderPipelineDumpInit(dumpManager_);
+
+    std::unordered_set<std::u16string> argSets = { u"scbpool" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    // Handler registered → command must produce the pool status header
+    EXPECT_FALSE(out.empty());
+    EXPECT_NE(out.find("SCB Memory Pool Status"), std::string::npos);
+}
+
+/*
+ * @tc.name: RegisterAllRenderNodesFuncs_ValidManager
+ * @tc.desc: Test RegisterAllRenderNodesFuncs registers the allrendernodes handler
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, RegisterAllRenderNodesFuncs_ValidManager, TestSize.Level1)
+{
+    ASSERT_NE(dumpManager_, nullptr);
+    // Same as above: DumpAllRenderNodes runs inside ScheduleTask, so a real handler is
+    // required for the dump string to be produced.
+    auto runner = AppExecFwk::EventRunner::Create(true);
+    auto handler = std::make_shared<AppExecFwk::EventHandler>(runner);
+    ASSERT_NE(handler, nullptr);
+    auto dumper = std::make_unique<RSPipelineDumper>(handler);
+
+    dumper->RenderPipelineDumpInit(dumpManager_);
+
+    std::unordered_set<std::u16string> argSets = { u"allrendernodes" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    EXPECT_FALSE(out.empty());
+    EXPECT_NE(out.find("All Render Nodes List"), std::string::npos);
+    EXPECT_NE(out.find("nodeId,pid,isScb,type,onTree,inPool,chunk,slot,globalSlot,surfaceName"),
+        std::string::npos);
+}
+
+/*
+ * @tc.name: RegisterAllRenderNodesFuncs_ScbnodesAlias
+ * @tc.desc: Test the scbnodes alias resolves to the same ALL_RENDER_NODES_INFO handler
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, RegisterAllRenderNodesFuncs_ScbnodesAlias, TestSize.Level1)
+{
+    ASSERT_NE(dumpManager_, nullptr);
+    ASSERT_NE(dumper_, nullptr);
+
+    dumper_->RenderPipelineDumpInit(dumpManager_);
+
+    std::unordered_set<std::u16string> argSets = { u"scbnodes" };
+    std::string out;
+    dumpManager_->CmdExec(argSets, out, nullptr);
+
+    EXPECT_FALSE(out.empty());
+    EXPECT_NE(out.find("All Render Nodes List"), std::string::npos);
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_DirectCall_EmptyTree
+ * @tc.desc: Direct call DumpAllRenderNodes with an empty node map; verifies the
+ *           zero-node path (total=0) and the SCB Pool snapshot tail.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_DirectCall_EmptyTree, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+
+    // Header + CSV column line must always be emitted
+    EXPECT_NE(dumpString.find("=== All Render Nodes List (pid:"), std::string::npos);
+    EXPECT_NE(dumpString.find("nodeId,pid,isScb,type,onTree,inPool,chunk,slot,globalSlot,surfaceName"),
+        std::string::npos);
+    // Summary + SCB Pool snapshot must always be emitted
+    EXPECT_NE(dumpString.find("Summary: total="), std::string::npos);
+    EXPECT_NE(dumpString.find("SCB Pool: totalSlots="), std::string::npos);
+    EXPECT_NE(dumpString.find(", scbPid="), std::string::npos);
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_DirectCall_WithScbPid
+ * @tc.desc: Direct call DumpAllRenderNodes after setting scbPid_; verifies the
+ *           scbPid value is echoed in the SCB Pool snapshot tail.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_DirectCall_WithScbPid, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    pid_t originalPid = nodeGC.GetScbPid();
+
+    constexpr pid_t testPid = 4321;
+    nodeGC.SetScbPid(testPid);
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+    nodeGC.SetScbPid(originalPid);
+
+    EXPECT_NE(dumpString.find("scbPid=" + std::to_string(testPid)), std::string::npos);
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_DirectCall_PoolSnapshot
+ * @tc.desc: Direct call DumpAllRenderNodes after allocating a SCB pool slot; verifies
+ *           the pool snapshot reflects a non-zero totalSlots and at least one chunk.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_DirectCall_PoolSnapshot, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    auto& pool = RSScbNodeMemoryPool::Instance();
+
+    // Ensure the pool is initialized (lazy init on first Allocate)
+    void* probe = pool.Allocate();
+    ASSERT_NE(probe, nullptr);
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+
+    // Pool snapshot must report a non-zero capacity and at least one chunk
+    EXPECT_EQ(dumpString.find("SCB Pool: totalSlots=0,"), std::string::npos) << "unexpected zero capacity";
+    EXPECT_EQ(dumpString.find(", chunks=0,"), std::string::npos) << "unexpected zero chunk count";
+
+    pool.Deallocate(probe);
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_DirectCall_ScbNodeInPool
+ * @tc.desc: Create a real SCB-pool node, register it into the node map, then dump;
+ *           verifies the isScb=1 and inPool=1 columns for that node.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_DirectCall_ScbNodeInPool, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    pid_t originalPid = nodeGC.GetScbPid();
+
+    constexpr pid_t scbPid = 4242;
+    nodeGC.SetScbPid(scbPid);
+    NodeId nodeId = (static_cast<NodeId>(scbPid) << 32) | 1;
+    auto node = allocator.CreateScbCanvasRenderNode(nodeId, {}, false);
+    ASSERT_NE(node, nullptr);
+    ASSERT_TRUE(allocator.IsScbNodePool(node.get()));
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(node));
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+    nodeMap.UnregisterRenderNode(nodeId);
+    nodeGC.SetScbPid(originalPid);
+
+    // The node must appear with isScb=1 and inPool=1
+    std::string expectedPrefix = std::to_string(nodeId) + "," + std::to_string(scbPid) + ",1,";
+    auto pos = dumpString.find(expectedPrefix);
+    ASSERT_NE(pos, std::string::npos) << "SCB node row not found in dump";
+    // Within the same CSV row, the 6th field (inPool) must be 1
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    // Fields: nodeId,pid,isScb,type,onTree,inPool,chunk,slot,globalSlot,surfaceName
+    std::vector<std::string> fields;
+    size_t start = 0;
+    for (int i = 0; i < 9; ++i) {
+        auto comma = row.find(',', start);
+        ASSERT_NE(comma, std::string::npos);
+        fields.push_back(row.substr(start, comma - start));
+        start = comma + 1;
+    }
+    EXPECT_EQ(fields[2], "1") << "isScb should be 1";
+    EXPECT_EQ(fields[5], "1") << "inPool should be 1";
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_DirectCall_NonScbNodeNotInPool
+ * @tc.desc: Create a heap (non-pool) node under a non-SCB pid, register it, then dump;
+ *           verifies isScb=0 and inPool=0 columns.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_DirectCall_NonScbNodeNotInPool, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    auto& nodeGC = RSRenderNodeGC::Instance();
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    pid_t originalPid = nodeGC.GetScbPid();
+
+    constexpr pid_t otherPid = 5353;
+    nodeGC.SetScbPid(-1); // ensure the node below is NOT treated as SCB
+    NodeId nodeId = (static_cast<NodeId>(otherPid) << 32) | 2;
+    auto node = allocator.CreateRSCanvasRenderNode(nodeId, {}, false);
+    ASSERT_NE(node, nullptr);
+    ASSERT_FALSE(allocator.IsScbNodePool(node.get()));
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(node));
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+    nodeMap.UnregisterRenderNode(nodeId);
+    nodeGC.SetScbPid(originalPid);
+
+    std::string expectedPrefix = std::to_string(nodeId) + "," + std::to_string(otherPid) + ",0,";
+    auto pos = dumpString.find(expectedPrefix);
+    ASSERT_NE(pos, std::string::npos) << "non-SCB node row not found in dump";
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    std::vector<std::string> fields;
+    size_t start = 0;
+    for (int i = 0; i < 9; ++i) {
+        auto comma = row.find(',', start);
+        ASSERT_NE(comma, std::string::npos);
+        fields.push_back(row.substr(start, comma - start));
+        start = comma + 1;
+    }
+    EXPECT_EQ(fields[2], "0") << "isScb should be 0";
+    EXPECT_EQ(fields[5], "0") << "inPool should be 0";
+}
+
+namespace {
+inline NodeId MakeNodeIdForTopo(pid_t pid, uint32_t seq)
+{
+    return (static_cast<NodeId>(pid) << 32) | seq;
+}
+} // namespace
+
+/*
+ * @tc.name: DumpAllRenderNodes_ParentChainSurfaceName
+ * @tc.desc: Build surface->canvas parent-child topology and mark it on tree; covers the
+ *           getSurfaceName parent-chain SURFACE_NODE hit branch and pidSurfaceMap insertion.
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_ParentChainSurfaceName, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    constexpr pid_t pid = 6262;
+    constexpr uint32_t surfSeq = 10;
+    constexpr uint32_t childSeq = 11;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    RSSurfaceRenderNodeConfig cfg = {
+        .id = MakeNodeIdForTopo(pid, surfSeq),
+        .name = "ParentChainSurface",
+    };
+    auto surface = std::make_shared<RSSurfaceRenderNode>(cfg);
+    ASSERT_NE(surface, nullptr);
+    auto child = allocator.CreateRSCanvasRenderNode(MakeNodeIdForTopo(pid, childSeq), {}, false);
+    ASSERT_NE(child, nullptr);
+
+    surface->AddChild(child);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(surface));
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(child));
+    // Setting the surface on tree cascades to the child and sets instanceRootNodeId_.
+    surface->SetIsOnTheTree(true, surface->GetId());
+    ASSERT_TRUE(child->IsOnTheTree());
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+
+    std::string childPrefix = std::to_string(MakeNodeIdForTopo(pid, childSeq)) + "," +
+        std::to_string(pid) + ",";
+    auto pos = dumpString.find(childPrefix);
+    ASSERT_NE(pos, std::string::npos) << "child node row not found in dump";
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    EXPECT_NE(row.find("ParentChainSurface"), std::string::npos)
+        << "surfaceName should come from parent chain, row: " << row;
+
+    surface->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(child->GetId());
+    nodeMap.UnregisterRenderNode(surface->GetId());
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_RootNodeFallbackHit
+ * @tc.desc: Detach a former child from its surface parent while keeping its
+ *           instanceRootNodeId_, covering the root-node fallback branch and
+ *           the notOnTree counter branch of DumpAllRenderNodes.
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_RootNodeFallbackHit, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    constexpr pid_t pid = 7373;
+    constexpr uint32_t surfSeq = 20;
+    constexpr uint32_t orphanSeq = 21;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    RSSurfaceRenderNodeConfig cfg = {
+        .id = MakeNodeIdForTopo(pid, surfSeq),
+        .name = "FallbackSurface",
+    };
+    auto surface = std::make_shared<RSSurfaceRenderNode>(cfg);
+    ASSERT_NE(surface, nullptr);
+    auto orphan = allocator.CreateRSCanvasRenderNode(MakeNodeIdForTopo(pid, orphanSeq), {}, false);
+    ASSERT_NE(orphan, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(surface));
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(orphan));
+
+    // Attach, mark on tree (cascades rootId to orphan), then detach so the
+    // parent chain is broken but instanceRootNodeId_ is preserved on orphan.
+    surface->AddChild(orphan);
+    surface->SetIsOnTheTree(true, surface->GetId());
+    surface->RemoveChild(orphan);
+    ASSERT_FALSE(orphan->IsOnTheTree());
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+
+    std::string orphanPrefix = std::to_string(MakeNodeIdForTopo(pid, orphanSeq)) + "," +
+        std::to_string(pid) + ",";
+    auto pos = dumpString.find(orphanPrefix);
+    ASSERT_NE(pos, std::string::npos) << "orphan row not found in dump";
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    EXPECT_NE(row.find("FallbackSurface"), std::string::npos)
+        << "surfaceName should come from root-node/pid fallback, row: " << row;
+    // the orphan row's onTree field (5th CSV column) must be 0 -> notOnTree branch taken
+    std::string onTreeField = "," + std::to_string(orphan->IsOnTheTree() ? 1 : 0) + ",";
+    EXPECT_NE(row.find(",0,"), std::string::npos)
+        << "orphan row onTree field should be 0, row: " << row;
+
+    nodeMap.UnregisterRenderNode(orphan->GetId());
+    surface->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(surface->GetId());
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_PidSurfaceMapDedup
+ * @tc.desc: Multiple on-tree nodes under one pid; covers the pidSurfaceMap
+ *           count()>0 skip branch and the empty-name not-inserted branch.
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_PidSurfaceMapDedup, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    constexpr pid_t pid = 8484;
+    constexpr uint32_t baseSeq = 30;
+    constexpr uint32_t surfSeq = 31;
+    constexpr uint32_t canvasSeq = 32;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    // 1) On-tree base node whose getSurfaceName result is empty (not inserted into map).
+    auto base = std::make_shared<RSBaseRenderNode>(MakeNodeIdForTopo(pid, baseSeq));
+    ASSERT_NE(base, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(base));
+    base->SetIsOnTheTree(true);
+
+    // 2) Named on-tree surface (inserted into pidSurfaceMap).
+    RSSurfaceRenderNodeConfig cfg = {
+        .id = MakeNodeIdForTopo(pid, surfSeq),
+        .name = "DedupSurface",
+    };
+    auto surface = std::make_shared<RSSurfaceRenderNode>(cfg);
+    ASSERT_NE(surface, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(surface));
+
+    // 3) Second on-tree node with the same pid (count()>0 -> skip branch).
+    auto canvas = allocator.CreateRSCanvasRenderNode(MakeNodeIdForTopo(pid, canvasSeq), {}, false);
+    ASSERT_NE(canvas, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(canvas));
+    surface->AddChild(canvas);
+    surface->SetIsOnTheTree(true, surface->GetId());
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString); // covering the skip/no-insert branches without crash
+    EXPECT_NE(dumpString.find("DedupSurface"), std::string::npos);
+
+    surface->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(canvas->GetId());
+    nodeMap.UnregisterRenderNode(surface->GetId());
+    base->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(base->GetId());
+}
+
+/*
+ * @tc.name: DumpAllRenderNodes_NameEmptyNoFallback
+ * @tc.desc: An on-tree node with no surface ancestor, invalid root id and no pid
+ *           fallback entry; covers the INVALID_NODEID else branch and the
+ *           empty-surfaceName branches of DumpAllRenderNodes.
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_NameEmptyNoFallback, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    constexpr pid_t lonelyPid = 9595;
+    constexpr uint32_t seq = 40;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+
+    auto node = allocator.CreateRSCanvasRenderNode(MakeNodeIdForTopo(lonelyPid, seq), {}, false);
+    ASSERT_NE(node, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(node));
+    node->SetIsOnTheTree(true);
+
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+
+    std::string prefix = std::to_string(MakeNodeIdForTopo(lonelyPid, seq)) + "," +
+        std::to_string(lonelyPid) + ",";
+    auto pos = dumpString.find(prefix);
+    ASSERT_NE(pos, std::string::npos) << "lonely node row not found in dump";
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    // surfaceName is the last CSV field: expect the row to end with a bare comma
+    // (empty name, all fallbacks missed) followed by end of line.
+    EXPECT_NE(row.find(',', std::to_string(MakeNodeIdForTopo(lonelyPid, seq)).size()), std::string::npos);
+    EXPECT_TRUE(row.substr(row.find_last_of(',') + 1).empty())
+        << "surfaceName should be empty when all fallbacks miss, row: " << row;
+
+    node->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(node->GetId());
+}
+
 #ifdef RS_MODIFIERS_DRAW_ENABLE
 /*
  * @tc.name: DumpNodeInfo_CanvasDrawingNodeHybridRender
@@ -2399,4 +2862,48 @@ HWTEST_F(RSPipelineDumperTest, DumpNodeInfo_CanvasDrawingNodeHybridRender, TestS
     RSMainThread::Instance()->GetContext().GetMutableNodeMap().UnregisterRenderNode(baseId | 2);
 }
 #endif
+
+/*
+ * @tc.name: DumpAllRenderNodes_CsvRowAppendBranch
+ * @tc.desc: Covers the `if (len > 0)` success branch of the guarded snprintf_s in
+ *           DumpAllRenderNodes (rs_pipeline_dumper.cpp): the formatted CSV row must be
+ *           appended into dumpString. If snprintf_s ever fails (len <= 0), the row is
+ *           skipped and only surfaceName would be appended; this test detects that by
+ *           requiring the full comma-separated field prefix to be present.
+ * @tc.type: FUNC
+ * @tc.require: AR000GSH6G
+ */
+HWTEST_F(RSPipelineDumperTest, DumpAllRenderNodes_CsvRowAppendBranch, TestSize.Level1)
+{
+    ASSERT_NE(dumper_, nullptr);
+    constexpr pid_t csvPid = 7777;
+    constexpr uint32_t seq = 60;
+    auto& allocator = RSRenderNodeAllocator::Instance();
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+ 
+    auto node = allocator.CreateScbCanvasRenderNode(MakeNodeIdForTopo(csvPid, seq), {}, false);
+    ASSERT_NE(node, nullptr);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(node));
+    node->SetIsOnTheTree(true);
+ 
+    std::string dumpString;
+    dumper_->DumpAllRenderNodes(dumpString);
+ 
+    // Success branch of snprintf_s guard: the complete 9-field CSV prefix (ending with
+    // a trailing comma before surfaceName) must be present for this node.
+    std::string rowPrefix = std::to_string(MakeNodeIdForTopo(csvPid, seq)) + "," +
+        std::to_string(csvPid) + ",0,";
+    auto pos = dumpString.find(rowPrefix);
+    ASSERT_NE(pos, std::string::npos) << "CSV row (snprintf_s success branch) not appended";
+    auto rowEnd = dumpString.find('\n', pos);
+    ASSERT_NE(rowEnd, std::string::npos);
+    std::string row = dumpString.substr(pos, rowEnd - pos);
+    // Fields 3..8 (isScb..globalSlot) plus trailing comma:
+    // "<isScb>,<type>,<onTree>,<inPool>,<chunk>,<slot>,<globalSlot>," => 7 commas after pid.
+    size_t commaCount = std::count(row.begin(), row.end(), ',');
+    EXPECT_GE(commaCount, 9u) << "incomplete CSV row, row: " << row;
+ 
+    node->SetIsOnTheTree(false);
+    nodeMap.UnregisterRenderNode(node->GetId());
+}
 } // namespace OHOS::Rosen

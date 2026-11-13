@@ -236,7 +236,7 @@ ErrCode RSClientToRenderConnectionProxy::ExecuteSynchronousTask(const std::share
 }
 
 ErrCode RSClientToRenderConnectionProxy::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
-    bool& success)
+    bool& success, bool isSceneBoard)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -274,6 +274,11 @@ ErrCode RSClientToRenderConnectionProxy::CreateDisplayNode(const RSDisplayNodeCo
     }
     if (!data.WriteFloat(displayNodeConfig.positionZ)) {
         ROSEN_LOGE("RSRenderServiceConnectionProxy::CreateNode: WriteFloat Config.PositionZ err.");
+        success = false;
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteBool(isSceneBoard)) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::CreateDisplayNode: WriteBool isSceneBoard err.");
         success = false;
         return ERR_INVALID_VALUE;
     }
@@ -335,7 +340,7 @@ ErrCode RSClientToRenderConnectionProxy::CreateNode(const RSSurfaceRenderNodeCon
 }
 
 ErrCode RSClientToRenderConnectionProxy::CreateNodeAndSurface(
-    const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured)
+    const RSSurfaceRenderNodeConfig& config, sptr<Surface>& sfc, bool unobscured, bool isSceneBoard)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -372,6 +377,10 @@ ErrCode RSClientToRenderConnectionProxy::CreateNodeAndSurface(
     }
     if (!data.WriteBool(unobscured)) {
         ROSEN_LOGE("RSClientToRenderConnectionProxy::CreateNodeAndSurface: WriteBool unobscured err.");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteBool(isSceneBoard)) {
+        ROSEN_LOGE("RSClientToRenderConnectionProxy::CreateNodeAndSurface: WriteBool isSceneBoard err.");
         return ERR_INVALID_VALUE;
     }
     option.SetFlags(MessageOption::TF_SYNC);

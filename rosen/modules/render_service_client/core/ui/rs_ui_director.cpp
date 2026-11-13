@@ -133,6 +133,10 @@ void RSUIDirector::Init(sptr<IRemoteObject>& connectToRenderRemote, std::shared_
     // calls RSApplicationAgentImpl::Release(), so individual RSUIDirector destruction does not.
     RSApplicationAgentLifecycleOwner::Instance().EnsureRegistered(rsUIContext_);
     GoCreate();
+    // Safety net for CreateRSUIDirector() (skips Init): re-send the mark after GoCreate.
+    if (rsUIContext_ != nullptr && rsUIContext_->IsSceneBoard()) {
+        AddUIDirectorCommand<RSUIDirectorMarkSceneBoard>();
+    }
     GoResume();
     GoForeground();
     if (isUniRenderEnabled_) {
@@ -208,8 +212,8 @@ void RSUIDirector::StartTextureExport(std::shared_ptr<RSUIContext> rsUIContext)
     RSRenderThread::Instance().UpdateWindowStatus(true);
 }
 
-template <typename CommandType>
-void RSUIDirector::AddUIDirectorCommand()
+template <typename CommandType, typename... ExtraArgs>
+void RSUIDirector::AddUIDirectorCommand(ExtraArgs&&... extraArgs)
 {
     if (rsUIContext_ == nullptr) {
         RS_LOGE("RSUIDirector::AddUIDirectorCommand, RSUIContext is nullptr");
@@ -225,11 +229,24 @@ void RSUIDirector::AddUIDirectorCommand()
     auto rootNode = rootNode_.lock();
     static pid_t pid = getpid();
     NodeId nodeId = rootNode ? rootNode->GetId() : (((NodeId)pid << 32) | NODE_ID);
-    std::unique_ptr<RSCommand> command =
-        std::make_unique<CommandType>(nodeId, rsUIContext_ ? rsUIContext_->GetToken() : 0);
+    std::unique_ptr<RSCommand> command = std::make_unique<CommandType>(nodeId, rsUIContext_->GetToken(),
+        std::forward<ExtraArgs>(extraArgs)...);
     RS_TRACE_NAME_FMT(
         "RSUIDirector::AddUIDirectorCommand type is %d, token is %lu", command->GetSubType(), rsUIContext_->GetToken());
     transaction->AddCommand(command, true);
+}
+
+void RSUIDirector::MarkAsSceneBoard()
+{
+    if (rsUIContext_ == nullptr) {
+        RS_LOGE("RSUIDirector::MarkAsSceneBoard, RSUIContext is nullptr");
+        return;
+    }
+    if (rsUIContext_->IsSceneBoard()) {
+        return;
+    }
+    rsUIContext_->MarkAsSceneBoard();
+    AddUIDirectorCommand<RSUIDirectorMarkSceneBoard>();
 }
 
 void RSUIDirector::GoCreate()

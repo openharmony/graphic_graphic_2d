@@ -100,6 +100,20 @@ const std::shared_ptr<RSUIContext> RSUIContextManager::GetRSUIContext(uint64_t t
     return iter->second;
 }
 
+bool RSUIContextManager::HasSceneBoardInstance() const
+{
+    if (!isMultiInstanceOpen_ || !g_instanceValid.load()) {
+        return false;
+    }
+    std::unique_lock<std::mutex> lock(mutex_);
+    for (const auto& [_, ctx] : rsUIContextMap_) {
+        if (ctx && ctx->IsSceneBoard()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void RSUIContextManager::DestroyContext(uint64_t token)
 {
     if (!isMultiInstanceOpen_ || !g_instanceValid.load() || isDividedRender_

@@ -83,6 +83,7 @@ namespace ModifierNG {
 class RSRenderModifier;
 class RSForegroundFilterRenderModifier;
 class RSBackgroundFilterRenderModifier;
+class RSPipelineDumper;
 enum class RSModifierType : uint16_t;
 }
 struct SharedTransitionParam;
@@ -97,6 +98,11 @@ struct CurFrameInfoDetail {
 
 class RSB_EXPORT RSRenderNode : public std::enable_shared_from_this<RSRenderNode> {
 public:
+    // Friend declaration grants RSPipelineDumper access to protected static
+    // DumpNodeType, so the SCB nodes dump can reuse this enum-to-string helper
+    // instead of duplicating the mapping.
+    friend class RSPipelineDumper;
+ 
     using WeakPtr = std::weak_ptr<RSRenderNode>;
     using WeakPtrSet = std::set<WeakPtr, std::owner_less<WeakPtr>>;
     using SharedPtr = std::shared_ptr<RSRenderNode>;
@@ -159,6 +165,18 @@ public:
     {
         return uiContextTokenList_;
     }
+    // Birth identity (vs uiContextToken_ = current owner): set once at creation, never cleared.
+    void MarkSceneBoard()
+    {
+        isSceneBoard_ = true;
+    }
+    bool IsSceneBoard() const
+    {
+        return isSceneBoard_;
+    }
+    // Creation-time marking: registers the birth instance token (non-zero) and applies
+    // the one-way SceneBoard mark. Call before node map registration.
+    void ApplyInstanceIdentity(uint64_t token, bool isSceneBoard);
     void RemoveFromTree(bool skipTransition = false);
 
     virtual bool IsHardwareEnabledType() const
@@ -1342,6 +1360,7 @@ private:
     OutOfParentType outOfParent_ = OutOfParentType::UNKNOWN;
     uint64_t uiContextToken_ = 0;
     std::vector<uint64_t> uiContextTokenList_;
+    bool isSceneBoard_ = false;
     NodeId id_;
     NodeId instanceRootNodeId_ = INVALID_NODEID;
     NodeId firstLevelNodeId_ = INVALID_NODEID;

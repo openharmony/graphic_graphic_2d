@@ -43,7 +43,7 @@ enum RSDisplayNodeCommandType : uint16_t {
 
 class RSB_EXPORT DisplayNodeCommandHelper {
 public:
-    static void Create(RSContext&, NodeId, const RSDisplayNodeConfig&);
+    static void Create(RSContext&, NodeId, const RSDisplayNodeConfig&, uint64_t token = 0);
     static std::shared_ptr<RSLogicalDisplayRenderNode> CreateWithConfigInRS(
         RSContext&, NodeId, const RSDisplayNodeConfig&);
     static void SetScreenId(RSContext&, NodeId, uint64_t);
@@ -60,7 +60,7 @@ public:
 
 ADD_COMMAND(RSDisplayNodeCreate,
     ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, DISPLAY_NODE, DISPLAY_NODE_CREATE,
-        DisplayNodeCommandHelper::Create, NodeId, RSDisplayNodeConfig))
+        DisplayNodeCommandHelper::Create, NodeId, RSDisplayNodeConfig, uint64_t))
 ADD_COMMAND(RSDisplayNodeSetScreenId,
     ARG(PERMISSION_SYSTEM, NodeIdPosTag<0>, DISPLAY_NODE, DISPLAY_NODE_SET_SCREEN_ID,
         DisplayNodeCommandHelper::SetScreenId, NodeId, uint64_t))

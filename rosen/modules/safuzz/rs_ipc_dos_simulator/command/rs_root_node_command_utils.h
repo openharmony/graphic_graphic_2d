@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 class RSRootNodeCommandUtils {
 public:
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSRootNodeCreate, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSRootNodeCreate, Uint64, Bool, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_3(RSRootNodeAttachRSSurfaceNode, Uint64, Uint64, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSRootNodeSetEnableRender, Uint64, Bool);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSRootNodeAttachToUniSurfaceNode, Uint64, Uint64);

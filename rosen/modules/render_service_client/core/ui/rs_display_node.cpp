@@ -26,6 +26,7 @@
 #include "transaction/rs_render_service_client.h"
 #include "transaction/rs_transaction_proxy.h"
 #include "ui/rs_ui_context.h"
+#include "ui/rs_ui_context_manager.h"
 namespace OHOS {
 namespace Rosen {
 
@@ -46,7 +47,8 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
     }
 
     if (LIKELY(!displayNodeConfig.isSync)) {
-        std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig);
+        std::unique_ptr<RSCommand> command = std::make_unique<RSDisplayNodeCreate>(node->GetId(), displayNodeConfig,
+            node->GetUIContextToken());
         if (node->GetRSUIContext() != nullptr) {
             auto transaction = node->GetRSUIContext()->GetRSTransaction();
             if (transaction != nullptr) {
@@ -64,6 +66,7 @@ RSDisplayNode::SharedPtr RSDisplayNode::Create(
             return nullptr;
         }
     }
+    // Keep: sync-IPC branch bypasses Create commands, token registration needs this.
     node->SetUIContextToken();
     return node;
 }
@@ -75,7 +78,8 @@ bool RSDisplayNode::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConf
         ROSEN_LOGE("RSDisplayNode::CreateNode uiContext is nullptr");
         return false;
     }
-    return rsUIContext->GetRSRenderInterface()->CreateDisplayNode(displayNodeConfig, nodeId);
+    return rsUIContext->GetRSRenderInterface()->CreateDisplayNode(displayNodeConfig, nodeId,
+        rsUIContext->IsSceneBoard() || RSUIContextManager::Instance().HasSceneBoardInstance());
 }
 
 // LCOV_EXCL_START

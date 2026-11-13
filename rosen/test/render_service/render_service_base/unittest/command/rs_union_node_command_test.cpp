@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "command/rs_union_node_command.h"
+#include "command/rs_ui_director_command.h"
 #include "common/rs_common_def.h"
 #include "pipeline/rs_union_render_node.h"
 
@@ -65,6 +66,28 @@ HWTEST_F(RSUnionNodeCommandTest, CreateDOSProtectionTest, TestSize.Level1)
     NodeId newNodeId = MakeNodeId(pid, MAX_NODE_COUNT_PER_PID + 1);
     UnionNodeCommandHelper::Create(context, newNodeId, false);
     EXPECT_EQ(context.GetNodeMap().GetRenderNode<RSUnionRenderNode>(newNodeId), nullptr);
+}
+
+
+/**
+ * @tc.name: CreateSceneBoardBranchTest001
+ * @tc.desc: Create with a marked token covers the SceneBoard branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUnionNodeCommandTest, CreateSceneBoardBranchTest001, TestSize.Level1)
+{
+    constexpr pid_t pid = 814;
+    constexpr uint64_t token = 815;
+    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId nodeId = MakeNodeId(pid, 1);
+    RSContext context;
+    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
+    UnionNodeCommandHelper::Create(context, nodeId, false, token);
+    auto node = context.GetNodeMap().GetRenderNode<RSUnionRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(node->IsSceneBoard());
+    EXPECT_EQ(node->GetUIContextToken(), token);
 }
 
 } // namespace OHOS::Rosen

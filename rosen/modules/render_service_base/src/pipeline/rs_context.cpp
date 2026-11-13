@@ -144,6 +144,22 @@ void RSContext::DestroyUIRenderDirector(pid_t pid, uint64_t token)
     }
 }
 
+bool RSContext::IsSceneBoardToken(pid_t pid, uint64_t token) const
+{
+    std::lock_guard<std::mutex> lock(uiRenderDirectorsMutex_);
+    auto pidIt = uiRenderDirectors_.find(pid);
+    if (pidIt == uiRenderDirectors_.end()) {
+        return false;
+    }
+    // Process identity: any marked instance of this pid counts; mirror flags stay untouched.
+    for (const auto& [_, director] : pidIt->second) {
+        if (director->IsSceneBoard()) {
+            return true;
+        }
+    }
+    return false;
+}
+
 void RSContext::SetClearMoment(ClearMemoryMoment moment)
 {
     clearMoment_ = moment;

@@ -33,13 +33,13 @@ enum RSProxyNodeCommandType : uint16_t {
 
 class RSB_EXPORT ProxyNodeCommandHelper {
 public:
-    static void Create(RSContext& context, NodeId id, NodeId target);
+    static void Create(RSContext& context, NodeId id, NodeId target, uint64_t token = 0);
     static void ResetContextVariableCache(RSContext& context, NodeId id);
 };
 
 ADD_COMMAND(RSProxyNodeCreate,
     ARG(PERMISSION_APP, NodeIdPosTag<0, 1>, PROXY_NODE, PROXY_NODE_CREATE,
-        ProxyNodeCommandHelper::Create, NodeId, NodeId))
+        ProxyNodeCommandHelper::Create, NodeId, NodeId, uint64_t))
 ADD_COMMAND(RSProxyNodeResetContextVariableCache,
     ARG(PERMISSION_APP, NodeIdPosTag<0>, PROXY_NODE, PROXY_NODE_RESET_CONTEXT_VARIABLE_CACHE,
         ProxyNodeCommandHelper::ResetContextVariableCache, NodeId))

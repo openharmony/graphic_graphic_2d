@@ -45,7 +45,7 @@ void DoCreateNodeAndSurface(FuzzedDataProvider& fdp)
 
     bool unobscured = fdp.ConsumeBool();
 
-    g_renderPipelineClient->CreateNodeAndSurface(config, unobscured);
+    g_renderPipelineClient->CreateNodeAndSurface(config, unobscured, fdp.ConsumeBool()); // isSceneBoard
 }
 
 } // anonymous namespace

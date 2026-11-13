@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 class RSWindowKeyFrameNodeCommandUtils {
 public:
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSWindowKeyFrameNodeCreate, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSWindowKeyFrameNodeCreate, Uint64, Bool, Uint64);
     ADD_RANDOM_COMMAND_WITH_PARAM_2(RSWindowKeyFrameNodeLinkNode, Uint64, Uint64);
 };
 } // namespace Rosen

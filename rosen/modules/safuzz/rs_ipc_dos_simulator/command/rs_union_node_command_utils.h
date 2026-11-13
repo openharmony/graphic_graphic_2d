@@ -24,7 +24,7 @@ namespace OHOS {
 namespace Rosen {
 class RSUnionNodeCommandUtils {
 public:
-    ADD_RANDOM_COMMAND_WITH_PARAM_2(RSUnionNodeCreate, Uint64, Bool);
+    ADD_RANDOM_COMMAND_WITH_PARAM_3(RSUnionNodeCreate, Uint64, Bool, Uint64);
 };
 } // namespace Rosen
 } // namespace OHOS

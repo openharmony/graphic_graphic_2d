@@ -15,6 +15,7 @@
 
 #include "gtest/gtest.h"
 #include "include/command/rs_proxy_node_command.h"
+#include "command/rs_ui_director_command.h"
 #include "common/rs_common_def.h"
 #include "pipeline/rs_proxy_render_node.h"
 #include "pipeline/rs_render_node.h"
@@ -115,6 +116,29 @@ HWTEST_F(RSProxyNodeCommandTest, ProxyNodeCommandHelper_ResetContextVariableCach
     NodeId id = static_cast<NodeId>(999);
     ProxyNodeCommandHelper::ResetContextVariableCache(context, id);
     EXPECT_TRUE(id == 999);
+}
+
+
+/**
+ * @tc.name: CreateSceneBoardBranchTest001
+ * @tc.desc: Create with a marked token covers the SceneBoard branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSProxyNodeCommandTest, CreateSceneBoardBranchTest001, TestSize.Level1)
+{
+    constexpr pid_t pid = 817;
+    constexpr uint64_t token = 818;
+    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId nodeId = MakeNodeId(pid, 1);
+    RSContext context;
+    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
+    constexpr NodeId targetNodeId = MakeNodeId(pid, 9);
+    ProxyNodeCommandHelper::Create(context, nodeId, targetNodeId, token);
+    auto node = context.GetNodeMap().GetRenderNode<RSProxyRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(node->IsSceneBoard());
+    EXPECT_EQ(node->GetUIContextToken(), token);
 }
 
 } // namespace OHOS::Rosen

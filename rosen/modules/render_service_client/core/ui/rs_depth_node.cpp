@@ -34,16 +34,18 @@ RSDepthNode::SharedPtr RSDepthNode::Create(bool isRenderServiceNode, bool isText
         RSNodeMap::MutableInstance().RegisterNode(node);
     }
 
-    std::unique_ptr<RSCommand> command = std::make_unique<RSDepthNodeCreate>(node->GetId(), isTextureExportNode);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDepthNodeCreate>(node->GetId(), isTextureExportNode,
+        node->GetUIContextToken());
     node->AddCommand(command, node->IsRenderServiceNode());
-    node->SetUIContextToken();
+    // Create carries the token; no follow-up SetUIContextToken.
 
     return node;
 }
 
 void RSDepthNode::CreateRenderNode()
 {
-    std::unique_ptr<RSCommand> command = std::make_unique<RSDepthNodeCreate>(GetId(), isTextureExportNode_);
+    std::unique_ptr<RSCommand> command = std::make_unique<RSDepthNodeCreate>(GetId(), isTextureExportNode_,
+        GetUIContextToken());
     AddCommand(command, IsRenderServiceNode());
 }
 

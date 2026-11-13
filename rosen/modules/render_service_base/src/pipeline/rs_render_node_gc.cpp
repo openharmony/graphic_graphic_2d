@@ -16,9 +16,11 @@
 #include "pipeline/rs_render_node_gc.h"
 
 #include "common/rs_background_thread.h"
+#include "common/rs_optional_trace.h"
 #include "params/rs_render_params.h"
 #include "pipeline/rs_render_node.h"
 #include "pipeline/rs_render_node_allocator.h"
+#include "pipeline/rs_scb_node_memory_pool.h"
 #include "platform/common/rs_log.h"
 #include "platform/common/rs_system_properties.h"
 #include "rs_trace.h"
@@ -112,6 +114,32 @@ void RSRenderNodeGC::NodeDestructorInner(RSRenderNode* ptr)
     DrawableV2::RSRenderNodeDrawableAdapter::RemoveDrawableFromCache(ptr->GetId());
 }
 
+bool RSRenderNodeGC::TryRecycleScbPoolNode(RSRenderNode* ptr)
+{
+    if (ptr == nullptr) {
+        return false;
+    }
+    // SCB contiguous-pool nodes are recycled to the SCB pool first;
+    // they must never reach AddNodeToAllocator (which pushes the raw
+    // pointer into the generic allocator) or delete (which calls free
+    // on a pointer inside a posix_memalign chunk — invalid and crashes).
+    bool ownsScbPool = RSScbNodeMemoryPool::Instance().Owns(ptr);
+    RS_OPTIONAL_TRACE_NAME_FMT("NodeRecycle route, id=%" PRIu64 ", ownsScbPool=%d",
+        ptr->GetId(), ownsScbPool ? 1 : 0);
+    if (!ownsScbPool) {
+        return false;
+    }
+    if (RSRenderNodeAllocator::Instance().AddScbNodeToPool(ptr)) {
+        RS_OPTIONAL_TRACE_NAME_FMT("ScbNodeRecycle queue, id=%" PRIu64, ptr->GetId());
+        return true;
+    }
+    // SCB free queue full — return the slot to the memory pool.
+    RS_OPTIONAL_TRACE_NAME_FMT("ScbNodeRecycle dealloc, id=%" PRIu64, ptr->GetId());
+    ptr->~RSRenderNode();
+    RSScbNodeMemoryPool::Instance().Deallocate(ptr);
+    return true;
+}
+
 void RSRenderNodeGC::EraseFromNotOnTreeNodeMap(NodeId nodeId)
 {
     auto nodePid = ExtractPid(nodeId);
@@ -175,6 +203,10 @@ void RSRenderNodeGC::ReleaseNodeBucket()
             }
         }
         ++realDelNodeNum;
+        if (TryRecycleScbPoolNode(ptr)) {
+            continue;
+        }
+        RS_OPTIONAL_TRACE_NAME_FMT("NodeRecycle legacy, id=%" PRIu64, ptr->GetId());
         if (RSRenderNodeAllocator::Instance().AddNodeToAllocator(ptr)) {
             continue;
         }
@@ -207,6 +239,10 @@ void RSRenderNodeGC::ReleaseNodeOnBgThread()
             if (ptr == nullptr) {
                 continue;
             }
+            if (TryRecycleScbPoolNode(ptr)) {
+                continue;
+            }
+            RS_OPTIONAL_TRACE_NAME_FMT("NodeRecycle legacy, id=%" PRIu64, ptr->GetId());
             if (RSRenderNodeAllocator::Instance().AddNodeToAllocator(ptr)) {
                 continue;
             }
@@ -243,6 +279,9 @@ void RSRenderNodeGC::ReleaseMainBucket(bool highPriority)
         remainBucketSize = nodeBucket_.size();
     }
     if (remainBucketSize == 0) {
+        // All node buckets drained — try to shrink the SCB memory pool
+        // to return fully-free chunks to the system (keeping >= INITIAL_SLOTS).
+        RSScbNodeMemoryPool::Instance().Shrink();
         return;
     }
     if (mainTask_) {

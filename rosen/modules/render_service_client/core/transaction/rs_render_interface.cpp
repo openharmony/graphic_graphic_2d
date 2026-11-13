@@ -440,13 +440,13 @@ bool RSRenderInterface::RegisterTransactionDataCallback(
 }
 
 std::shared_ptr<RSSurface> RSRenderInterface::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-    bool unobscured)
+    bool unobscured, bool isSceneBoard)
 {
     if (renderPipelineClient_ == nullptr) {
         ROSEN_LOGE("RSRenderInterface::CreateNodeAndSurface renderPipelineClient_ nullptr");
         return nullptr;
     }
-    return renderPipelineClient_->CreateNodeAndSurface(config, unobscured);
+    return renderPipelineClient_->CreateNodeAndSurface(config, unobscured, isSceneBoard);
 }
  
 RSInterfaceErrorCode RSRenderInterface::SetHidePrivacyContent(NodeId id, bool needHidePrivacyContent)
@@ -575,13 +575,14 @@ void RSRenderInterface::SetWindowContainer(NodeId nodeId, bool value)
     renderPipelineClient_->SetWindowContainer(nodeId, value);
 }
 
-bool RSRenderInterface::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+bool RSRenderInterface::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    bool isSceneBoard)
 {
     if (renderPipelineClient_ == nullptr) {
         ROSEN_LOGE("RSRenderInterface::CreateNode renderPipelineClient_ nullptr");
         return false;
     }
-    return renderPipelineClient_->CreateDisplayNode(displayNodeConfig, nodeId);
+    return renderPipelineClient_->CreateDisplayNode(displayNodeConfig, nodeId, isSceneBoard);
 }
  
 bool RSRenderInterface::CreateNode(const RSSurfaceRenderNodeConfig& config)

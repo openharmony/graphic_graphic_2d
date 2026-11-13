@@ -24,11 +24,15 @@
 #include <system_ability_definition.h>
 #include <unistd.h>
 #include <unordered_map>
+#include "securec.h"
 
 #include "hgm_core.h"
 #include "memory/rs_memory_manager.h"
 #include "parameter.h"
 #include "pipeline/main_thread/rs_main_thread.h"
+#include "pipeline/rs_render_node_gc.h"
+#include "pipeline/rs_render_node_map.h"
+#include "pipeline/rs_scb_node_memory_pool.h"
 #include "pipeline/rs_ui_render_director.h"
 #include "rs_profiler.h"
 #include "vsync_generator.h"
@@ -194,6 +198,8 @@ void RSPipelineDumper::RenderPipelineDumpInit(std::shared_ptr<RSPipelineDumpMana
     RegisterFpsFuncs(rpDumpManager);
     RegisterContextStatesFuncs(rpDumpManager);
     RegisterFrameStatsFuncs(rpDumpManager);
+    RegisterScbPoolFuncs(rpDumpManager);
+    RegisterAllRenderNodesFuncs(rpDumpManager);
 }
 
 void RSPipelineDumper::RegisterFpsFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
@@ -815,6 +821,201 @@ void RSPipelineDumper::ScheduleTask(std::function<void()> task) const
     RS_LOGE("RSPipelineDumper::ScheduleTask mainHandler_ is null");
 }
 
+void RSPipelineDumper::RegisterScbPoolFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
+{
+    RSDumpFunc scbPoolInfoFunc = [this](const std::u16string &cmd,
+                                        std::unordered_set<std::u16string> &argSets,
+                                        std::string &dumpString) -> void {
+        RS_TRACE_NAME("RSPipelineDumper::DumpScbPool");
+        RS_LOGI("[SCB_COV] RegisterScbPoolFuncs: handler invoked (scbpool cmd)");
+        ScheduleTask([&dumpString]() { RSScbNodeMemoryPool::Instance().Dump(dumpString); });
+    };
+ 
+    std::vector<RSDumpHander> handers = {
+        { RSDumpID::SCB_POOL_INFO, scbPoolInfoFunc, "SCB Memory Pool" },
+    };
+ 
+    rpDumpManager->Register(handers);
+}
+ 
+void RSPipelineDumper::RegisterAllRenderNodesFuncs(std::shared_ptr<RSPipelineDumpManager> rpDumpManager)
+{
+    RSDumpFunc allRenderNodesInfoFunc = [this](const std::u16string &cmd,
+                                         std::unordered_set<std::u16string> &argSets,
+                                         std::string &dumpString) -> void {
+        RS_TRACE_NAME("RSPipelineDumper::DumpAllRenderNodes");
+        RS_LOGI("[SCB_COV] RegisterAllRenderNodesFuncs: handler invoked (allrendernodes/scbnodes cmd)");
+        ScheduleTask([this, &dumpString]() { DumpAllRenderNodes(dumpString); });
+    };
+ 
+    std::vector<RSDumpHander> handers = {
+        { RSDumpID::ALL_RENDER_NODES_INFO, allRenderNodesInfoFunc, "All Render Nodes List" },
+    };
+ 
+    rpDumpManager->Register(handers);
+}
+ 
+void RSPipelineDumper::DumpAllRenderNodes(std::string& dumpString) const
+{
+    char buf[512];
+    const auto& nodeMap = RSMainThread::Instance()->GetContext().GetNodeMap();
+    pid_t scbPid = RSRenderNodeGC::Instance().GetScbPid();
+ 
+    dumpString.append("\n=== All Render Nodes List (pid:");
+    dumpString.append(std::to_string(getpid()));
+    dumpString.append(") ===\n");
+ 
+    uint32_t totalCount = 0;
+    uint32_t scbCount = 0;
+    uint32_t nonScbCount = 0;
+    uint32_t inPoolCount = 0;
+    uint32_t notInPoolCount = 0;
+    uint32_t onTreeCount = 0;
+    uint32_t notOnTreeCount = 0;
+ 
+    dumpString.append("nodeId,pid,isScb,type,onTree,inPool,chunk,slot,globalSlot,surfaceName\n");
+ 
+    auto getSurfaceName = [&nodeMap](const std::shared_ptr<RSRenderNode>& node) -> std::string {
+        auto cur = node;
+        while (cur != nullptr) {
+            if (cur->GetType() == RSRenderNodeType::SURFACE_NODE) {
+                auto surfaceNode = cur->ReinterpretCastTo<RSSurfaceRenderNode>();
+                RS_LOGI_LIMIT("[SCB_COV] getSurfaceName: parent-chain hit SURFACE_NODE, name=%{public}s",
+                    surfaceNode ? surfaceNode->GetName().c_str() : "null");
+                return surfaceNode ? surfaceNode->GetName() : "";
+            }
+            auto parent = cur->GetParent().lock();
+            cur = parent;
+        }
+        NodeId rootId = node->GetInstanceRootNodeId();
+        if (rootId != INVALID_NODEID) {
+            auto rootNode = nodeMap.GetRenderNode<RSRenderNode>(rootId);
+            if (rootNode != nullptr && rootNode->GetType() == RSRenderNodeType::SURFACE_NODE) {
+                auto surfaceNode = rootNode->ReinterpretCastTo<RSSurfaceRenderNode>();
+                RS_LOGI_LIMIT("[SCB_COV] getSurfaceName: root-node fallback hit, rootId=%{public}" PRIu64,
+                    rootId);
+                return surfaceNode ? surfaceNode->GetName() : "";
+            }
+            RS_LOGI_LIMIT("[SCB_COV] getSurfaceName: root-node found but not SURFACE_NODE, rootId=%{public}" PRIu64,
+                rootId);
+        } else {
+            RS_LOGI_LIMIT("[SCB_COV] getSurfaceName: INVALID_NODEID, no fallback");
+        }
+        return "";
+    };
+ 
+    // Build PID → surfaceName map from on-tree nodes for fallback lookup.
+    std::unordered_map<pid_t, std::string> pidSurfaceMap;
+    nodeMap.TraversalNodes([&](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr || !node->IsOnTheTree()) {
+            return;
+        }
+        pid_t pid = ExtractPid(node->GetId());
+        if (pidSurfaceMap.count(pid) > 0) {
+            return;
+        }
+        auto name = getSurfaceName(std::static_pointer_cast<RSRenderNode>(node));
+        if (!name.empty()) {
+            pidSurfaceMap[pid] = name;
+        }
+    });
+    RS_LOGI("[SCB_COV] DumpAllRenderNodes: pidSurfaceMap built, size=%{public}zu", pidSurfaceMap.size());
+ 
+    nodeMap.TraversalNodes([&](const std::shared_ptr<RSBaseRenderNode>& node) {
+        if (node == nullptr) {
+            return;
+        }
+        ++totalCount;
+ 
+        NodeId nodeId = node->GetId();
+        pid_t pid = ExtractPid(nodeId);
+        bool isScb = (pid == scbPid);
+        if (isScb) {
+            ++scbCount;
+            RS_LOGI_LIMIT("[SCB_COV] DumpAllRenderNodes: isScb branch, nodeId=%{public}" PRIu64, nodeId);
+        } else {
+            ++nonScbCount;
+        }
+        if (node->IsOnTheTree()) {
+            ++onTreeCount;
+        } else {
+            ++notOnTreeCount;
+            RS_LOGI_LIMIT("[SCB_COV] DumpAllRenderNodes: notOnTree branch, nodeId=%{public}" PRIu64, nodeId);
+        }
+ 
+        std::string typeStr;
+        RSRenderNode::DumpNodeType(node->GetType(), typeStr);
+ 
+        const void* rawPtr = static_cast<const void*>(node.get());
+        RSScbNodeMemoryPool::SlotInfo slotInfo = RSScbNodeMemoryPool::Instance().GetSlotInfo(rawPtr);
+        if (slotInfo.found) {
+            ++inPoolCount;
+            RS_LOGI_LIMIT("[SCB_COV] DumpAllRenderNodes: inPool branch, nodeId=%{public}" PRIu64
+                ", chunk=%{public}u, slot=%{public}u", nodeId, slotInfo.chunkIndex, slotInfo.slotInChunk);
+        } else {
+            ++notInPoolCount;
+        }
+ 
+        std::string surfaceName = getSurfaceName(std::static_pointer_cast<RSRenderNode>(node));
+        if (surfaceName.empty()) {
+            auto it = pidSurfaceMap.find(pid);
+            if (it != pidSurfaceMap.end()) {
+                surfaceName = it->second;
+                RS_LOGI_LIMIT("[SCB_COV] DumpAllRenderNodes: surfaceName via pidSurfaceMap fallback, pid=%{public}d",
+                    pid);
+            } else {
+                RS_LOGI_LIMIT("[SCB_COV] DumpAllRenderNodes: surfaceName empty (no fallback), pid=%{public}d", pid);
+            }
+        }
+        int len = snprintf_s(buf, sizeof(buf), sizeof(buf) - 1,
+            "%llu,%d,%d,%s,%d,%d,%u,%u,%u,",
+            static_cast<unsigned long long>(nodeId), pid, isScb ? 1 : 0,
+            typeStr.c_str(),
+            node->IsOnTheTree() ? 1 : 0,
+            slotInfo.found ? 1 : 0,
+            slotInfo.found ? slotInfo.chunkIndex : 0,
+            slotInfo.found ? slotInfo.slotInChunk : 0,
+            slotInfo.found ? slotInfo.globalSlot : 0);
+        if (len > 0) {
+            dumpString.append(buf, len);
+        } else {
+            RS_LOGE("RSPipelineDumper::DumpAllRenderNodes snprintf_s failed, nodeId:%{public}" PRIu64, nodeId);
+        }
+        dumpString.append(surfaceName);
+        dumpString.append("\n");
+    });
+ 
+    dumpString.append("\nSummary: total=");
+    dumpString.append(std::to_string(totalCount));
+    dumpString.append(", scbNodes=");
+    dumpString.append(std::to_string(scbCount));
+    dumpString.append(", nonScbNodes=");
+    dumpString.append(std::to_string(nonScbCount));
+    dumpString.append(", inPool=");
+    dumpString.append(std::to_string(inPoolCount));
+    dumpString.append(", notInPool=");
+    dumpString.append(std::to_string(notInPoolCount));
+    dumpString.append(", onTree=");
+    dumpString.append(std::to_string(onTreeCount));
+    dumpString.append(", notOnTree=");
+    dumpString.append(std::to_string(notOnTreeCount));
+    dumpString.append("\n");
+ 
+    dumpString.append("SCB Pool: totalSlots=");
+    dumpString.append(std::to_string(RSScbNodeMemoryPool::Instance().GetTotalSlots()));
+    dumpString.append(", freeSlots=");
+    dumpString.append(std::to_string(RSScbNodeMemoryPool::Instance().GetFreeSlotCount()));
+    dumpString.append(", chunks=");
+    dumpString.append(std::to_string(RSScbNodeMemoryPool::Instance().GetChunkCount()));
+    dumpString.append(", scbPid=");
+    dumpString.append(std::to_string(scbPid));
+    dumpString.append("\n");
+ 
+    RS_LOGI("[SCB_COV] DumpAllRenderNodes done: total=%{public}u, scb=%{public}u, nonScb=%{public}u, "
+        "inPool=%{public}u, notInPool=%{public}u, onTree=%{public}u, notOnTree=%{public}u, scbPid=%{public}d",
+        totalCount, scbCount, nonScbCount, inPoolCount, notInPoolCount, onTreeCount, notOnTreeCount, scbPid);
+}
+ 
 void RSPipelineDumper::DumpNodeInfo(pid_t pid, uint64_t token, std::string& dumpString) const
 {
     dumpString.append("\n-- Node Count Statistics --\n");

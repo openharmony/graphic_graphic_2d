@@ -16,6 +16,8 @@
 #include "gtest/gtest.h"
 #include "common/rs_common_def.h"
 #include "include/feature/window_keyframe/rs_window_keyframe_node_command.h"
+
+#include "command/rs_ui_director_command.h"
 #include "feature/window_keyframe/rs_window_keyframe_render_node.h"
 #include "pipeline/rs_render_node_gc.h"
 
@@ -71,4 +73,26 @@ HWTEST_F(RSWindowKeyFrameNodeCommandTest, LinkNode, TestSize.Level1)
     ASSERT_NE(keyframeNode, nullptr);
     EXPECT_EQ(keyframeNode->GetLinkedNodeId(), linkedNodeId);
 }
+
+/**
+ * @tc.name: CreateSceneBoardBranchTest001
+ * @tc.desc: Create with a marked token covers the SceneBoard branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSWindowKeyFrameNodeCommandTest, CreateSceneBoardBranchTest001, TestSize.Level1)
+{
+    constexpr pid_t pid = 818;
+    constexpr uint64_t token = 819;
+    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId nodeId = MakeNodeId(pid, 1);
+    RSContext context;
+    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
+    RSWindowKeyFrameNodeCommandHelper::Create(context, nodeId, false, token);
+    auto node = context.GetNodeMap().GetRenderNode<RSWindowKeyFrameRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(node->IsSceneBoard());
+    EXPECT_EQ(node->GetUIContextToken(), token);
+}
+
 } // namespace OHOS::Rosen

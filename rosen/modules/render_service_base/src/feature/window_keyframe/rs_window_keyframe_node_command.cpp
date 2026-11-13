@@ -23,15 +23,16 @@ namespace OHOS {
 namespace Rosen {
 
 void RSWindowKeyFrameNodeCommandHelper::Create(
-    RSContext& context, NodeId id, bool isTextureExportNode)
+    RSContext& context, NodeId id, bool isTextureExportNode, uint64_t token)
 {
+    const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
     auto node = RSWindowKeyFrameRenderNode::SharedPtr(new (std::nothrow) RSWindowKeyFrameRenderNode(id,
         context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
     if (node == nullptr) {
         RS_LOGE("RSWindowKeyFrameNodeCommand Alloc render node object failed");
         return;
     }
-
+    node->ApplyInstanceIdentity(token, isSceneBoard);
     context.GetMutableNodeMap().RegisterRenderNode(node);
     RS_LOGI("RSWindowKeyFrameNodeCommand node[%{public}" PRIu64 "] created", id);
 }

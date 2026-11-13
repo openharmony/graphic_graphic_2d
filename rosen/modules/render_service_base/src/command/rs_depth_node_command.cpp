@@ -21,10 +21,12 @@
 
 namespace OHOS {
 namespace Rosen {
-void RSDepthNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode)
+void RSDepthNodeCommandHelper::Create(RSContext& context, NodeId id, bool isTextureExportNode, uint64_t token)
 {
+    const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
     auto node = std::shared_ptr<RSDepthRenderNode>(new RSDepthRenderNode(id, context.weak_from_this(),
         isTextureExportNode), RSRenderNodeGC::NodeDestructor);
+    node->ApplyInstanceIdentity(token, isSceneBoard);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 

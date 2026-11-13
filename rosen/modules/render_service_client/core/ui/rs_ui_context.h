@@ -29,6 +29,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_UI_RS_UI_CONTEXT_H
 #define RENDER_SERVICE_CLIENT_CORE_UI_RS_UI_CONTEXT_H
 
+#include <atomic>
 #include <functional>
 #include <iremote_object.h>
 #include <memory>
@@ -162,12 +163,23 @@ public:
 
     /**
      * @brief Gets the token associated with the current context.
-     * 
+     *
      * @return The token as a 64-bit unsigned integer.
      */
     inline uint64_t GetToken() const
     {
         return token_;
+    }
+
+    /**
+     * @brief Whether this context is marked as SceneBoard
+     *        (set via RSUIDirector::MarkAsSceneBoard).
+     *
+     * @return True if this context is marked as SceneBoard.
+     */
+    bool IsSceneBoard() const
+    {
+        return isSceneBoard_.load(std::memory_order_relaxed);
     }
 
     /**
@@ -276,6 +288,9 @@ private:
     void ClearCanvasDrawingNodeResource();
     bool DestroyModifiersDraw();
 
+    // Flag setter for friend RSUIDirector::MarkAsSceneBoard; one-way false→true.
+    void MarkAsSceneBoard();
+
 #ifdef RS_MODIFIERS_DRAW_ENABLE
     void SetCacheDir(const std::string& cacheFilePath);
 
@@ -294,6 +309,8 @@ private:
 
     uint64_t token_;
     NodeId rootNodeId_ = 0;
+    // atomic: written by WM, read from cross-instance dump paths.
+    std::atomic<bool> isSceneBoard_{false};
 
     RSNodeMapV2 nodeMap_;
     std::shared_ptr<RSTransactionHandler> rsTransactionHandler_;

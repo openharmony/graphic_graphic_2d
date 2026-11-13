@@ -130,7 +130,8 @@ void RSRenderPipelineClient::RegisterApplicationAgent(uint32_t pid, sptr<IApplic
     }
 }
 
-bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId)
+bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displayNodeConfig, NodeId nodeId,
+    bool isSceneBoard)
 {
     auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
     if (clientToRenderConnection == nullptr) {
@@ -138,7 +139,7 @@ bool RSRenderPipelineClient::CreateDisplayNode(const RSDisplayNodeConfig& displa
         return false;
     }
     bool success = false;
-    ErrCode err = clientToRenderConnection->CreateDisplayNode(displayNodeConfig, nodeId, success);
+    ErrCode err = clientToRenderConnection->CreateDisplayNode(displayNodeConfig, nodeId, success, isSceneBoard);
     if (err != ERR_OK) {
         ROSEN_LOGE("RSRenderPipelineClient::CreateDisplayNode failed, err:%{public}d", err);
         return false;
@@ -163,7 +164,7 @@ bool RSRenderPipelineClient::CreateNode(const RSSurfaceRenderNodeConfig& config)
 }
 
 std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(const RSSurfaceRenderNodeConfig& config,
-    bool unobscured)
+    bool unobscured, bool isSceneBoard)
 {
     auto clientToRenderConnection = RSRenderServiceConnectHub::GetClientToRenderConnection(tokenMaskId_);
     if (clientToRenderConnection == nullptr) {
@@ -172,7 +173,7 @@ std::shared_ptr<RSSurface> RSRenderPipelineClient::CreateNodeAndSurface(const RS
     }
 
     sptr<Surface> surface = nullptr;
-    ErrCode err = clientToRenderConnection->CreateNodeAndSurface(config, surface, unobscured);
+    ErrCode err = clientToRenderConnection->CreateNodeAndSurface(config, surface, unobscured, isSceneBoard);
     if ((err != ERR_OK) || (surface == nullptr)) {
         ROSEN_LOGE("RSRenderPipelineClient::CreateNodeAndSurface surface is nullptr.");
         return nullptr;

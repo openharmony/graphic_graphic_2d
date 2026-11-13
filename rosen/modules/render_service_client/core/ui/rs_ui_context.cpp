@@ -29,6 +29,12 @@
 
 namespace OHOS {
 namespace Rosen {
+
+void RSUIContext::MarkAsSceneBoard()
+{
+    isSceneBoard_.store(true, std::memory_order_relaxed);
+}
+
 RSUIContext::RSUIContext(uint64_t token, sptr<IRemoteObject>& connectToRenderRemote) : token_(token)
 {
     connectToRenderRemote_ = connectToRenderRemote;

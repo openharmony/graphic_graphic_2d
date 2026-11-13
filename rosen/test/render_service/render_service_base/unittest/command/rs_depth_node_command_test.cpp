@@ -15,6 +15,8 @@
 
 #include "gtest/gtest.h"
 #include "command/rs_depth_node_command.h"
+#include "common/rs_common_def.h"
+#include "command/rs_ui_director_command.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_depth_render_node.h"
 
@@ -167,4 +169,26 @@ HWTEST_F(RSDepthNodeCommandTest, SetType004, TestSize.Level1)
     RSDepthNodeCommandHelper::SetType(context, testNodeId, static_cast<DepthSpaceType>(810));
     EXPECT_EQ(node->GetDepthSpaceType(), DepthSpaceType::INSTANCE);
 }
+
+/**
+ * @tc.name: CreateSceneBoardBranchTest001
+ * @tc.desc: Create with a marked token covers the SceneBoard branch.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSDepthNodeCommandTest, CreateSceneBoardBranchTest001, TestSize.Level1)
+{
+    constexpr pid_t pid = 813;
+    constexpr uint64_t token = 814;
+    constexpr NodeId directorNodeId = MakeNodeId(pid, 0);
+    constexpr NodeId nodeId = MakeNodeId(pid, 1);
+    RSContext context;
+    RSUIDirectorCommandHelper::GoCreate(context, directorNodeId, token);
+    RSUIDirectorCommandHelper::MarkSceneBoard(context, directorNodeId, token);
+    RSDepthNodeCommandHelper::Create(context, nodeId, false, token);
+    auto node = context.GetNodeMap().GetRenderNode<RSDepthRenderNode>(nodeId);
+    ASSERT_NE(node, nullptr);
+    EXPECT_TRUE(node->IsSceneBoard());
+    EXPECT_EQ(node->GetUIContextToken(), token);
+}
+
 } // namespace OHOS::Rosen

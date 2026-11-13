@@ -32,7 +32,8 @@
 namespace OHOS {
 namespace Rosen {
 
-void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNodeType type, bool isTextureExportNode)
+void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNodeType type,
+    bool isTextureExportNode, uint64_t token)
 {
     if (!context.GetNodeMap().GetRenderNode<RSSurfaceRenderNode>(id)) {
         if (!RsCommandVerifyHelper::GetInstance().IsSurfaceNodeCreateCommandVaild(ExtractPid(id))) {
@@ -44,16 +45,19 @@ void SurfaceNodeCommandHelper::Create(RSContext& context, NodeId id, RSSurfaceNo
             ROSEN_LOGE("SurfaceNodeCommandHelper::Create create after add, id:%{public}" PRIu64, id);
             RS_TRACE_NAME_FMT("SurfaceNodeCommandHelper::Create create after add, id:%" PRIu64, id);
         }
+        const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(id), token);
         auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(id,
             context.weak_from_this(), isTextureExportNode), RSRenderNodeGC::NodeDestructor);
         node->SetSurfaceNodeType(type);
+        node->ApplyInstanceIdentity(token, isSceneBoard);
         auto& nodeMap = context.GetMutableNodeMap();
         nodeMap.RegisterRenderNode(node);
     }
 }
 
 void SurfaceNodeCommandHelper::CreateWithConfig(
-    RSContext& context, NodeId nodeId, std::string name, uint8_t type, enum SurfaceWindowType windowType)
+    RSContext& context, NodeId nodeId, std::string name, uint8_t type, enum SurfaceWindowType windowType,
+    uint64_t token)
 {
     RSSurfaceRenderNodeConfig config = {
         .id = nodeId, .name = name,
@@ -68,8 +72,10 @@ void SurfaceNodeCommandHelper::CreateWithConfig(
         ROSEN_LOGE("SurfaceNodeCommandHelper::CreateWithConfig create after add, id:%{public}" PRIu64, nodeId);
         RS_TRACE_NAME_FMT("SurfaceNodeCommandHelper::CreateWithConfig create after add, id:%" PRIu64, nodeId);
     }
+    const bool isSceneBoard = token != 0 && context.IsSceneBoardToken(ExtractPid(nodeId), token);
     auto node = std::shared_ptr<RSSurfaceRenderNode>(new RSSurfaceRenderNode(config,
         context.weak_from_this()), RSRenderNodeGC::NodeDestructor);
+    node->ApplyInstanceIdentity(token, isSceneBoard);
     context.GetMutableNodeMap().RegisterRenderNode(node);
 }
 
