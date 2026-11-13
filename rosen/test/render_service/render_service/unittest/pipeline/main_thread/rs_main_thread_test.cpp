@@ -388,8 +388,15 @@ std::shared_ptr<RSScreenRenderNode> RSMainThreadTest::GetAndInitScreenRenderNode
     RSUniRenderThread::Instance().composerClientManager_ = rsComposerClientMgr;
     screenNode->UpdateScreenProperty(ScreenPropertyType::STATE,
         sptr<ScreenProperty<uint8_t>>::MakeSptr(static_cast<uint8_t>(ScreenState::HDI_OUTPUT_ENABLE)));
-
+    // PhysicalScreenInit() now calls RSLuminanceControl::Get().IsHdrPicEnable(id). A previous test may
+    // have left rSLuminanceControlInterface_ pointing at an already-destroyed local mock (use-after-free),
+    // which crashes the virtual call during RSScreen construction. Force the interface to nullptr while
+    // constructing the screen so IsHdrPicEnable safely returns false; restore afterwards.
+    auto& luminanceInterface = RSLuminanceControl::Get().rSLuminanceControlInterface_;
+    auto savedLuminanceInterface = luminanceInterface;
+    luminanceInterface = nullptr;
     auto rsScreen = std::make_shared<RSScreen>(screenId);
+    luminanceInterface = savedLuminanceInterface;
     if (rsScreen == nullptr) {
         return screenNode;
     }
