@@ -37,7 +37,7 @@ private:
 GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_DistortionCollapse_Test_01)
 {
     float sizeX = screenWidth;
-    float sizeY = screenWidth;
+    float sizeY = screenHeight;
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
@@ -56,7 +56,7 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
 GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_DistortionCollapse_Test_02)
 {
     float sizeX = screenWidth;
-    float sizeY = screenWidth;
+    float sizeY = screenHeight;
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
@@ -75,7 +75,7 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
 GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_DistortionCollapseTest_03)
 {
     float sizeX = screenWidth;
-    float sizeY = screenWidth;
+    float sizeY = screenHeight;
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
@@ -94,7 +94,7 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
 GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_DistortionCollapseTest_04)
 {
     float sizeX = screenWidth;
-    float sizeY = screenWidth;
+    float sizeY = screenHeight;
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
@@ -113,7 +113,7 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
 GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_DistortionCollapseTest_05)
 {
     float sizeX = screenWidth;
-    float sizeY = screenWidth;
+    float sizeY = screenHeight;
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
@@ -132,7 +132,7 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
 GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_DistortionCollapseTest_06)
 {
     float sizeX = screenWidth;
-    float sizeY = screenWidth;
+    float sizeY = screenHeight;
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
@@ -151,7 +151,7 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
 GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_DistortionCollapseTest_07)
 {
     float sizeX = screenWidth;
-    float sizeY = screenWidth;
+    float sizeY = screenHeight;
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
@@ -170,7 +170,7 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
 GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_DistortionCollapseTest_08)
 {
     float sizeX = screenWidth;
-    float sizeY = screenWidth;
+    float sizeY = screenHeight;
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
@@ -189,7 +189,7 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
 GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_DistortionCollapseTest_09)
 {
     float sizeX = screenWidth;
-    float sizeY = screenWidth;
+    float sizeY = screenHeight;
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
@@ -208,7 +208,7 @@ GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_Distorti
 GRAPHIC_TEST(NGFilterDistortionCollapseTest, EFFECT_TEST, Set_NG_Filter_DistortionCollapseTest_10)
 {
     float sizeX = screenWidth;
-    float sizeY = screenWidth;
+    float sizeY = screenHeight;
     auto filter = CreateFilter(RSNGEffectType::DISTORTION_COLLAPSE);
     auto distortionCollapseFilter = std::static_pointer_cast<RSNGDistortionCollapseFilter>(filter);
 
