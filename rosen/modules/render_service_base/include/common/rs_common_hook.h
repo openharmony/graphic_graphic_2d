@@ -12,7 +12,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+bool RSUniHwcVisitor::IsSurfaceOpaque(RSSurfaceRenderNode& node)
+{
+    auto surfaceHandler = node.GetMutableRSSurfaceHandler();
+    auto consumer = surfaceHandler->GetConsumer();
+    if (consumer != nullptr) {
+        auto fwkType = consumer->GetSurfaceAppFrameworkType();
+        auto surfaceOpaqueType = RsCommonHook::Instance().GetSurfaceOpaqueType();
+        RS_LOGI("xhj234 %{public}s", surfaceOpaqueType.c_str());
+        bool surfaceType = fwkType.find(surfaceOpaqueType) != std::string::npos;
+        if (surfaceType) {
+            return true;
+        }
+    }
+    return false;
+}
 
+if (node.GetAncoForceDoDirect() || IsSurfaceOpaque(node)) {
+    
 #ifndef RS_COMMON_HOOK_H
 #define RS_COMMON_HOOK_H
 
