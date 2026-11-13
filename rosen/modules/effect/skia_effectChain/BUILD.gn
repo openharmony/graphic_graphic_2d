@@ -35,6 +35,7 @@ config("effect_SKeffectChian_config") {
     "$graphic_2d_root/rosen/modules/render_service_base/include",
     "$graphic_2d_root/rosen/modules/render_service_base/src",
     "$graphic_2d_root/rosen/modules/effect/color_picker/include",
+    "$graphic_2d_root/rosen/modules/effect/effect_ndk/include",
   ]
 
   if (!defined(defines)) {

@@ -46,8 +46,7 @@ public:
         const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse);
     bool WaterDropletTransition(const std::shared_ptr<OHOS::Media::PixelMap>& topLayer,
         const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams);
-    bool RenderNativeBuffer(
-        bool forceCPU, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd, bool releaseGpuContext);
+    bool RenderNativeBuffer(bool forceCPU, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd);
     bool Scale(float scaleX, float scaleY, Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode);
 
 private:

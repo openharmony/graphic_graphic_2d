@@ -224,6 +224,38 @@ namespace effectKit {
      */
     getPixelMap(): image.PixelMap;
 
+    /**
+     * Releases all memory used by this process that is associated with the GPU device.
+     *
+     * > **NOTE**
+     * >
+     * > Call this API only when the process will not perform rendering again in the near future; otherwise,
+     * > the next rendering incurs additional resource reallocation overhead.
+     *
+     * @syscap SystemCapability.Multimedia.Image.Core
+     * @stagemodelonly
+     * @form
+     * @atomicservice
+     * @since 26.1.0 dynamic&static
+     */
+    releaseCaches(): void;
+
+    /**
+     * Releases the image buffers used by this process and the memory used by this thread that is
+     * associated with the GPU device.
+     *
+     * > **NOTE**
+     * >
+     * > Call this API only when the process will not perform rendering again in the near future; otherwise,
+     * > the next rendering incurs additional resource reallocation overhead.
+     *
+     * @syscap SystemCapability.Multimedia.Image.Core
+     * @stagemodelonly
+     * @form
+     * @atomicservice
+     * @since 26.1.0 dynamic&static
+     */
+    releaseGpuContext(): void;
   }
 
 
@@ -253,6 +285,10 @@ namespace effectKit {
     public native setColorMatrixNative(colorMatrix: Array<double>): Filter;
 
     public native getPixelMapNative(): image.PixelMap;
+
+    public native releaseCachesNative(): void;
+
+    public native releaseGpuContextNative(): void;
 
     private static native kitTransferStaticNative(input: ESValue): Object;
 
@@ -308,6 +344,12 @@ namespace effectKit {
     }
     public getPixelMap(): image.PixelMap {
       return this.getPixelMapNative();
+    }
+    public releaseCaches(): void {
+      this.releaseCachesNative();
+    }
+    public releaseGpuContext(): void {
+      this.releaseGpuContextNative();
     }
     public static kitTransferStatic(input: Any): Object {
 	  return FilterInternal.kitTransferStaticNative(ESValue.wrap(input));

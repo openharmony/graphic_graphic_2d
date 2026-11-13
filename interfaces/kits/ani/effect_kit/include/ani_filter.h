@@ -50,6 +50,8 @@ public:
     static ani_object Invert(ani_env* env, ani_object obj);
     static ani_object SetColorMatrix(ani_env* env, ani_object obj, ani_object arrayObj);
     static ani_object GetPixelMap(ani_env* env, ani_object obj);
+    static void ReleaseCaches(ani_env* env, ani_object obj);
+    static void ReleaseGpuContext(ani_env* env, ani_object obj);
     static ani_object CreateEffectFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap);
     static ani_object KitTransferStaticEffect(ani_env* env, ani_class cls, ani_object obj);
     static ani_object kitTransferDynamicEffect(ani_env* env, ani_class cls, ani_long obj);

@@ -318,15 +318,13 @@ DrawingError EffectImageReededGlassFilter::Apply(const std::shared_ptr<EffectIma
 DrawingError EffectImageRender::RenderNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
     std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer,
     const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters,
-    int32_t* syncFenceFd,
-    bool releaseGpuContext)
+    int32_t* syncFenceFd)
 {
     ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageRender::RenderNativeBuffer");
  
     auto ret = DrawingError::ERR_OK;
     do {
         auto effectImage = std::make_shared<EffectImageChain>();
-        effectImage->SetForceReleaseGpuContext(releaseGpuContext);
         ret = effectImage->PrepareNativeBuffer(srcPixelMap, dstNativeBuffer);
         if (ret != DrawingError::ERR_OK) {
             EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: Failed to prepare image, ret=%{public}d.", ret);
@@ -356,7 +354,6 @@ DrawingError EffectImageRender::RenderNativeBuffer(const std::shared_ptr<Media::
             break;
         }
         *syncFenceFd = effectImage->GetfenceId();
-        effectImage->SetForceReleaseGpuContext(releaseGpuContext);
         if (ret != DrawingError::ERR_OK) {
             EFFECT_LOG_E("EffectImageRender::RenderNativeBuffer: Failed to draw image, ret=%{public}d.", ret);
             break;

@@ -186,6 +186,8 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("grayscale", Grayscale),
         DECLARE_NAPI_FUNCTION("invert", Invert),
         DECLARE_NAPI_FUNCTION("setColorMatrix", SetColorMatrix),
+        DECLARE_NAPI_FUNCTION("releaseCaches", ReleaseCaches),
+        DECLARE_NAPI_FUNCTION("releaseGpuContext", ReleaseGpuContext),
         DECLARE_NAPI_FUNCTION("getPixelMap", GetPixelMap),
         DECLARE_NAPI_FUNCTION("getPixelMapAsync", GetPixelMapAsync),
         DECLARE_NAPI_FUNCTION("getEffectPixelMap", GetPixelMapAsync),
@@ -848,6 +850,48 @@ napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
     HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.setColorMatrix", 1);
 #endif
     return _this;
+}
+
+napi_value FilterNapi::ReleaseCaches(napi_env env, napi_callback_info info)
+{
+    napi_value _this = nullptr;
+    napi_status status;
+    EFFECT_JS_NO_ARGS(env, info, status, _this);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        EFFECT_LOG_E("FilterNapi ReleaseCaches parsing input fail"));
+    FilterNapi* thisFilter = nullptr;
+    status = napi_unwrap_s(env, _this, &FilterNapi::NAPI_TYPE_TAG, reinterpret_cast<void**>(&thisFilter));
+    if (status == napi_ok && thisFilter != nullptr) {
+        EffectImageChain::ReleaseCaches(nullptr);
+    } else {
+        EFFECT_LOG_E("FilterNapi ReleaseCaches napi_unwrap fail");
+    }
+
+    API_STATS_HISTOGRAM("Arkgraphics2d.EffectKit.releaseCaches", 1);
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
+}
+
+napi_value FilterNapi::ReleaseGpuContext(napi_env env, napi_callback_info info)
+{
+    napi_value _this = nullptr;
+    napi_status status;
+    EFFECT_JS_NO_ARGS(env, info, status, _this);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, nullptr,
+        EFFECT_LOG_E("FilterNapi ReleaseGpuContext parsing input fail"));
+    FilterNapi* thisFilter = nullptr;
+    status = napi_unwrap_s(env, _this, &FilterNapi::NAPI_TYPE_TAG, reinterpret_cast<void**>(&thisFilter));
+    if (status == napi_ok && thisFilter != nullptr) {
+        EffectImageChain::ReleaseGpuContext(nullptr);
+    } else {
+        EFFECT_LOG_E("FilterNapi ReleaseGpuContext napi_unwrap fail");
+    }
+
+    API_STATS_HISTOGRAM("Arkgraphics2d.EffectKit.releaseGpuContext", 1);
+    napi_value result = nullptr;
+    napi_get_undefined(env, &result);
+    return result;
 }
 }  // namespace Rosen
 }  // namespace OHOS

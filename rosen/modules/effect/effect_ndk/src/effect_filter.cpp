@@ -400,13 +400,44 @@ EffectErrorCode OH_Filter_ReededGlass(OH_Filter* filter, OH_Filter_ReededGlassDa
 }
 
 EffectErrorCode OH_Filter_GetEffectNativeBuffer(
-    OH_Filter *filter, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd, bool releaseGpuContext)
+    OH_Filter *filter, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd, bool /*releaseGpuContext*/)
 {
     if (!dstNativeBuffer || !filter) {
         return EFFECT_BAD_PARAMETER;
     }
-    if (!CastToFilter(filter)->RenderNativeBuffer(false, dstNativeBuffer, syncFenceFd, releaseGpuContext)) {
+    if (!CastToFilter(filter)->RenderNativeBuffer(false, dstNativeBuffer, syncFenceFd)) {
         return EFFECT_BAD_PARAMETER;
     }
     return EFFECT_SUCCESS;
+}
+
+static EffectErrorCode MapReleaseErrorCode(int32_t errorCode)
+{
+    if (errorCode == EFFECT_NO_GPU_ENVIRONMENT) {
+        return EFFECT_NO_GPU_ENVIRONMENT;
+    }
+    if (errorCode == EFFECT_RESOURCE_RELEASE_ERROR) {
+        return EFFECT_RESOURCE_RELEASE_ERROR;
+    }
+    return EFFECT_SUCCESS;
+}
+
+EffectErrorCode OH_Filter_ReleaseCaches(OH_Filter* filter)
+{
+    if (!filter) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    int32_t errorCode = 0;
+    EffectImageChain::ReleaseCaches(&errorCode);
+    return MapReleaseErrorCode(errorCode);
+}
+
+EffectErrorCode OH_Filter_ReleaseGpuContext(OH_Filter* filter)
+{
+    if (!filter) {
+        return EFFECT_BAD_PARAMETER;
+    }
+    int32_t errorCode = 0;
+    EffectImageChain::ReleaseGpuContext(&errorCode);
+    return MapReleaseErrorCode(errorCode);
 }

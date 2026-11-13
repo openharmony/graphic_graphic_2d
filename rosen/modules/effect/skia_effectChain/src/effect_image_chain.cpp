@@ -15,7 +15,10 @@
 
 #include "effect_image_chain.h"
 
+#include <vector>
+
 #include "common/rs_common_def.h"
+#include "effect_types.h"
 #include "effect_utils.h"
 #include "ge_external_dynamic_loader.h"
 #include "ge_mask_transition_shader_filter.h"
@@ -43,7 +46,13 @@
 #endif
 
 namespace OHOS::Rosen {
-thread_local std::shared_ptr<Drawing::GPUContext> EffectImageChain::gpuContext_ = nullptr;
+class RsVulkanContext;
+
+thread_local std::shared_ptr<Drawing::GPUContext> EffectImageChain::gpuContext_ = {};
+std::atomic<RsVulkanContext*> EffectImageChain::processVkContext_ { nullptr };
+std::mutex EffectImageChain::vkContextMutex_;
+std::atomic<bool> EffectImageChain::gpuEnvInitialized_ = false;
+std::atomic<uint32_t> EffectImageChain::activeChainCount_ = 0;
 Drawing::ColorType ImageUtil::PixelFormatToDrawingColorType(const Media::PixelFormat& pixelFormat)
 {
     switch (pixelFormat) {
@@ -231,18 +240,23 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
     }
 
     if (RSSystemProperties::IsUseVulkan()) {
-        if (gpuContext_ == nullptr) {
-            if (renderContext_ == nullptr) {
-                renderContext_ = RenderContext::Create();
-                renderContext_->Init();
+        gpuContextRef_ = gpuContext_; // reuse the thread's context while a holder lives
+        if (gpuContextRef_ == nullptr) {
+            EnsureVkContext();
+            RsVulkanContext* vkCtx = processVkContext_.load(std::memory_order_acquire);
+            if (vkCtx != nullptr && vkCtx->IsValid()) {
+                gpuContextRef_ = vkCtx->CreateDrawingGPUContext();
             }
-            gpuContext_ = renderContext_->GetSharedDrGPUContext();
+            if (gpuContextRef_ != nullptr) {
+                gpuContext_ = gpuContextRef_;
+                gpuEnvInitialized_.store(true);
+            }
         }
-        if (gpuContext_ != nullptr) {
-            gpuContext_->SetResourceCacheLimits(0, 0);
+        if (gpuContextRef_ != nullptr) {
+            gpuContextRef_->SetResourceCacheLimits(0, 0);
         }
     }
-    if (gpuContext_ == nullptr) {
+    if (gpuContextRef_ == nullptr) {
         EFFECT_COMM_LOG_E("EffectImageChain::PrepareNativeBuffer: create gpuContext failed.");
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
         return DrawingError::ERR_ILLEGAL_INPUT;
@@ -256,9 +270,16 @@ DrawingError EffectImageChain::PrepareNativeBuffer(
         ImageUtil::PixelFormatToDrawingColorType(srcPixelMap_->GetPixelFormat()),
         ImageUtil::AlphaTypeToDrawingAlphaType(srcPixelMap_->GetAlphaType()),
         RSPixelMapUtil::GetPixelmapColorSpace(srcPixelMap_)};
+    RsVulkanContext* vkCtx = processVkContext_.load(std::memory_order_acquire);
+    std::shared_ptr<RsVulkanInterface> vkInterface =
+        vkCtx != nullptr ? vkCtx->GetRsVulkanInterface() : nullptr;
+    if (vkInterface == nullptr) {
+        EFFECT_COMM_LOG_E("EffectImageChain::PrepareNativeBuffer: no dedicated vulkan interface.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_SURFACE;
+    }
     surface_ = NativeBufferUtils::CreateSurfaceFromNativeBuffer(
-        RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface(),
-        gpuContext_.get(), info, dstNativeBuffer.get(), info.GetColorSpace());
+        vkInterface, gpuContextRef_.get(), info, dstNativeBuffer.get(), info.GetColorSpace());
     if (surface_ == nullptr) {
         EFFECT_LOG_E("EffectImageChain::PrepareNativeBuffer: Failed to create surface %{public}d.", forceCPU_);
         ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
@@ -783,7 +804,14 @@ DrawingError EffectImageChain::DrawNativeBuffer()
         DrawOnFilter();
 
         VkSemaphore semaphore = VK_NULL_HANDLE;
-        auto vkInterface = RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).GetRsVulkanInterface();
+        RsVulkanContext* vkCtx = processVkContext_.load(std::memory_order_acquire);
+        auto vkInterface = vkCtx != nullptr ? vkCtx->GetRsVulkanInterface() : nullptr;
+        if (vkInterface == nullptr) {
+            EFFECT_COMM_LOG_E("EffectImageChain::DrawNativeBuffer: no dedicated vulkan interface");
+            fenceId_ = -1;
+            ret = DrawingError::ERR_SURFACE;
+            break;
+        }
         NativeBufferUtils::CreateVkSemaphore(vkInterface, semaphore);
         if (semaphore == VK_NULL_HANDLE) {
             EFFECT_COMM_LOG_E("EffectImageChain::DrawNativeBuffer: CreateVkSemaphore failed");
@@ -802,7 +830,7 @@ DrawingError EffectImageChain::DrawNativeBuffer()
         flushInfo.finishedProc = [](void* context) { DestroySemaphoreInfo::DestroySemaphore(context); };
         flushInfo.finishedContext = destroyInfo;
         surface_->Flush(&flushInfo);
-        gpuContext_->Submit();
+        gpuContextRef_->Submit();
  
         // Get fence fd from semaphore right after flush
         NativeBufferUtils::GetFenceFdFromSemaphore(vkInterface, semaphore, fenceId_);
@@ -911,48 +939,148 @@ std::shared_ptr<Drawing::Surface> EffectImageChain::CreateSurface(bool forceCPU)
     }
 
 #ifdef RS_ENABLE_GPU
-    if (gpuContext_ == nullptr) {
-        if (renderContext_ == nullptr) {
-            renderContext_ = RenderContext::Create();
-            renderContext_->Init();
+    gpuContextRef_ = gpuContext_;
+    if (gpuContextRef_ == nullptr) {
+        bool useDedicatedVk = false;
+#ifdef RS_ENABLE_VK
+        if (RSSystemProperties::IsUseVulkan()) {
+            useDedicatedVk = true;
+            EnsureVkContext();
+            RsVulkanContext* vkCtx = processVkContext_.load(std::memory_order_acquire);
+            if (vkCtx != nullptr && vkCtx->IsValid()) {
+                gpuContextRef_ = vkCtx->CreateDrawingGPUContext();
+            }
         }
-        gpuContext_ = renderContext_->GetSharedDrGPUContext();
+#endif
+        if (!useDedicatedVk) {
+            if (renderContext_ == nullptr) {
+                renderContext_ = RenderContext::Create();
+                renderContext_->Init();
+            }
+            gpuContextRef_ = renderContext_->GetSharedDrGPUContext();
+        }
+        if (gpuContextRef_ != nullptr) {
+            gpuContext_ = gpuContextRef_;
+            gpuEnvInitialized_.store(true);
+        }
     }
-    if (RSSystemProperties::IsUseVulkan()) {
-        gpuContext_->SetResourceCacheLimits(0, 0);
-    }
-    if (gpuContext_ == nullptr) {
+    if (gpuContextRef_ == nullptr) {
         EFFECT_COMM_LOG_E("EffectImageChain::CreateGPUSurface: create gpuContext failed.");
         return nullptr;
     }
-    
+    if (RSSystemProperties::IsUseVulkan()) {
+        gpuContextRef_->SetResourceCacheLimits(0, 0);
+    }
     RS_TRACE_NAME_FMT("EffectImageChain::CreateGPUSurface Imageinfo:Image_Width:%d, Imageinfo_Height:%d",
         imageInfo_.GetWidth(), imageInfo_.GetHeight());
-    return Drawing::Surface::MakeRenderTarget(gpuContext_.get(), false, imageInfo_);
+    return Drawing::Surface::MakeRenderTarget(gpuContextRef_.get(), false, imageInfo_);
 #else
     EFFECT_LOG_W("EffectImageChain::CreateGPUSurface: GPU rendering is not supported.");
     return nullptr;
 #endif
 }
 
+EffectImageChain::EffectImageChain()
+{
+    activeChainCount_.fetch_add(1, std::memory_order_relaxed);
+}
+
 EffectImageChain::~EffectImageChain()
 {
     std::lock_guard<std::mutex> lock(apiMutex_);
     image_.reset();
+#if defined(RS_ENABLE_VK) && defined(USE_M133_SKIA)
+    srcImage_.reset();
+#endif
     filters_.reset();
     canvas_.reset();
     surface_.reset();
-    if (gpuContext_ && forceReleaseGpuContext_) {
-        gpuContext_->ReleaseResourcesAndAbandonContext();
-#if (defined(RS_ENABLE_VK) || defined(RS_ENABLE_GL)) && defined(USE_M133_SKIA)
-        gpuContext_ = nullptr;
-#endif
+    if (gpuContextRef_ != nullptr) {
+        if (gpuContextRef_.use_count() > 1) {
+            ReleaseContext(gpuContextRef_);
+        }
+        gpuContextRef_ = nullptr;
     }
+    activeChainCount_.fetch_sub(1, std::memory_order_relaxed);
 }
 
-void EffectImageChain::SetForceReleaseGpuContext(bool releaseGpuContext)
+void EffectImageChain::EnsureVkContext()
 {
-    forceReleaseGpuContext_ = releaseGpuContext;
+#ifdef RS_ENABLE_VK
+    if (processVkContext_.load(std::memory_order_acquire) != nullptr) {
+        return;
+    }
+    std::lock_guard<std::mutex> lock(vkContextMutex_);
+    if (processVkContext_.load(std::memory_order_relaxed) != nullptr) {
+        return;
+    }
+    std::unique_ptr<RsVulkanContext> vkCtx = RsVulkanContext::GetForEffectKit();
+    processVkContext_.store(vkCtx.release(), std::memory_order_release);
+#endif
+}
+
+void EffectImageChain::ReleaseContext(const std::shared_ptr<Drawing::GPUContext>& ctx)
+{
+    if (ctx == nullptr) {
+        return;
+    }
+    ctx->FlushAndSubmit(true);
+    ctx->ReleaseResourcesAndAbandonContext();
+}
+
+void EffectImageChain::ReleaseVkContext(RsVulkanContext* vkCtx)
+{
+    if (vkCtx == nullptr) {
+        return;
+    }
+#ifdef RS_ENABLE_VK
+    std::unique_ptr<RsVulkanContext> vkContext(vkCtx);
+    RsVulkanContext::ReleaseContextForEffectKit(vkContext);
+#endif
+}
+
+void EffectImageChain::ReleaseCaches(int32_t* errorCode)
+{
+    auto setError = [errorCode](int32_t code) {
+        if (errorCode != nullptr) {
+            *errorCode = code;
+        }
+    };
+    if (!gpuEnvInitialized_.load()) {
+        setError(EFFECT_NO_GPU_ENVIRONMENT);
+        return;
+    }
+    if (activeChainCount_.load() > 0) {
+        setError(EFFECT_RESOURCE_RELEASE_ERROR);
+        return;
+    }
+    gpuContext_ = nullptr;
+    RsVulkanContext* vkCtx = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(vkContextMutex_);
+        vkCtx = processVkContext_.exchange(nullptr, std::memory_order_relaxed);
+    }
+    ReleaseVkContext(vkCtx);
+    setError(EFFECT_SUCCESS);
+}
+
+void EffectImageChain::ReleaseGpuContext(int32_t* errorCode)
+{
+    auto setError = [errorCode](int32_t code) {
+        if (errorCode != nullptr) {
+            *errorCode = code;
+        }
+    };
+    if (!gpuEnvInitialized_.load()) {
+        setError(EFFECT_NO_GPU_ENVIRONMENT);
+        return;
+    }
+    if (activeChainCount_.load() > 0) {
+        setError(EFFECT_RESOURCE_RELEASE_ERROR);
+        return;
+    }
+    gpuContext_ = nullptr;
+    setError(EFFECT_SUCCESS);
 }
 
 static std::shared_ptr<GEShaderFilter> GenerateExtShaderWaterGlass(
