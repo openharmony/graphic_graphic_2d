@@ -342,6 +342,7 @@ void RSPixelMapFdTrack::WriteFdMemInfoToFile(const std::string& fdMemInfoPath, c
 {
     RS_TRACE_NAME("RSPixelMapFdTrack::WriteFdMemInfoToFile");
 
+#ifdef RS_ENABLE_UNI_RENDER
     std::ofstream fdMemInfoFile(fdMemInfoPath);
     if (fdMemInfoFile.is_open()) {
         fdMemInfoFile << "\n******************************\n";
@@ -351,12 +352,14 @@ void RSPixelMapFdTrack::WriteFdMemInfoToFile(const std::string& fdMemInfoPath, c
     } else {
         ROSEN_LOGE("RSPixelMapFdTrack::WriteFdMemInfoToFile can not open fdMemInfoFile");
     }
+#endif
 }
 
 void RSPixelMapFdTrack::ReadAshmemInfoFromFile(const std::string& ashmemInfoPath, std::string& ashmemInfo, int32_t pid)
 {
     RS_TRACE_NAME("RSPixelMapFdTrack::ReadAshmemInfoFromFile");
 
+#ifdef RS_ENABLE_UNI_RENDER
     std::ifstream ashmemInfoFile;
     ashmemInfoFile.open(ashmemInfoPath);
     if (ashmemInfoFile.is_open()) {
@@ -368,12 +371,14 @@ void RSPixelMapFdTrack::ReadAshmemInfoFromFile(const std::string& ashmemInfoPath
         ashmemInfo = "Failed to open ashmemInfoFile: " + ashmemInfoPath;
         ROSEN_LOGE("RSPixelMapFdTrack::ReadAshmemInfoFromFile can not open ashmemInfoFile");
     }
+#endif
 }
 
 void RSPixelMapFdTrack::ReadDmaBufInfoFromFile(const std::string& dmaBufInfoPath, std::string& dmaBufInfo, int32_t pid)
 {
     RS_TRACE_NAME("RSPixelMapFdTrack::ReadDmaBufInfoFromFile");
 
+#ifdef RS_ENABLE_UNI_RENDER
     std::ifstream dmaBufInfoFile;
     dmaBufInfoFile.open(dmaBufInfoPath);
     if (dmaBufInfoFile.is_open()) {
@@ -385,6 +390,7 @@ void RSPixelMapFdTrack::ReadDmaBufInfoFromFile(const std::string& dmaBufInfoPath
         dmaBufInfo = "Failed to open dmaBufInfoFile: " + dmaBufInfoPath;
         ROSEN_LOGE("RSPixelMapFdTrack::ReadDmaBufInfoFromFile can not open dmaBufInfoFile");
     }
+#endif
 }
 
 void RSPixelMapFdTrack::FilterAshmemInfoByPid(std::string& out, const std::string& info, int32_t pid)
