@@ -92,9 +92,7 @@ bool MemAllocator::Resize(size_t size)
     if (size > LARGE_MALLOC) {
         HILOG_COMM_WARN("MemAllocator::Resize this time malloc large memory, size:%{public}zu", size);
     }
-    // Zero-init: bytes without an explicit writer (alignment gaps, object padding) end up in
-    // serialized CmdLists; carrying stale heap content there would leak it across IPC.
-    char* newData = new (std::nothrow) char[size]();
+    char* newData = new(std::nothrow) char[size];
     if (!newData) {
         return false;
     }
