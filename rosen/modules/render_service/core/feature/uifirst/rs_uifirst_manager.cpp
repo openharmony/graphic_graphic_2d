@@ -2140,7 +2140,10 @@ bool RSUifirstManager::GetSubNodeIsTransparent(RSSurfaceRenderNode& node, std::s
             if (childSurfaceNode == nullptr) {
                 continue;
             }
-            hasTransparent |= childSurfaceNode->IsAlphaTransparent() || (childSurfaceNode->NeedDrawBehindWindow() &&
+            const uint8_t opacity = 255;
+            // if app window, no need to check globalAlpha
+            hasTransparent |= (childSurfaceNode->IsAppWindow() && childSurfaceNode->GetAbilityBgAlpha() != opacity)
+                || childSurfaceNode->IsAlphaTransparent() || (childSurfaceNode->NeedDrawBehindWindow() &&
                 !RSSystemProperties::GetUIFirstBehindWindowFilterEnabled());
             if (hasTransparent) {
                 dfxMsg = "childSurfaceNode_NeedDrawBehindWindow: " +
