@@ -117,6 +117,7 @@ private:
         const RSRenderNode& rootNode, RectI& clipRect, Drawing::Matrix& matrix);
 
     // Solid Layer
+    bool IsSurfaceOpaque(RSSurfaceRenderNode& node);
     bool IsTargetSolidLayer(RSSurfaceRenderNode& node);
     bool IsScaleSceneHwcEnabled(RSSurfaceRenderNode& node);
     bool IsSolidLayerEnabledNoBuffer(RSSurfaceRenderNode& node, bool hasBuffer);
