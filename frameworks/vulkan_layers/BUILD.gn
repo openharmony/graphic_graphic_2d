@@ -76,6 +76,7 @@ ohos_shared_library("vulkan_swapchain_layer") {
     "hilog:libhilog",
     "vulkan-headers:vulkan_headers",
     "vulkan-loader:vulkan_loader",
+    "bounds_checking_function:libsec_shared",
   ]
 
   output_name = "vulkan_swapchain"
