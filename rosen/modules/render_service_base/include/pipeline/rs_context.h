@@ -158,6 +158,10 @@ public:
     void AddActiveNode(const std::shared_ptr<RSRenderNode>& node);
     bool HasActiveNode(const std::shared_ptr<RSRenderNode>& node);
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> GetActiveNodes();
+    // Record the DisplayNode that owns a dirty node, for skipping displays without dirty children.
+    void AddDirtyDisplayNode(NodeId displayNodeId);
+    // Take and clear the dirty DisplayNode set of the current frame.
+    std::unordered_set<NodeId> GetAndClearDirtyDisplayNodes();
 
     void AddPendingSyncNode(const std::shared_ptr<RSRenderNode> node);
 
@@ -328,6 +332,8 @@ private:
     // Collect all active Nodes sorted by root node id in this frame.
     std::unordered_map<NodeId, std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>>> activeNodesInRoot_;
     std::mutex activeNodesInRootMutex_;
+    // DisplayNodes that have dirty children in the current frame, guarded by activeNodesInRootMutex_.
+    std::unordered_set<NodeId> dirtyDisplayNodes_;
 
     std::unordered_map<NodeId, std::weak_ptr<RSRenderNode>> pendingSyncNodes_;
     std::vector<SubSurfaceCntUpdateInfo> subSurfaceCntUpdateInfo_;

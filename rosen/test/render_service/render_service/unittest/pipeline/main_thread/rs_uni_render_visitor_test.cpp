@@ -12134,6 +12134,393 @@ HWTEST_F(RSUniRenderVisitorTest, CollectVirtualScreenNodeId_AllConditionsTrue, T
     rsUniRenderVisitor->CollectVirtualScreenNodeId(*screenNode);
 }
 
+/**
+ * @tc.name: GetCurScreenPowerStatus001
+ * @tc.desc: Test GetCurScreenPowerStatus without current screen node and with a set power status
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, GetCurScreenPowerStatus001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // no current screen node: status is invalid, the screen is not treated as powered off
+    EXPECT_EQ(rsUniRenderVisitor->GetCurScreenPowerStatus(), ScreenPowerStatus::INVALID_POWER_STATUS);
+    EXPECT_FALSE(rsUniRenderVisitor->IsCurScreenPowerOff());
+
+    constexpr NodeId screenNodeId = 1;
+    constexpr ScreenId screenId = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId, rsContext);
+    ASSERT_NE(screenNode, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+
+    // default status of a fresh screen property is invalid
+    EXPECT_EQ(rsUniRenderVisitor->GetCurScreenPowerStatus(), ScreenPowerStatus::INVALID_POWER_STATUS);
+    EXPECT_FALSE(rsUniRenderVisitor->IsCurScreenPowerOff());
+
+    screenNode->screenProperty_.Set<ScreenPropertyType::POWER_STATUS>(ScreenPowerStatus::POWER_STATUS_ON);
+    EXPECT_EQ(rsUniRenderVisitor->GetCurScreenPowerStatus(), ScreenPowerStatus::POWER_STATUS_ON);
+    EXPECT_FALSE(rsUniRenderVisitor->IsCurScreenPowerOff());
+
+    screenNode->screenProperty_.Set<ScreenPropertyType::POWER_STATUS>(ScreenPowerStatus::POWER_STATUS_OFF);
+    EXPECT_EQ(rsUniRenderVisitor->GetCurScreenPowerStatus(), ScreenPowerStatus::POWER_STATUS_OFF);
+    EXPECT_TRUE(rsUniRenderVisitor->IsCurScreenPowerOff());
+}
+
+/**
+ * @tc.name: IsCurScreenPowerOff001
+ * @tc.desc: Test IsCurScreenPowerOff for every power status that counts as powered off
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsCurScreenPowerOff001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    constexpr NodeId screenNodeId = 1;
+    constexpr ScreenId screenId = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId, rsContext);
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+
+    const std::vector<ScreenPowerStatus> offStatuses = {
+        ScreenPowerStatus::POWER_STATUS_OFF,
+        ScreenPowerStatus::POWER_STATUS_SUSPEND,
+        ScreenPowerStatus::POWER_STATUS_OFF_ADVANCED,
+        ScreenPowerStatus::POWER_STATUS_OFFING,
+    };
+    for (auto powerStatus : offStatuses) {
+        screenNode->screenProperty_.Set<ScreenPropertyType::POWER_STATUS>(powerStatus);
+        EXPECT_TRUE(rsUniRenderVisitor->IsCurScreenPowerOff());
+    }
+    const std::vector<ScreenPowerStatus> onStatuses = {
+        ScreenPowerStatus::POWER_STATUS_ON,
+        ScreenPowerStatus::POWER_STATUS_ON_ADVANCED,
+        ScreenPowerStatus::POWER_STATUS_STANDBY,
+        ScreenPowerStatus::POWER_STATUS_DOZE,
+    };
+    for (auto powerStatus : onStatuses) {
+        screenNode->screenProperty_.Set<ScreenPropertyType::POWER_STATUS>(powerStatus);
+        EXPECT_FALSE(rsUniRenderVisitor->IsCurScreenPowerOff());
+    }
+}
+
+/**
+ * @tc.name: IsHeteroProjectionScenario001
+ * @tc.desc: Test IsHeteroProjectionScenario matching rules of the virtual projection targets
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, IsHeteroProjectionScenario001, TestSize.Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // no current screen node
+    EXPECT_FALSE(rsUniRenderVisitor->IsHeteroProjectionScenario());
+
+    constexpr NodeId screenNodeId = 1;
+    constexpr ScreenId screenId = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId, rsContext);
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+
+    // current screen is virtual: not the hetero main physical screen
+    screenNode->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
+    EXPECT_FALSE(rsUniRenderVisitor->IsHeteroProjectionScenario());
+    screenNode->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(false);
+
+    // no other screens at all
+    EXPECT_FALSE(rsUniRenderVisitor->IsHeteroProjectionScenario());
+
+    // virtual screen without children does not provide independent content
+    constexpr NodeId emptyVirtualScreenNodeId = 902002;
+    constexpr ScreenId emptyVirtualScreenId = 2;
+    auto emptyVirtualScreen = std::make_shared<RSScreenRenderNode>(emptyVirtualScreenNodeId,
+        emptyVirtualScreenId, rsContext);
+    emptyVirtualScreen->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(emptyVirtualScreen));
+    EXPECT_FALSE(rsUniRenderVisitor->IsHeteroProjectionScenario());
+    nodeMap.UnregisterRenderNode(emptyVirtualScreenNodeId);
+
+    // a virtual screen mirroring the current screen blocks the skip
+    RSDisplayNodeConfig displayConfig;
+    constexpr NodeId mirrorVirtualScreenNodeId = 902003;
+    constexpr ScreenId mirrorVirtualScreenId = 3;
+    auto mirrorVirtualScreen = std::make_shared<RSScreenRenderNode>(mirrorVirtualScreenNodeId,
+        mirrorVirtualScreenId, rsContext);
+    mirrorVirtualScreen->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
+    mirrorVirtualScreen->SetIsMirrorScreen(true);
+    mirrorVirtualScreen->SetMirrorSource(screenNode);
+    constexpr NodeId mirrorDisplayNodeId = 101;
+    auto mirrorDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(mirrorDisplayNodeId, displayConfig);
+    mirrorDisplayNode->SetDisplayMode(DisplayMode::MIRROR);
+    mirrorVirtualScreen->AddChild(mirrorDisplayNode);
+    mirrorVirtualScreen->GenerateFullChildrenList();
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(mirrorVirtualScreen));
+    EXPECT_FALSE(rsUniRenderVisitor->IsHeteroProjectionScenario());
+    nodeMap.UnregisterRenderNode(mirrorVirtualScreenNodeId);
+
+    // a virtual screen with only mirror-mode content is not independent content
+    constexpr NodeId mirrorOnlyScreenNodeId = 902004;
+    constexpr ScreenId mirrorOnlyScreenId = 4;
+    auto mirrorOnlyScreen = std::make_shared<RSScreenRenderNode>(mirrorOnlyScreenNodeId,
+        mirrorOnlyScreenId, rsContext);
+    mirrorOnlyScreen->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
+    constexpr NodeId mirrorOnlyDisplayNodeId = 102;
+    auto mirrorOnlyDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(mirrorOnlyDisplayNodeId,
+        displayConfig);
+    mirrorOnlyDisplayNode->SetDisplayMode(DisplayMode::MIRROR);
+    mirrorOnlyScreen->AddChild(mirrorOnlyDisplayNode);
+    mirrorOnlyScreen->GenerateFullChildrenList();
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(mirrorOnlyScreen));
+    EXPECT_FALSE(rsUniRenderVisitor->IsHeteroProjectionScenario());
+    nodeMap.UnregisterRenderNode(mirrorOnlyScreenNodeId);
+
+    // a virtual screen with an expand display node is independent content
+    constexpr NodeId expandScreenNodeId = 902005;
+    constexpr ScreenId expandScreenId = 5;
+    auto expandScreen = std::make_shared<RSScreenRenderNode>(expandScreenNodeId, expandScreenId, rsContext);
+    expandScreen->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
+    constexpr NodeId expandDisplayNodeId = 103;
+    auto expandDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(expandDisplayNodeId, displayConfig);
+    expandDisplayNode->SetDisplayMode(DisplayMode::EXPAND);
+    expandScreen->AddChild(expandDisplayNode);
+    expandScreen->GenerateFullChildrenList();
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(expandScreen));
+    EXPECT_TRUE(rsUniRenderVisitor->IsHeteroProjectionScenario());
+    nodeMap.UnregisterRenderNode(expandScreenNodeId);
+}
+
+/**
+ * @tc.name: ShouldSkipDisplayNode001
+ * @tc.desc: Test ShouldSkipDisplayNode keep branches that prevent skipping a display node
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, ShouldSkipDisplayNode001, TestSize.Level2)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSDisplayNodeConfig displayConfig;
+    constexpr NodeId displayNodeId = 100;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayConfig);
+    displayNode->SetDisplayMode(DisplayMode::EXPAND);
+    constexpr NodeId plainNodeId = 200;
+    auto plainNode = std::make_shared<RSRenderNode>(plainNodeId);
+
+    // non display node is never skipped
+    EXPECT_FALSE(rsUniRenderVisitor->ShouldSkipDisplayNode(*plainNode));
+
+    // feature disabled
+    rsUniRenderVisitor->heteroProjectionScreenSkipEnabled_ = false;
+    EXPECT_FALSE(rsUniRenderVisitor->ShouldSkipDisplayNode(*displayNode));
+
+    // no current screen node
+    rsUniRenderVisitor->heteroProjectionScreenSkipEnabled_ = true;
+    EXPECT_FALSE(rsUniRenderVisitor->ShouldSkipDisplayNode(*displayNode));
+
+    // prepare a powered off physical screen as the current screen
+    constexpr NodeId screenNodeId = 1;
+    constexpr ScreenId screenId = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId, rsContext);
+    screenNode->screenProperty_.Set<ScreenPropertyType::POWER_STATUS>(ScreenPowerStatus::POWER_STATUS_OFF);
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+
+    // force all display dirty
+    rsUniRenderVisitor->SetForceAllDisplayDirty(true);
+    EXPECT_FALSE(rsUniRenderVisitor->ShouldSkipDisplayNode(*displayNode));
+    rsUniRenderVisitor->SetForceAllDisplayDirty(false);
+
+    // first frame after rotation
+    rsUniRenderVisitor->isFirstFrameAfterScreenRotation_ = true;
+    EXPECT_FALSE(rsUniRenderVisitor->ShouldSkipDisplayNode(*displayNode));
+    rsUniRenderVisitor->isFirstFrameAfterScreenRotation_ = false;
+
+    // no dirty display info
+    EXPECT_FALSE(rsUniRenderVisitor->ShouldSkipDisplayNode(*displayNode));
+
+    // screen not powered off
+    rsUniRenderVisitor->SetDirtyDisplayNodes({displayNodeId});
+    screenNode->screenProperty_.Set<ScreenPropertyType::POWER_STATUS>(ScreenPowerStatus::POWER_STATUS_ON);
+    EXPECT_FALSE(rsUniRenderVisitor->ShouldSkipDisplayNode(*displayNode));
+
+    // powered off, but no virtual screen with independent content
+    screenNode->screenProperty_.Set<ScreenPropertyType::POWER_STATUS>(ScreenPowerStatus::POWER_STATUS_OFF);
+    EXPECT_FALSE(rsUniRenderVisitor->ShouldSkipDisplayNode(*displayNode));
+
+    // current screen is virtual: not the hetero main physical screen
+    screenNode->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
+    EXPECT_FALSE(rsUniRenderVisitor->ShouldSkipDisplayNode(*displayNode));
+}
+
+/**
+ * @tc.name: ShouldSkipDisplayNode002
+ * @tc.desc: Test ShouldSkipDisplayNode skips the independent display node in the hetero projection scenario
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, ShouldSkipDisplayNode002, TestSize.Level2)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    auto rsContext = std::make_shared<RSContext>();
+
+    // physical main screen, powered off
+    constexpr NodeId screenNodeId = 1;
+    constexpr ScreenId physicalScreenId = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, physicalScreenId, rsContext);
+    screenNode->screenProperty_.Set<ScreenPropertyType::POWER_STATUS>(ScreenPowerStatus::POWER_STATUS_OFF);
+
+    // virtual screen carrying an independent expand display node
+    constexpr NodeId virtualScreenNodeId = 902006;
+    constexpr ScreenId virtualScreenId = 6;
+    auto virtualScreenNode = std::make_shared<RSScreenRenderNode>(virtualScreenNodeId, virtualScreenId,
+        rsContext);
+    virtualScreenNode->screenProperty_.Set<ScreenPropertyType::IS_VIRTUAL>(true);
+    RSDisplayNodeConfig displayConfig;
+    constexpr NodeId expandDisplayNodeId = 104;
+    auto expandDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(expandDisplayNodeId, displayConfig);
+    expandDisplayNode->SetDisplayMode(DisplayMode::EXPAND);
+    virtualScreenNode->AddChild(expandDisplayNode);
+    virtualScreenNode->GenerateFullChildrenList();
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(virtualScreenNode));
+
+    constexpr NodeId mirrorDisplayNodeId = 105;
+    auto mirrorDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(mirrorDisplayNodeId, displayConfig);
+    mirrorDisplayNode->SetDisplayMode(DisplayMode::MIRROR);
+
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+    rsUniRenderVisitor->heteroProjectionScreenSkipEnabled_ = true;
+    rsUniRenderVisitor->SetDirtyDisplayNodes({expandDisplayNodeId});
+
+    EXPECT_TRUE(rsUniRenderVisitor->IsHeteroProjectionScenario());
+    EXPECT_TRUE(rsUniRenderVisitor->IsCurScreenPowerOff());
+
+    // the independent display node is skipped, the mirror display node is kept
+    EXPECT_TRUE(rsUniRenderVisitor->ShouldSkipDisplayNode(*expandDisplayNode));
+    EXPECT_FALSE(rsUniRenderVisitor->ShouldSkipDisplayNode(*mirrorDisplayNode));
+
+    // the checked dirty display node is matched while deciding
+    EXPECT_EQ(rsUniRenderVisitor->matchedDirtyDisplayNodes_.count(expandDisplayNodeId), 1u);
+
+    // skip state logging records the skipped node of this frame
+    rsUniRenderVisitor->LogDisplaySkipStateChange(*expandDisplayNode, true);
+    EXPECT_EQ(rsUniRenderVisitor->GetSkippedDisplayNodes().count(expandDisplayNodeId), 1u);
+
+    // keep reasons for prepared display nodes
+    EXPECT_STREQ(rsUniRenderVisitor->GetDisplayKeepReason(*mirrorDisplayNode), "mirror display");
+    EXPECT_STREQ(rsUniRenderVisitor->GetDisplayKeepReason(*expandDisplayNode), "unknown");
+    rsUniRenderVisitor->hasChildCrossNodeLastFrame_ = true;
+    EXPECT_STREQ(rsUniRenderVisitor->GetDisplayKeepReason(*expandDisplayNode), "cross node of last frame");
+
+    // resume logging only reports nodes skipped in the previous frame
+    constexpr NodeId unknownDisplayNodeId = 106;
+    auto unknownDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(unknownDisplayNodeId, displayConfig);
+    rsUniRenderVisitor->LogDisplaySkipStateChange(*unknownDisplayNode, false);
+    rsUniRenderVisitor->SetSkippedDisplayNodesLastFrame({mirrorDisplayNodeId});
+    rsUniRenderVisitor->LogDisplaySkipStateChange(*mirrorDisplayNode, false);
+
+    // matched dirty displays are not reported as unmatched
+    rsUniRenderVisitor->CheckUnmatchedDirtyDisplays();
+
+    nodeMap.UnregisterRenderNode(virtualScreenNodeId);
+}
+
+/**
+ * @tc.name: GetDisplayKeepReason001
+ * @tc.desc: Test GetDisplayKeepReason for the keep branches decided before the projection checks
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, GetDisplayKeepReason001, TestSize.Level1)
+{
+    auto rsContext = std::make_shared<RSContext>();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    RSDisplayNodeConfig displayConfig;
+    constexpr NodeId displayNodeId = 100;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(displayNodeId, displayConfig);
+
+    // feature disabled
+    rsUniRenderVisitor->heteroProjectionScreenSkipEnabled_ = false;
+    EXPECT_STREQ(rsUniRenderVisitor->GetDisplayKeepReason(*displayNode), "feature disabled");
+
+    // forced frame
+    rsUniRenderVisitor->heteroProjectionScreenSkipEnabled_ = true;
+    rsUniRenderVisitor->SetForceAllDisplayDirty(true);
+    EXPECT_STREQ(rsUniRenderVisitor->GetDisplayKeepReason(*displayNode), "force all display dirty");
+    rsUniRenderVisitor->SetForceAllDisplayDirty(false);
+
+    // no dirty display info
+    EXPECT_STREQ(rsUniRenderVisitor->GetDisplayKeepReason(*displayNode), "no dirty display info");
+
+    // first frame after rotation
+    rsUniRenderVisitor->SetDirtyDisplayNodes({displayNodeId});
+    rsUniRenderVisitor->isFirstFrameAfterScreenRotation_ = true;
+    EXPECT_STREQ(rsUniRenderVisitor->GetDisplayKeepReason(*displayNode), "first frame after rotation");
+    rsUniRenderVisitor->isFirstFrameAfterScreenRotation_ = false;
+
+    // screen not powered off
+    constexpr NodeId screenNodeId = 1;
+    constexpr ScreenId screenId = 1;
+    auto screenNode = std::make_shared<RSScreenRenderNode>(screenNodeId, screenId, rsContext);
+    rsUniRenderVisitor->curScreenNode_ = screenNode;
+    screenNode->screenProperty_.Set<ScreenPropertyType::POWER_STATUS>(ScreenPowerStatus::POWER_STATUS_ON);
+    EXPECT_STREQ(rsUniRenderVisitor->GetDisplayKeepReason(*displayNode), "screen not powered off");
+
+    // powered off, but no virtual screen with independent content
+    screenNode->screenProperty_.Set<ScreenPropertyType::POWER_STATUS>(ScreenPowerStatus::POWER_STATUS_OFF);
+    EXPECT_STREQ(rsUniRenderVisitor->GetDisplayKeepReason(*displayNode), "not hetero projection");
+}
+
+/**
+ * @tc.name: CheckUnmatchedDirtyDisplays001
+ * @tc.desc: Test CheckUnmatchedDirtyDisplays for early returns, unmatched and matched dirty displays
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSUniRenderVisitorTest, CheckUnmatchedDirtyDisplays001, TestSize.Level1)
+{
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // no dirty display info: nothing to check
+    rsUniRenderVisitor->CheckUnmatchedDirtyDisplays();
+
+    // forced frame: nothing to check
+    rsUniRenderVisitor->SetForceAllDisplayDirty(true);
+    rsUniRenderVisitor->SetDirtyDisplayNodes({902100});
+    rsUniRenderVisitor->CheckUnmatchedDirtyDisplays();
+    rsUniRenderVisitor->SetForceAllDisplayDirty(false);
+
+    // unmatched display id that is not on the node map: no crash
+    rsUniRenderVisitor->CheckUnmatchedDirtyDisplays();
+
+    // matched dirty display id: not reported
+    constexpr NodeId matchedDisplayNodeId = 902101;
+    RSDisplayNodeConfig displayConfig;
+    rsUniRenderVisitor->SetDirtyDisplayNodes({matchedDisplayNodeId});
+    rsUniRenderVisitor->matchedDirtyDisplayNodes_.insert(matchedDisplayNodeId);
+    rsUniRenderVisitor->CheckUnmatchedDirtyDisplays();
+
+    // unmatched on-tree logical display node: reported via log, no crash
+    constexpr NodeId onTreeDisplayNodeId = 902102;
+    auto onTreeDisplayNode = std::make_shared<RSLogicalDisplayRenderNode>(onTreeDisplayNodeId, displayConfig);
+    onTreeDisplayNode->isOnTheTree_ = true;
+    ASSERT_TRUE(nodeMap.RegisterRenderNode(onTreeDisplayNode));
+    rsUniRenderVisitor->SetDirtyDisplayNodes({onTreeDisplayNodeId});
+    rsUniRenderVisitor->CheckUnmatchedDirtyDisplays();
+    nodeMap.UnregisterRenderNode(onTreeDisplayNodeId);
+}
+
 /*
  * @tc.name: PrevalidateHwcNode004
  * @tc.desc: Test PrevalidateHwcNode with non-empty prevalidLayers (prevalidLayers.empty() = false)

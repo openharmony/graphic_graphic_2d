@@ -179,6 +179,11 @@ bool RSSystemProperties::GetVirtualExpandScreenSkipEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetHeteroProjectionScreenSkipEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return {};

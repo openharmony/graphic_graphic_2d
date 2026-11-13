@@ -266,6 +266,18 @@ HWTEST_F(RSSystemPropertiesTest, GetVirtualExpandScreenSkipEnabled, TestSize.Lev
 }
 
 /**
+ * @tc.name: GetHeteroProjectionScreenSkipEnabled001
+ * @tc.desc: GetHeteroProjectionScreenSkipEnabled follows rosen.uni.heteroprojectionscreenskip.enabled
+ * @tc.type:FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSSystemPropertiesTest, GetHeteroProjectionScreenSkipEnabled001, TestSize.Level1)
+{
+    auto type = system::GetParameter("rosen.uni.heteroprojectionscreenskip.enabled", "1");
+    ASSERT_EQ(std::to_string(RSSystemProperties::GetHeteroProjectionScreenSkipEnabled()), type);
+}
+
+/**
  * @tc.name: GetStencilPixelOcclusionCullingEnabled
  * @tc.desc: GetStencilPixelOcclusionCullingEnabled Test
  * @tc.type:FUNC
@@ -1263,5 +1275,7 @@ HWTEST_F(RSSystemPropertiesTest, GetSplitTransactionMaxTotalTimeMs001, TestSize.
     auto value = RSSystemProperties::GetSplitTransactionMaxTotalTimeMs();
     EXPECT_GT(value, 0.0f);
 }
+
+
 } // namespace Rosen
 } // namespace OHOS

@@ -435,4 +435,53 @@ HWTEST_F(RSContextTest, GetSyncCaptureHelperTest001, TestSize.Level1)
     EXPECT_EQ(cmdFlag.first, true);
 }
 
+/**
+ * @tc.name: AddDirtyDisplayNodeTest001
+ * @tc.desc: test AddDirtyDisplayNode ignores invalid display id and keeps valid ids until cleared.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSContextTest, AddDirtyDisplayNodeTest001, TestSize.Level1)
+{
+    RSContext rsContext;
+
+    // invalid display id must be ignored
+    rsContext.AddDirtyDisplayNode(INVALID_NODEID);
+    auto dirtyNodes = rsContext.GetAndClearDirtyDisplayNodes();
+    EXPECT_TRUE(dirtyNodes.empty());
+
+    // valid display ids are recorded and de-duplicated
+    constexpr NodeId displayId1{100};
+    constexpr NodeId displayId2{200};
+    rsContext.AddDirtyDisplayNode(displayId1);
+    rsContext.AddDirtyDisplayNode(displayId2);
+    rsContext.AddDirtyDisplayNode(displayId1);
+    dirtyNodes = rsContext.GetAndClearDirtyDisplayNodes();
+    constexpr size_t expectedSize{2};
+    EXPECT_EQ(dirtyNodes.size(), expectedSize);
+    EXPECT_EQ(dirtyNodes.count(displayId1), 1);
+    EXPECT_EQ(dirtyNodes.count(displayId2), 1);
+}
+
+/**
+ * @tc.name: GetAndClearDirtyDisplayNodesTest001
+ * @tc.desc: test GetAndClearDirtyDisplayNodes clears the recorded display ids after each call.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSContextTest, GetAndClearDirtyDisplayNodesTest001, TestSize.Level1)
+{
+    RSContext rsContext;
+    constexpr NodeId displayId{300};
+    rsContext.AddDirtyDisplayNode(displayId);
+
+    auto first = rsContext.GetAndClearDirtyDisplayNodes();
+    EXPECT_EQ(first.size(), 1);
+    EXPECT_EQ(first.count(displayId), 1);
+
+    // the set must be empty after being taken
+    auto second = rsContext.GetAndClearDirtyDisplayNodes();
+    EXPECT_TRUE(second.empty());
+}
+
 } // namespace OHOS::Rosen

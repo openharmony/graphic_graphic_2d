@@ -105,6 +105,32 @@ public:
         isDirty_ = isDirty;
     }
 
+    void SetDirtyDisplayNodes(std::unordered_set<NodeId> dirtyDisplayNodes)
+    {
+        dirtyDisplayNodes_ = std::move(dirtyDisplayNodes);
+        hasDirtyDisplayNodes_ = true;
+    }
+
+    void SetForceAllDisplayDirty(bool forceAllDisplayDirty)
+    {
+        forceAllDisplayDirty_ = forceAllDisplayDirty;
+    }
+
+    // DisplayNodes skipped in the previous frame, used to log skip/recover transitions.
+    void SetSkippedDisplayNodesLastFrame(std::unordered_set<NodeId> skippedDisplayNodes)
+    {
+        skippedDisplayNodesLastFrame_ = std::move(skippedDisplayNodes);
+    }
+
+    // DisplayNodes skipped in this frame.
+    const std::unordered_set<NodeId>& GetSkippedDisplayNodes() const
+    {
+        return skippedDisplayNodes_;
+    }
+
+    // Report dirty DisplayNodes that were recorded but never traversed in this frame.
+    void CheckUnmatchedDirtyDisplays();
+
     void SetFocusedNodeId(uint64_t nodeId, uint64_t leashId)
     {
         currentFocusedNodeId_ = nodeId;
@@ -423,6 +449,24 @@ void ProcessGpuOfflineForTopLayer(
 
     void CollectVirtualScreenNodeId(RSScreenRenderNode& node);
 
+    // Whether a DisplayNode can skip its QuickPrepare because its screen is powered off.
+    bool ShouldSkipDisplayNode(const RSRenderNode& child);
+    // Power status of the screen being prepared, INVALID when no screen is being prepared.
+    ScreenPowerStatus GetCurScreenPowerStatus() const;
+    // Whether the screen being prepared is powered off, the only case where a display may be skipped.
+    bool IsCurScreenPowerOff() const;
+    // Whether this is the heterogeneous projection scenario: the main physical screen plus a virtual
+    // EXPAND/INDEPENDENT screen, and the main screen is not the mirror source of any other screen.
+    bool IsHeteroProjectionScenario() const;
+    // Collect the projection targets of the current screen: whether another screen mirrors it, and
+    // whether a virtual screen with independent content exists (plus its mode/composite type for DFX).
+    void TraverseProjectionTargetScreens(bool& isMirrorSourceOfOther, bool& hasIndependentVirtualScreen,
+        DisplayMode& virtualDisplayMode, CompositeType& virtualCompositeType) const;
+    // Log the infrequent transition of a DisplayNode entering or leaving the skipped state.
+    void LogDisplaySkipStateChange(const RSRenderNode& child, bool skip);
+    // Human-readable reason why a DisplayNode is prepared instead of being skipped.
+    const char* GetDisplayKeepReason(const RSRenderNode& child) const;
+
     friend class RSUniHwcVisitor;
     std::unique_ptr<RSUniHwcVisitor> hwcVisitor_;
 
@@ -432,6 +476,19 @@ void ProcessGpuOfflineForTopLayer(
     bool doAnimate_ = false;
     bool isDirty_ = false;
     bool dirtyFlag_ { false };
+    // DisplayNodes that have dirty children in the current frame.
+    std::unordered_set<NodeId> dirtyDisplayNodes_;
+    bool hasDirtyDisplayNodes_ = false;
+    // When true, all DisplayNodes are prepared regardless of their dirty state.
+    bool forceAllDisplayDirty_ = false;
+    // ScreenNode's cross-node flag of the previous frame. It is reset at the beginning of each
+    // screen prepare, so it is captured before that reset to guard the skip of this frame.
+    bool hasChildCrossNodeLastFrame_ = false;
+    // DisplayNodes skipped in the previous frame and in this frame, used to log transitions.
+    std::unordered_set<NodeId> skippedDisplayNodesLastFrame_;
+    std::unordered_set<NodeId> skippedDisplayNodes_;
+    // Dirty DisplayNode ids that matched a traversed DisplayNode in this frame.
+    std::unordered_set<NodeId> matchedDirtyDisplayNodes_;
     bool isPartialRenderEnabled_ = false;
     bool isAdvancedDirtyRegionEnabled_ = false;
     bool isRegionDebugEnabled_ = false;
@@ -532,6 +589,7 @@ void ProcessGpuOfflineForTopLayer(
     bool isVirtualDirtyEnabled_ = false;
     bool isVirtualDirtyDfxEnabled_ = false;
     bool isVirtualExpandScreenDirtyEnabled_ = false;
+    bool heteroProjectionScreenSkipEnabled_ = false;
     bool needRequestNextVsync_ = true;
     bool isTargetUIFirstDfxEnabled_ = false;
 
