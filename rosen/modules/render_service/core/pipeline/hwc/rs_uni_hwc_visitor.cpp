@@ -29,7 +29,7 @@
 
 #undef LOG_TAG
 #define LOG_TAG "RSUniHwcVisitor"
-
+//
 namespace OHOS {
 namespace Rosen {
 namespace {
