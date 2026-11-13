@@ -15,7 +15,7 @@
 
 #include "rs_render_pipeline_agent.h"
 #include "common/rs_background_thread.h"
-#include "common/rs_background_thread.h"
+#include "common/rs_common_hook.h"
 #include "common/rs_special_layer_manager.h"
 #include "command/rs_command_verify_helper.h"
 #include "command/rs_delegate_composite_command.h"
