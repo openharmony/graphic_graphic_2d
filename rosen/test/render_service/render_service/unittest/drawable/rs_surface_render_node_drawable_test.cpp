@@ -1991,6 +1991,28 @@ HWTEST_F(RSSurfaceRenderNodeDrawableTest, GetGravityMatrixTest, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PreprocessUnobscuredUECMatrixMissingTest
+ * @tc.desc: Test PreprocessUnobscuredUEC returns directly when the matrix is missing
+ * @tc.type: FUNC
+ * @tc.require: issue26790
+ */
+HWTEST_F(RSSurfaceRenderNodeDrawableTest, PreprocessUnobscuredUECMatrixMissingTest, TestSize.Level1)
+{
+    ASSERT_NE(surfaceDrawable_, nullptr);
+    auto surfaceParams = static_cast<RSSurfaceRenderParams*>(surfaceDrawable_->GetRenderParams().get());
+    ASSERT_NE(surfaceParams, nullptr);
+    surfaceParams->IsUnobscuredUIExtension_ = true;
+
+    Drawing::Matrix matrix;
+    ASSERT_FALSE(surfaceDrawable_->TryGetUnobscuredUECMatrix(surfaceDrawable_->GetId(), matrix));
+    constexpr float testTranslateX = 5.0f;
+    matrix.Set(Drawing::Matrix::TRANS_X, testTranslateX);
+    canvas_->SetMatrix(matrix);
+    surfaceDrawable_->PreprocessUnobscuredUEC(*canvas_);
+    EXPECT_TRUE(canvas_->GetTotalMatrix().IsIdentity());
+}
+
+/**
  * @tc.name: IsVisibleRegionEqualOnPhysicalAndVirtualTest
  * @tc.desc: test if visible region and virtual visible region equals.
  * @tc.type: FUNC
