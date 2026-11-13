@@ -29,7 +29,6 @@ class RSMultiDisplayFeatureParamParse {
 public:
     RSMultiDisplayFeatureParamParse() = delete;
     ~RSMultiDisplayFeatureParamParse() = delete;
-    static SplitScreenFeature ParseSplitScreenFeature(xmlNode &featureNode);
     static InterpolationFeature ParseInterpolationFeature(xmlNode &featureNode);
     static CrossDomainFeature ParseCrossDomainFeature(xmlNode &featureNode);
 private:

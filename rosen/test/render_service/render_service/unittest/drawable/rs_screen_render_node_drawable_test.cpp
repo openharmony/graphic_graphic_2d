@@ -42,6 +42,10 @@
 #include "pipeline/rs_test_util.h"
 #include "screen_manager/rs_screen.h"
 #include "drawable/rs_render_node_drawable_adapter.h"
+#ifdef RS_MULTI_DISPLAY_FEATURES
+#include <fstream>
+#include "rs_multi_display_feature_param.h"
+#endif
 
 using namespace testing;
 using namespace testing::ext;
@@ -2580,4 +2584,53 @@ HWTEST_F(RSScreenRenderNodeDrawableTest, SkipFrame_ByActiveRefreshRate_ScreenLay
     bool result = screenDrawable_->SkipFrame(refreshRate, screenProperty);
     EXPECT_TRUE(result);
 }
+
+#ifdef RS_MULTI_DISPLAY_FEATURES
+namespace {
+constexpr ScreenId INTERP_CONFIGED_SCREEN_ID = 999;
+const std::string INTERP_UT_XML_PATH = "rs_multi_display_screen_drawable_ut_config.xml";
+
+bool WriteAndLoadInterpUtConfig(const bool interpSwitch)
+{
+    std::string interpSwitchStr = interpSwitch ? "true" : "false";
+    std::string content = "<?xml version=\"1.0\" encoding=\"utf-8\"?><Configs>"
+        "<multi_display_features>"
+        "<interp_screen_feature name=\"switch\" value=\"" + interpSwitchStr + "\">"
+        "<params displayId=\"999\" realWidth=\"200\" realHeight=\"120\" paramA=\"2\" paramN=\"3\"/>"
+        "</interp_screen_feature>"
+        "</multi_display_features></Configs>";
+    std::ofstream file(INTERP_UT_XML_PATH);
+    if (!file.is_open()) {
+        return false;
+    }
+    file << content;
+    file.close();
+    return RSMultiDisplayFeatureParam::Load(INTERP_UT_XML_PATH);
+}
+} // namespace
+
+/**
+ * @tc.name: RequestFrameWithInterpolationEnabled
+ * @tc.desc: If interpolation is enabled but unconfigured on current screen,
+ *           RequestFrame short-circuits and behaves as disabled
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSScreenRenderNodeDrawableTest, RequestFrameWithInterpolationEnabled, TestSize.Level1)
+{
+    ASSERT_NE(renderNode_, nullptr);
+    ASSERT_NE(screenDrawable_, nullptr);
+    ASSERT_NE(screenDrawable_->renderParams_, nullptr);
+
+    ASSERT_TRUE(WriteAndLoadInterpUtConfig(true));
+    auto params = static_cast<RSScreenRenderParams*>(screenDrawable_->GetRenderParams().get());
+    ASSERT_NE(params, nullptr);
+    auto processor = RSProcessorFactory::CreateProcessor(params->GetCompositeType(), 0);
+    auto result = screenDrawable_->RequestFrame(*params, processor);
+    ASSERT_EQ(result, nullptr);
+
+    ASSERT_TRUE(WriteAndLoadInterpUtConfig(false));
+    CleanUpUniRenderEngine();
+}
+#endif
 } // namespace OHOS::Rosen

@@ -63,7 +63,6 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestLoad, TestSize.Level1)
  */
 HWTEST_F(RSMultiDisplayFeatureParamTest, TestParse, TestSize.Level1)
 {
-    RSMultiDisplayFeatureParam::splitFeature_ = {};
     RSMultiDisplayFeatureParam::interpolationFeature_ = {};
     RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
 
@@ -77,9 +76,6 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestParse, TestSize.Level1)
         R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <Configs>
             <multi_display_features>
-                <split_screen_feature name="switch" value="true">
-                    <params mainDisplayId="0" subDisplayId="1"/>
-                </split_screen_feature>
                 <interp_screen_feature name="switch" value="true">
                     <params displayId="1" realWidth="1280" realHeight="720" paramA="2" paramN="3"/>
                 </interp_screen_feature>
@@ -93,17 +89,8 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestParse, TestSize.Level1)
     EXPECT_NE(xmlDocPtr, nullptr);
     EXPECT_EQ(RSMultiDisplayFeatureParam::Parse(*xmlDocPtr), true);
 
-    EXPECT_EQ(RSMultiDisplayFeatureParam::IsSplitScreenFeatureEnable(), true);
     EXPECT_EQ(RSMultiDisplayFeatureParam::IsInterpolationFeatureEnable(), true);
     EXPECT_EQ(RSMultiDisplayFeatureParam::IsCrossDomainFeatureEnable(), true);
-
-    auto splitParams1 = RSMultiDisplayFeatureParam::GetSplitScreenParams(0);
-    EXPECT_EQ(splitParams1.has_value(), true);
-    EXPECT_EQ(splitParams1.value().mainDisplayId, 0);
-    EXPECT_EQ(splitParams1.value().subDisplayId, 1);
-
-    auto splitParams2 = RSMultiDisplayFeatureParam::GetSplitScreenParams(1);
-    EXPECT_EQ(splitParams2.has_value(), false);
 
     auto interpolationParams1 = RSMultiDisplayFeatureParam::GetInterpolationParams(0);
     EXPECT_EQ(interpolationParams1.has_value(), false);
@@ -121,77 +108,6 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestParse, TestSize.Level1)
 }
 
 /**
- * @tc.name: TestParseNoMultiDisplayFeatures
- * @tc.desc: test RSMultiDisplayFeatureParam.Parse with Configs root but no multi_display_features child
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiDisplayFeatureParamTest, TestParseNoMultiDisplayFeatures, TestSize.Level1)
-{
-    RSMultiDisplayFeatureParam::splitFeature_ = {};
-    RSMultiDisplayFeatureParam::interpolationFeature_ = {};
-    RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
-
-    std::string xmlContent = (
-        R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        <Configs>
-            <other_feature name="switch" value="true"/>
-        </Configs>)"
-    );
-    xmlDocPtr docPtr = StringToXmlDoc(xmlContent);
-    EXPECT_NE(docPtr, nullptr);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::Parse(*docPtr), false);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::IsSplitScreenFeatureEnable(), false);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::IsInterpolationFeatureEnable(), false);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::IsCrossDomainFeatureEnable(), false);
-}
-
-/**
- * @tc.name: TestIsSplitScreenFeatureEnable
- * @tc.desc: test RSMultiDisplayFeatureParam.IsSplitScreenFeatureEnable
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiDisplayFeatureParamTest, TestIsSplitScreenFeatureEnable, TestSize.Level1)
-{
-    RSMultiDisplayFeatureParam::splitFeature_ = {};
-    RSMultiDisplayFeatureParam::interpolationFeature_ = {};
-    RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
-    std::string xmlContent1 = (
-        R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        <Configs>
-            <multi_display_features>
-                <split_screen_feature name="switch" value="false">
-                    <params mainDisplayId="0" subDisplayId="1"/>
-                </split_screen_feature>
-            </multi_display_features>
-        </Configs>)"
-    );
-    xmlDocPtr xmlDocPtr1 = StringToXmlDoc(xmlContent1);
-    EXPECT_NE(xmlDocPtr1, nullptr);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::Parse(*xmlDocPtr1), true);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::IsSplitScreenFeatureEnable(), false);
-
-    RSMultiDisplayFeatureParam::splitFeature_ = {};
-    RSMultiDisplayFeatureParam::interpolationFeature_ = {};
-    RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
-    std::string xmlContent2 = (
-        R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        <Configs>
-            <multi_display_features>
-                <split_screen_feature name="switch" value="true">
-                    <params mainDisplayId="0" subDisplayId="1"/>
-                </split_screen_feature>
-            </multi_display_features>
-        </Configs>)"
-    );
-    xmlDocPtr xmlDocPtr2 = StringToXmlDoc(xmlContent2);
-    EXPECT_NE(xmlDocPtr2, nullptr);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::Parse(*xmlDocPtr2), true);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::IsSplitScreenFeatureEnable(), true);
-}
-
-/**
  * @tc.name: TestIsInterpolationFeatureEnable
  * @tc.desc: test RSMultiDisplayFeatureParam.IsInterpolationFeatureEnable
  * @tc.type: FUNC
@@ -199,16 +115,12 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestIsSplitScreenFeatureEnable, TestSiz
  */
 HWTEST_F(RSMultiDisplayFeatureParamTest, TestIsInterpolationFeatureEnable, TestSize.Level1)
 {
-    RSMultiDisplayFeatureParam::splitFeature_ = {};
     RSMultiDisplayFeatureParam::interpolationFeature_ = {};
     RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
     std::string xmlContent1 = (
         R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <Configs>
             <multi_display_features>
-                <split_screen_feature name="switch" value="false">
-                    <params mainDisplayId="0" subDisplayId="1"/>
-                </split_screen_feature>
                 <interp_screen_feature name="switch" value="true">
                     <params displayId="1" realWidth="1280" realHeight="720" paramA="2" paramN="3"/>
                 </interp_screen_feature>
@@ -218,20 +130,15 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestIsInterpolationFeatureEnable, TestS
     xmlDocPtr xmlDocPtr1 = StringToXmlDoc(xmlContent1);
     EXPECT_NE(xmlDocPtr1, nullptr);
     EXPECT_EQ(RSMultiDisplayFeatureParam::Parse(*xmlDocPtr1), true);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::IsSplitScreenFeatureEnable(), false);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::IsInterpolationFeatureEnable(), false);
+    EXPECT_EQ(RSMultiDisplayFeatureParam::IsInterpolationFeatureEnable(), true);
 
-    RSMultiDisplayFeatureParam::splitFeature_ = {};
     RSMultiDisplayFeatureParam::interpolationFeature_ = {};
     RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
     std::string xmlContent2 = (
         R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <Configs>
             <multi_display_features>
-                <split_screen_feature name="switch" value="true">
-                    <params mainDisplayId="0" subDisplayId="1"/>
-                </split_screen_feature>
-                <interp_screen_feature name="switch" value="true">
+                <interp_screen_feature name="switch" value="false">
                     <params displayId="1" realWidth="1280" realHeight="720" paramA="2" paramN="3"/>
                 </interp_screen_feature>
             </multi_display_features>
@@ -240,8 +147,7 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestIsInterpolationFeatureEnable, TestS
     xmlDocPtr xmlDocPtr2 = StringToXmlDoc(xmlContent2);
     EXPECT_NE(xmlDocPtr2, nullptr);
     EXPECT_EQ(RSMultiDisplayFeatureParam::Parse(*xmlDocPtr2), true);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::IsSplitScreenFeatureEnable(), true);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::IsInterpolationFeatureEnable(), true);
+    EXPECT_EQ(RSMultiDisplayFeatureParam::IsInterpolationFeatureEnable(), false);
 }
 
 /**
@@ -252,7 +158,6 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestIsInterpolationFeatureEnable, TestS
  */
 HWTEST_F(RSMultiDisplayFeatureParamTest, TestIsCrossDomainFeatureEnable, TestSize.Level1)
 {
-    RSMultiDisplayFeatureParam::splitFeature_ = {};
     RSMultiDisplayFeatureParam::interpolationFeature_ = {};
     RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
     std::string xmlContent1 = (
@@ -270,7 +175,6 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestIsCrossDomainFeatureEnable, TestSiz
     EXPECT_EQ(RSMultiDisplayFeatureParam::Parse(*xmlDocPtr1), true);
     EXPECT_EQ(RSMultiDisplayFeatureParam::IsCrossDomainFeatureEnable(), false);
 
-    RSMultiDisplayFeatureParam::splitFeature_ = {};
     RSMultiDisplayFeatureParam::interpolationFeature_ = {};
     RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
     std::string xmlContent2 = (
@@ -290,37 +194,6 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestIsCrossDomainFeatureEnable, TestSiz
 }
 
 /**
- * @tc.name: TestGetSplitScreenParams
- * @tc.desc: test RSMultiDisplayFeatureParam.GetSplitScreenParams
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(RSMultiDisplayFeatureParamTest, TestGetSplitScreenParams, TestSize.Level1)
-{
-    RSMultiDisplayFeatureParam::splitFeature_ = {};
-    RSMultiDisplayFeatureParam::interpolationFeature_ = {};
-    RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
-    std::string xmlContent = (
-        R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-        <Configs>
-            <multi_display_features>
-                <split_screen_feature name="switch" value="true">
-                    <params mainDisplayId="0" subDisplayId="1"/>
-                </split_screen_feature>
-            </multi_display_features>
-        </Configs>)"
-    );
-    xmlDocPtr xmlDocPtr = StringToXmlDoc(xmlContent);
-    EXPECT_NE(xmlDocPtr, nullptr);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::Parse(*xmlDocPtr), true);
-    EXPECT_EQ(RSMultiDisplayFeatureParam::IsSplitScreenFeatureEnable(), true);
-    auto splitParams = RSMultiDisplayFeatureParam::GetSplitScreenParams(0);
-    EXPECT_EQ(splitParams.has_value(), true);
-    EXPECT_EQ(splitParams.value().mainDisplayId, 0);
-    EXPECT_EQ(splitParams.value().subDisplayId, 1);
-}
-
-/**
  * @tc.name: TestGetInterpolationParams
  * @tc.desc: test RSMultiDisplayFeatureParam.GetInterpolationParams
  * @tc.type: FUNC
@@ -328,16 +201,12 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestGetSplitScreenParams, TestSize.Leve
  */
 HWTEST_F(RSMultiDisplayFeatureParamTest, TestGetInterpolationParams, TestSize.Level1)
 {
-    RSMultiDisplayFeatureParam::splitFeature_ = {};
     RSMultiDisplayFeatureParam::interpolationFeature_ = {};
     RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
     std::string xmlContent = (
         R"(<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
         <Configs>
             <multi_display_features>
-                <split_screen_feature name="switch" value="true">
-                    <params mainDisplayId="0" subDisplayId="1"/>
-                </split_screen_feature>
                 <interp_screen_feature name="switch" value="true">
                     <params displayId="1" realWidth="1280" realHeight="720" paramA="2" paramN="3"/>
                 </interp_screen_feature>
@@ -364,7 +233,6 @@ HWTEST_F(RSMultiDisplayFeatureParamTest, TestGetInterpolationParams, TestSize.Le
  */
 HWTEST_F(RSMultiDisplayFeatureParamTest, TestIsScreenInCrossDomain, TestSize.Level1)
 {
-    RSMultiDisplayFeatureParam::splitFeature_ = {};
     RSMultiDisplayFeatureParam::interpolationFeature_ = {};
     RSMultiDisplayFeatureParam::crossDomainFeature_ = {};
     std::string xmlContent = (

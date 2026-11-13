@@ -30,6 +30,10 @@
 #include "rs_screen_thread_safe_property.h"
 
 #include "ipc_callbacks/screen_supported_hdr_formats_callback.h"
+#ifdef RS_MULTI_DISPLAY_FEATURES
+#include "rs_multi_display_screen_interpolation_helper.h"
+#include "rs_multi_display_feature_param.h"
+#endif
 
 namespace OHOS {
 namespace Rosen {
@@ -201,6 +205,9 @@ private:
     void PhysicalScreenInit() noexcept;
     void ScreenCapabilityInit() noexcept;
     void VirtualScreenInit() noexcept;
+#ifdef RS_MULTI_DISPLAY_FEATURES
+    void InterpolationFeatureInit() noexcept;
+#endif
     void InitDisplayPropertyForHardCursor();
     void WriteHisyseventEpsLcdInfo(GraphicDisplayModeInfo& activeMode);
     bool CalculateMaskRectAndReviseRect(const Rect& activeRect, Rect& reviseRect, RectI& maskRect);
@@ -258,6 +265,9 @@ private:
 
     OnPropertyChangeCallback onPropertyChange_;
     RSScreenThreadSafeProperty property_;
+#ifdef RS_MULTI_DISPLAY_FEATURES
+    std::unique_ptr<RSMultiDisplayScreenInterpolationHelper> interpolationHelper_ = nullptr;
+#endif
 };
 } // namespace Rosen
 } // namespace OHOS

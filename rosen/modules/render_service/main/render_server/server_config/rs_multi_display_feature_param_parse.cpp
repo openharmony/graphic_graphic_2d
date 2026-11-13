@@ -22,38 +22,6 @@ namespace {
 constexpr uint32_t XML_STRING_MAX_LENGTH = 20;
 }
 
-SplitScreenFeature RSMultiDisplayFeatureParamParse::ParseSplitScreenFeature(xmlNode &featureNode)
-{
-    RS_LOGI("RSMultiDisplayFeature %{public}s XML parse SplitScreenFeature", __func__);
-    xmlNodePtr featureNodePtr = &featureNode;
-    SplitScreenFeature featureConfig;
-    // Parse Feature Switch
-    auto name = ExtractPropertyValue("name", *featureNodePtr);
-    auto value = ExtractPropertyValue("value", *featureNodePtr);
-    if (name == "switch") {
-        featureConfig.enabled = (value == "true") ? true : false;
-    }
-    // Parse Feature Params
-    for (xmlNodePtr node = featureNodePtr->xmlChildrenNode; node; node = node->next) {
-        if (node->type != XML_ELEMENT_NODE) {
-            continue;
-        }
-        if (xmlStrcmp(node->name, reinterpret_cast<const xmlChar*>("params")) == 0) {
-            auto mainDisplayId = ExtractPropertyValue("mainDisplayId", *node);
-            auto subDisplayId = ExtractPropertyValue("subDisplayId", *node);
-            SplitScreenParams param;
-            if (IsNumber(mainDisplayId) && IsNumber(subDisplayId)) {
-                param.mainDisplayId = std::stoull(mainDisplayId);
-                param.subDisplayId = std::stoull(subDisplayId);
-                featureConfig.params[param.mainDisplayId] = param;
-            } else {
-                RS_LOGW("RSMultiDisplayFeature %{public}s SplitScreenFeature param is invalid.", __func__);
-            }
-        }
-    }
-    return featureConfig;
-}
-
 InterpolationFeature RSMultiDisplayFeatureParamParse::ParseInterpolationFeature(xmlNode &featureNode)
 {
     RS_LOGI("RSMultiDisplayFeature %{public}s XML parse InterpolationFeature", __func__);
