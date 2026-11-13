@@ -1126,23 +1126,23 @@ HWTEST(RSRenderNodeDrawableAdapterTest, OnTreeStateChangedTest, TestSize.Level1)
  */
 HWTEST(RSRenderNodeDrawableAdapterTest, UnobscuredUECMatrixMapTest, TestSize.Level1)
 {
-    constexpr NodeId TEST_PARENT_NODE_ID = 1000;
-    constexpr NodeId TEST_CHILD_NODE_ID = 1001;
-    constexpr float TEST_TRANSLATE_X = 5.0f;
-    auto node = std::make_shared<RSRenderNode>(TEST_PARENT_NODE_ID);
+    constexpr NodeId testParentNodeId = 1000;
+    constexpr NodeId testChildNodeId = 1001;
+    constexpr float testTranslateX = 5.0f;
+    auto node = std::make_shared<RSRenderNode>(testParentNodeId);
     auto adapter = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(std::move(node));
-    adapter->UECChildrenIds_->insert(TEST_CHILD_NODE_ID);
+    adapter->UECChildrenIds_->insert(testChildNodeId);
 
     Drawing::Matrix expectedMatrix;
-    expectedMatrix.Set(Drawing::Matrix::TRANS_X, TEST_TRANSLATE_X);
+    expectedMatrix.Set(Drawing::Matrix::TRANS_X, testTranslateX);
     Drawing::Canvas canvas;
     canvas.SetMatrix(expectedMatrix);
     adapter->CollectInfoForUnobscuredUEC(canvas);
 
     Drawing::Matrix actualMatrix;
-    EXPECT_TRUE(adapter->TryGetUnobscuredUECMatrix(TEST_CHILD_NODE_ID, actualMatrix));
+    EXPECT_TRUE(adapter->TryGetUnobscuredUECMatrix(testChildNodeId, actualMatrix));
     EXPECT_EQ(actualMatrix, expectedMatrix);
-    EXPECT_FALSE(adapter->TryGetUnobscuredUECMatrix(TEST_CHILD_NODE_ID + 1, actualMatrix));
-    ConcreteRSRenderNodeDrawableAdapter::EraseUnobscuredUECMatrix(TEST_CHILD_NODE_ID);
+    EXPECT_FALSE(adapter->TryGetUnobscuredUECMatrix(testChildNodeId + 1, actualMatrix));
+    ConcreteRSRenderNodeDrawableAdapter::EraseUnobscuredUECMatrix(testChildNodeId);
 }
 } // namespace OHOS::Rosen
