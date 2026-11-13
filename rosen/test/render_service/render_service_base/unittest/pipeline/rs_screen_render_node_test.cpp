@@ -1739,4 +1739,137 @@ HWTEST_F(RSScreenRenderNodeTest, ScaleSyncDirtyManagerForRogNullDirtyManager, Te
     node->ScaleSyncDirtyManagerForRogIfNeed(nullptr);
     ASSERT_TRUE(true);
 }
+
+/**
+ * @tc.name: UpdateSpecialLayerInfoTest001
+ * @tc.desc: test UpdateSpecialLayerInfo with no children
+ * @tc.type: FUNC
+ * @tc.require: issue26721
+ */
+HWTEST_F(RSScreenRenderNodeTest, UpdateSpecialLayerInfoTest001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    node->InitRenderParams();
+    node->UpdateSpecialLayerInfo();
+    EXPECT_FALSE(node->GetHasPrivacyLayer());
+}
+
+/**
+ * @tc.name: UpdateSpecialLayerInfoTest002
+ * @tc.desc: test UpdateSpecialLayerInfo with null child
+ * @tc.type: FUNC
+ * @tc.require: issue26721
+ */
+HWTEST_F(RSScreenRenderNodeTest, UpdateSpecialLayerInfoTest002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    node->InitRenderParams();
+    std::shared_ptr<RSBaseRenderNode> nullChild;
+    node->children_.emplace_back(nullChild);
+    node->UpdateSpecialLayerInfo();
+    EXPECT_FALSE(node->GetHasPrivacyLayer());
+}
+
+/**
+ * @tc.name: UpdateSpecialLayerInfoTest003
+ * @tc.desc: test UpdateSpecialLayerInfo with non-displayNode child
+ * @tc.type: FUNC
+ * @tc.require: issue26721
+ */
+HWTEST_F(RSScreenRenderNodeTest, UpdateSpecialLayerInfoTest003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    node->InitRenderParams();
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(id + 1, context);
+    node->children_.emplace_back(surfaceNode);
+    node->UpdateSpecialLayerInfo();
+    EXPECT_FALSE(node->GetHasPrivacyLayer());
+}
+
+/**
+ * @tc.name: UpdateSpecialLayerInfoTest004
+ * @tc.desc: test UpdateSpecialLayerInfo with displayNode but no SECURITY flag
+ * @tc.type: FUNC
+ * @tc.require: issue26721
+ */
+HWTEST_F(RSScreenRenderNodeTest, UpdateSpecialLayerInfoTest004, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    node->InitRenderParams();
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id + 1, config);
+    node->children_.emplace_back(displayNode);
+    node->UpdateSpecialLayerInfo();
+    EXPECT_FALSE(node->GetHasPrivacyLayer());
+}
+
+/**
+ * @tc.name: UpdateSpecialLayerInfoTest005
+ * @tc.desc: test UpdateSpecialLayerInfo with displayNode that has SECURITY flag
+ * @tc.type: FUNC
+ * @tc.require: issue26721
+ */
+HWTEST_F(RSScreenRenderNodeTest, UpdateSpecialLayerInfoTest005, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    node->InitRenderParams();
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id + 1, config);
+    displayNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::SECURITY, true);
+    node->children_.emplace_back(displayNode);
+    node->UpdateSpecialLayerInfo();
+    EXPECT_TRUE(node->GetHasPrivacyLayer());
+}
+
+/**
+ * @tc.name: UpdateSpecialLayerInfoTest006
+ * @tc.desc: test UpdateSpecialLayerInfo with displayNode that has HAS_SECURITY flag
+ * @tc.type: FUNC
+ * @tc.require: issue26721
+ */
+HWTEST_F(RSScreenRenderNodeTest, UpdateSpecialLayerInfoTest006, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    node->InitRenderParams();
+    RSDisplayNodeConfig config;
+    auto displayNode = std::make_shared<RSLogicalDisplayRenderNode>(id + 1, config);
+    displayNode->GetMultableSpecialLayerMgr().Set(SpecialLayerType::HAS_SECURITY, true);
+    node->children_.emplace_back(displayNode);
+    node->UpdateSpecialLayerInfo();
+    EXPECT_TRUE(node->GetHasPrivacyLayer());
+}
+
+/**
+ * @tc.name: SetHasPrivacyLayerTest001
+ * @tc.desc: test SetHasPrivacyLayer and GetHasPrivacyLayer
+ * @tc.type: FUNC
+ * @tc.require: issue26721
+ */
+HWTEST_F(RSScreenRenderNodeTest, SetHasPrivacyLayerTest001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    EXPECT_FALSE(node->GetHasPrivacyLayer());
+    node->SetHasPrivacyLayer(true);
+    EXPECT_TRUE(node->GetHasPrivacyLayer());
+    node->SetHasPrivacyLayer(false);
+    EXPECT_FALSE(node->GetHasPrivacyLayer());
+}
+
+/**
+ * @tc.name: UpdateScreenRenderParamsTest001
+ * @tc.desc: test UpdateScreenRenderParams syncs hasPrivacyLayer_ to screenParams
+ * @tc.type: FUNC
+ * @tc.require: issue26721
+ */
+HWTEST_F(RSScreenRenderNodeTest, UpdateScreenRenderParamsTest001, TestSize.Level1)
+{
+    auto node = std::make_shared<RSScreenRenderNode>(id, screenId, context);
+    node->stagingRenderParams_ = std::make_unique<RSScreenRenderParams>(node->GetId());
+    ASSERT_NE(node->stagingRenderParams_, nullptr);
+    node->SetHasPrivacyLayer(true);
+    node->UpdateScreenRenderParams();
+    auto screenParams = static_cast<RSScreenRenderParams*>(node->stagingRenderParams_.get());
+    ASSERT_NE(screenParams, nullptr);
+    EXPECT_TRUE(screenParams->GetHasPrivacyLayer());
+}
 } // namespace OHOS::Rosen

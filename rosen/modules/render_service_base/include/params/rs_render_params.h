@@ -76,6 +76,7 @@ struct PipelineParam {
     bool hasGameScene = false;
     bool hasLppVideo = false;
     bool dvsyncNeedSkipRsCommitDelay = false;
+    bool hasPrivacyLayer = false;
 
     uint32_t SurfaceFpsOpNum = 0;
     std::vector<SurfaceFpsOp> SurfaceFpsOpList;

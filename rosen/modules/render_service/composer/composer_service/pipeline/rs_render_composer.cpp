@@ -333,6 +333,11 @@ void RSRenderComposer::ProcessComposerFrame(uint32_t currentRate, const Pipeline
 #ifdef RS_ENABLE_TV_PQ_METADATA
         RSTvMetadataUtil::CombineMetadataForAllLayers(layers);
 #endif
+        if (hdiOutput_->GetReadBackDisabled() != pipelineParam.hasPrivacyLayer) {
+            HLOGI("SetReadBackDisable changed, screenId:%{public}" PRIu64 ", readBackDisabled:%{public}d",
+                screenId_, pipelineParam.hasPrivacyLayer);
+            hdiOutput_->SetReadBackDisable(pipelineParam.hasPrivacyLayer);
+        }
         hdiOutput_->Repaint();
         RecordTimestamp(pipelineParam.vsyncId);
     }

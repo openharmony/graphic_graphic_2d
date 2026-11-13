@@ -1688,6 +1688,18 @@ void HdiOutput::Repaint()
     sptr<SyncFence> fbFence = SyncFence::InvalidFence();
     bool needFlush = false;
     int32_t skipState = INT32_MAX;
+
+    if (device_ != nullptr) {
+        int32_t readBackRet = device_->SetDisplayReadBackSmq(screenId_, readBackDisabled_);
+        if (readBackRet != GRAPHIC_DISPLAY_SUCCESS) {
+            HLOGW("%{public}s SetDisplayReadBackSmq failed, screenId:%{public}u, readBackRet=%{public}d",
+                __func__, screenId_, readBackRet);
+        }
+    } else {
+        HLOGW("%{public}s: device_ is nullptr, screenId:%{public}u", __func__, screenId_);
+        return;
+    }
+
     ret = CommitAndGetReleaseFence(fbFence, skipState, needFlush, false);
     if (ret != GRAPHIC_DISPLAY_SUCCESS) {
         HLOGE("first commit failed, ret is %{public}d, skipState is %{public}d", ret, skipState);

@@ -244,6 +244,26 @@ void RSScreenRenderNode::UpdateRenderParams()
 // LCOV_EXCL_STOP
 
 // LCOV_EXCL_START
+void RSScreenRenderNode::UpdateSpecialLayerInfo()
+{
+    bool hasPrivacyLayer = false;
+    for (auto& child : *GetChildren()) {
+        auto logicalDisplayNode = RSBaseRenderNode::ReinterpretCast<RSLogicalDisplayRenderNode>(child);
+        if (logicalDisplayNode == nullptr) {
+            continue;
+        }
+        auto& specialLayerMgr = logicalDisplayNode->GetSpecialLayerMgr();
+        if (specialLayerMgr.Find(SpecialLayerType::HAS_SECURITY)) {
+            hasPrivacyLayer = true;
+            RS_LOGD("%{public}s, nodeId:%{public}" PRIu64 ", hasPrivacyLayer:true", __func__, GetId());
+            break;
+        }
+    }
+    SetHasPrivacyLayer(hasPrivacyLayer);
+}
+// LCOV_EXCL_STOP
+
+// LCOV_EXCL_START
 void RSScreenRenderNode::UpdateScreenRenderParams()
 {
     auto screenParams = static_cast<RSScreenRenderParams*>(stagingRenderParams_.get());
@@ -256,6 +276,7 @@ void RSScreenRenderNode::UpdateScreenRenderParams()
     screenParams->isMirrorScreen_ = IsMirrorScreen();
     screenParams->isFirstVisitCrossNodeDisplay_ = IsFirstVisitCrossNodeDisplay();
     screenParams->layerSkipContext_.SyncFrom(*dynamicLayerSkipController_);
+    screenParams->SetHasPrivacyLayer(hasPrivacyLayer_);
 }
 // LCOV_EXCL_STOP
 

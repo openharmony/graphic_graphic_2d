@@ -378,4 +378,54 @@ HWTEST_F(RSLayerTransactionDataTest, Unmarshalling_SurfaceFpsOpNum_ExceedsMaxLim
     }
     delete out;
 }
+
+/**
+ * Function: Marshalling_Unmarshalling_PipelineParam_HasPrivacyLayerTest001
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. set PipelineParam.hasPrivacyLayer = true
+ *                  2. marshal/unmarshal and verify hasPrivacyLayer is preserved
+ */
+HWTEST_F(RSLayerTransactionDataTest, Marshalling_Unmarshalling_PipelineParam_HasPrivacyLayerTest001, TestSize.Level1)
+{
+    RSLayerTransactionData data;
+    ComposerInfo info {};
+    info.pipelineParam.hasPrivacyLayer = true;
+    data.SetComposerInfo(info);
+
+    std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
+    ASSERT_TRUE(data.Marshalling(parcel));
+
+    RSLayerTransactionData* out = RSLayerTransactionData::Unmarshalling(*parcel);
+    ASSERT_NE(out, nullptr);
+
+    auto pp = out->GetPipelineParam();
+    EXPECT_TRUE(pp.hasPrivacyLayer);
+    delete out;
+}
+
+/**
+ * Function: Marshalling_Unmarshalling_PipelineParam_HasPrivacyLayerTest002
+ * Type: Function
+ * Rank: Important(2)
+ * CaseDescription: 1. do not set hasPrivacyLayer (default false)
+ *                  2. marshal/unmarshal and verify hasPrivacyLayer is false
+ */
+HWTEST_F(RSLayerTransactionDataTest, Marshalling_Unmarshalling_PipelineParam_HasPrivacyLayerTest002, TestSize.Level1)
+{
+    RSLayerTransactionData data;
+    ComposerInfo info {};
+    info.pipelineParam.hasPrivacyLayer = false;
+    data.SetComposerInfo(info);
+
+    std::shared_ptr<MessageParcel> parcel = std::make_shared<MessageParcel>();
+    ASSERT_TRUE(data.Marshalling(parcel));
+
+    RSLayerTransactionData* out = RSLayerTransactionData::Unmarshalling(*parcel);
+    ASSERT_NE(out, nullptr);
+
+    auto pp = out->GetPipelineParam();
+    EXPECT_FALSE(pp.hasPrivacyLayer);
+    delete out;
+}
 } // namespace OHOS::Rosen

@@ -96,6 +96,9 @@ public:
     void SetFingerprint(bool hasFingerprint) override;
     bool GetFingerprint() override;
 
+    void SetHasPrivacyLayer(bool hasPrivacyLayer) { hasPrivacyLayer_ = hasPrivacyLayer; }
+    bool GetHasPrivacyLayer() const { return hasPrivacyLayer_; }
+
     void SetFixVirtualBuffer10Bit(bool isFixVirtualBuffer10Bit);
     bool GetFixVirtualBuffer10Bit() const;
 
@@ -294,6 +297,7 @@ private:
     bool isMainAndLeashSurfaceDirty_ = false;
     bool needForceUpdateHwcNodes_ = false;
     bool hasFingerprint_ = false;
+    bool hasPrivacyLayer_ = false;
     bool isFixVirtualBuffer10Bit_ = false;
     bool existHWCNode_ = false;
     bool hasHdrPresent_ = false;

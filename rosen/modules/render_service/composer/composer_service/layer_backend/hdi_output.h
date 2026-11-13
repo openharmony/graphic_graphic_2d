@@ -27,6 +27,7 @@
 
 #include "graphic_error.h"
 #include "hdi_layer.h"
+#include "hdi_log.h"
 #include "hdi_framebuffer_surface.h"
 #include "hdi_screen.h"
 #include "irs_composer_to_render_connection.h"
@@ -137,6 +138,11 @@ public:
     void Repaint();
     void SetScreenBacklight(uint32_t level);
     void SetScreenLinearMatrix(const std::vector<float>& matrix);
+    void SetReadBackDisable(bool disabled) { readBackDisabled_ = disabled; }
+    bool GetReadBackDisabled() const
+    {
+        return readBackDisabled_;
+    }
     int32_t GetCurrentFramePresentFd() const
     {
         return curPresentFd_;
@@ -198,6 +204,9 @@ private:
     std::string vmArsrWhiteList_ = "";
     // Protected framebuffer is allocated in advance
     std::atomic<bool> isProtectedBufferAllocated_ = false;
+
+    // Used to disable HDI readback, if has privacy layer
+    bool readBackDisabled_ = false;
 
     std::shared_ptr<HdiLayer> maskLayer_ = nullptr;
     std::function<std::shared_ptr<HdiLayer>(uint32_t)> createHdiLayerFunc_ = HdiLayer::CreateHdiLayer;

@@ -841,6 +841,7 @@ void RSUniRenderVisitor::QuickPrepareScreenRenderNode(RSScreenRenderNode& node, 
 
     node.ResetChildHwcNodes();
     QuickPrepareChildren(node);
+    node.UpdateSpecialLayerInfo();
     TryNotifyUIBufferAvailable();
 
     PostPrepare(node, isParentPrepareInReverseOrder);

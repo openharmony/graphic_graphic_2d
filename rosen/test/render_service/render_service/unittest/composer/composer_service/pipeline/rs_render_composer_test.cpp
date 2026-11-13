@@ -4324,6 +4324,36 @@ HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_DoRepaintTrue, TestSize.Leve
 }
 
 /**
+ * Function: ProcessComposerFrame_HasPrivacyLayerChanged
+ * Type: Function
+ * Rank: Important(2)
+ * EnvConditions: N/A
+ * CaseDescription: 1. create RSRenderComposer
+ *                  2. set hasPrivacyLayer = true in PipelineParam
+ *                  3. call ProcessComposerFrame
+ *                  4. verify readBackDisabled_ changed to true
+ */
+HWTEST_F(RsRenderComposerTest, ProcessComposerFrame_HasPrivacyLayerChanged, TestSize.Level1)
+{
+    auto output = std::make_shared<HdiOutput>(1u);
+    output->Init();
+    sptr<RSScreenProperty> property = new RSScreenProperty();
+    auto tmpRsRenderComposer = std::make_shared<RSRenderComposer>(output, property);
+
+    std::shared_ptr<RSRenderSurfaceLayer> layer = std::make_shared<RSRenderSurfaceLayer>();
+    layer->SetLayerSize({ 100, 100, 100, 100 });
+    layer->SetUniRenderFlag(false);
+    tmpRsRenderComposer->rsRenderComposerContext_->AddRSRenderLayer(1, layer);
+
+    PipelineParam param;
+    param.hasPrivacyLayer = true;
+    uint32_t currentRate = 60;
+    tmpRsRenderComposer->ProcessComposerFrame(currentRate, param);
+
+    EXPECT_TRUE(tmpRsRenderComposer->hdiOutput_->GetReadBackDisabled());
+}
+
+/**
  * Function: ProcessComposerFrame_DoRepaintFalse_DropFrame
  * Type: Function
  * Rank: Important(2)

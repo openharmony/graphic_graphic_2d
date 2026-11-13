@@ -753,6 +753,7 @@ bool RSScreenRenderNodeDrawable::PrepareForDraw(std::shared_ptr<RSProcessor>& pr
                 .hasLppVideo = RSUniRenderThread::Instance().GetHasLppVideo(),
                 .SurfaceFpsOpNum = RSUniRenderThread::Instance().GetSurfaceFpsOpNum(),
                 .SurfaceFpsOpList = RSUniRenderThread::Instance().GetSurfaceFpsOpList(),
+                .hasPrivacyLayer = params->GetHasPrivacyLayer(),
             };
             composerClientManager->UpdatePipelineParam(paramScreenId, param);
         }

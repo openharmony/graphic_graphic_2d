@@ -296,6 +296,7 @@ void RSScreenRenderParams::OnSync(const std::unique_ptr<RSRenderParams>& target)
     targetScreenParams->layerSkipContext_ = layerSkipContext_;
     targetScreenParams->hasForceHwcHdrSurface_ = hasForceHwcHdrSurface_;
     targetScreenParams->rotation_ = rotation_;
+    targetScreenParams->hasPrivacyLayer_ = hasPrivacyLayer_;
 
     RSRenderParams::OnSync(target);
 }
