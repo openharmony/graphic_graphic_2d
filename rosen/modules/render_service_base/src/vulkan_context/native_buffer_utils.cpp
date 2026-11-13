@@ -32,6 +32,21 @@ namespace OHOS::Rosen {
 namespace NativeBufferUtils {
 namespace {
 constexpr uint32_t FORMAT_R10G10B10A8 = 0x7FFFFFFF - 255;
+
+bool CheckNativeBufferSizeSufficient(std::shared_ptr<RsVulkanInterface>& vkInterface, VkDevice device, VkImage image,
+    VkDeviceMemory memory, VkDeviceSize allocationSize, const char* caller)
+{
+    VkMemoryRequirements memRequirements = {};
+    vkInterface->vkGetImageMemoryRequirements(device, image, &memRequirements);
+    if (allocationSize < memRequirements.size) {
+        ROSEN_LOGE("%{public}s: nativeBuffer allocationSize:(%{public}" PRIu64 ") is smaller than "
+            "image memory requirement(%{public}" PRIu64 ")", caller, allocationSize, memRequirements.size);
+        vkInterface->vkDestroyImage(device, image, nullptr);
+        vkInterface->vkFreeMemory(device, memory, nullptr);
+        return false;
+    }
+    return true;
+}
 }
 void DeleteVkImage(void* context)
 {
@@ -231,6 +246,11 @@ bool MakeFromNativeWindowBuffer(
         return false;
     }
 
+    if (!CheckNativeBufferSizeSufficient(vkInterface, device, image, memory, nbProps.allocationSize,
+        "MakeFromNativeWindowBuffer")) {
+        return false;
+    }
+
     auto colorSpace = RenderContext::ConvertColorGamutToColorSpace(nativeSurface.graphicColorGamut);
     Drawing::TextureInfo texture_info;
     texture_info.SetWidth(width);
@@ -352,6 +372,11 @@ Drawing::BackendTexture MakeBackendTextureFromNativeBuffer(std::shared_ptr<RsVul
         return {};
     }
 
+    if (!CheckNativeBufferSizeSufficient(vkInterface, device, image, memory, nbProps.allocationSize,
+        "MakeBackendTextureFromNativeBuffer")) {
+        return {};
+    }
+
     Drawing::BackendTexture backendTexture(true);
     Drawing::TextureInfo textureInfo;
     textureInfo.SetWidth(width);
@@ -431,6 +456,11 @@ std::shared_ptr<Drawing::Surface> CreateFromNativeWindowBuffer(std::shared_ptr<R
         return nullptr;
     }
 
+    if (!CheckNativeBufferSizeSufficient(vkInterface, device, image, memory, nbProps.allocationSize,
+        "CreateFromNativeWindowBuffer")) {
+        return nullptr;
+    }
+
     Drawing::TextureInfo texture_info;
     texture_info.SetWidth(imageInfo.GetWidth());
     texture_info.SetHeight(imageInfo.GetHeight());
@@ -500,6 +530,12 @@ std::shared_ptr<Drawing::Surface> CreateSurfaceFromNativeBuffer(std::shared_ptr<
     }
 
     if (!BindImageMemory(vkInterface, image, memory)) {
+        return nullptr;
+    }
+
+    VkDevice device = vkInterface->GetDevice();
+    if (!CheckNativeBufferSizeSufficient(vkInterface, device, image, memory, nbProps.allocationSize,
+        "CreateSurfaceFromNativeBuffer")) {
         return nullptr;
     }
 
