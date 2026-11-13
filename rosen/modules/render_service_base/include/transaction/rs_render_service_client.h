@@ -188,8 +188,6 @@ public:
 
     void SetRefreshRateMode(int32_t refreshRateMode);
 
-    void SetThermalFrameRateLimit(uint32_t frameRate);
-
     void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate);
 
@@ -373,6 +371,8 @@ public:
     bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount);
 #endif
     void NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType);
+
+    void SetThermalFrameRateLimit(uint32_t frameRate);
 #ifndef ENABLE_RS_PROXY
     void NotifyDynamicModeEvent(bool enableDynamicMode);
 

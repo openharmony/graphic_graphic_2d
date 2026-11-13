@@ -108,8 +108,6 @@ public:
     void SetScreenRefreshRate(ScreenId id, int32_t sceneId, int32_t rate) override;
 
     void SetRefreshRateMode(int32_t refreshRateMode) override;
-
-    void SetThermalFrameRateLimit(uint32_t frameRate) override;
     
     void SyncFrameRateRange(FrameRateLinkerId id, const FrameRateRange& range,
         int32_t animatorExpectedFrameRate) override;
@@ -285,6 +283,8 @@ public:
     bool NotifySoftVsyncRateDiscountEvent(uint32_t pid, const std::string &name, uint32_t rateDiscount) override;
 #endif
     ErrCode NotifyTouchEvent(int32_t touchStatus, int32_t touchCnt, int32_t sourceType) override;
+
+    void SetThermalFrameRateLimit(uint32_t frameRate) override;
 #ifndef ENABLE_RS_PROXY
     void NotifyDynamicModeEvent(bool enableDynamicMode) override;
 
