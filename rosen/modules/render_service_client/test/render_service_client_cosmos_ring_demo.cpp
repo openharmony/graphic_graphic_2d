@@ -88,7 +88,6 @@ constexpr float RING_HL_INNER_RADIUS = 78.f;
 constexpr float RING_HL_OUTER_WIDTH = 6.11f;
 constexpr float RING_HL_INNER_WIDTH = 3.75f;
 constexpr float RING_HL_DISPERSION_STRENGTH = 0.32f;
-constexpr float RING_HL_ROTATION_ANGLE = 100.f;
 constexpr float RING_HLP1_OUTER_CENTER_ANGLE = 204.f;
 constexpr float RING_HLP1_OUTER_ARC_SPAN = 220.f;
 constexpr float RING_HLP1_OUTER_BRIGHTNESS = 1.f;
@@ -115,6 +114,7 @@ constexpr float RING_GLOW_INTENSITY = 0.41f;
 constexpr float RING_GLOW_SATURATION = 1.f;
 constexpr float RING_GLOW_EXPOSURE = 6.59f;
 constexpr float RING_PROGRESS = 0.0f;
+constexpr int RING_ROTATION_TURNS = 1;
 constexpr float RING_PARTICLE_COUNT = 65.f;
 constexpr float RING_PARTICLE_SIZE = 3.7f;
 constexpr float RING_PARTICLE_DISPERSION_STRENGTH = 0.01f;
@@ -145,6 +145,7 @@ void InitRingParameters(RSNGCosmosRing& shader)
     shader.Setter<CosmosRingDarkColorTag>(RING_DARK_COLOR);
     shader.Setter<CosmosRingBrightColorTag>(RING_BRIGHT_COLOR);
     shader.Setter<CosmosRingProgressTag>(RING_PROGRESS);
+    shader.Setter<CosmosRingRotationTurnsTag>(RING_ROTATION_TURNS);
 }
 
 void InitHighlightParameters(RSNGCosmosRing& shader)
@@ -155,7 +156,6 @@ void InitHighlightParameters(RSNGCosmosRing& shader)
     shader.Setter<CosmosRingHLOuterWidthTag>(RING_HL_OUTER_WIDTH);
     shader.Setter<CosmosRingHLInnerWidthTag>(RING_HL_INNER_WIDTH);
     shader.Setter<CosmosRingHLDispersionStrengthTag>(RING_HL_DISPERSION_STRENGTH);
-    shader.Setter<CosmosRingHLRotationAngleTag>(RING_HL_ROTATION_ANGLE);
     shader.Setter<CosmosRingHLP1OuterCenterAngleTag>(RING_HLP1_OUTER_CENTER_ANGLE);
     shader.Setter<CosmosRingHLP1OuterArcSpanTag>(RING_HLP1_OUTER_ARC_SPAN);
     shader.Setter<CosmosRingHLP1OuterBrightnessTag>(RING_HLP1_OUTER_BRIGHTNESS);
