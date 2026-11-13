@@ -49,7 +49,7 @@ void RsCommonHook::SetSurfaceOpaqueType(const std::string &surfaceOpaqueType)
     surfaceOpaqueType_ = surfaceOpaqueType;
 }
 
-void RsCommonHook::GetSurfaceOpaqueType() const
+std::string GetSurfaceOpaqueType() const
 {
     return surfaceOpaqueType_;
 }
