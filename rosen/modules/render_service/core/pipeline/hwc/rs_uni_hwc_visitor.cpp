@@ -489,7 +489,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& 
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node.GetStagingRenderParams().get());
     stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(false);
     node.SetNodeHasBackgroundColorAlpha(false);
-    if (node.GetAncoForceDoDirect()) {
+    if (node.GetAncoForceDoDirect() || IsSurfaceOpaque(node)) {
         return;
     }
     if (ProcessSolidLayerEnabledByTag(node, stagingSurfaceParams)) {
