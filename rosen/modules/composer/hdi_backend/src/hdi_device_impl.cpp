@@ -22,7 +22,7 @@
 #include <scoped_bytrace.h>
 #include <securec.h>
 #include "platform/common/rs_log.h"
-#include "v1_5/include/idisplay_composer_interface.h"
+#include "v1_6/include/idisplay_composer_interface.h"
 
 #define CHECK_FUNC(composerSptr)                                     \
     do {                                                             \
@@ -49,7 +49,9 @@ using namespace OHOS::HDI::Display::Composer::V1_2;
 using namespace OHOS::HDI::Display::Composer::V1_3;
 using namespace OHOS::HDI::Display::Composer::V1_4;
 using namespace OHOS::HDI::Display::Composer::V1_5;
-using IDisplayComposerInterfaceSptr = sptr<Composer::V1_5::IDisplayComposerInterface>;
+using namespace OHOS::HDI::Display::Composer::V1_6;
+using IDisplayComposerInterfaceSptr = sptr<Composer::V1_6::IDisplayComposerInterface>;
+
 static IDisplayComposerInterfaceSptr g_composer;
 }
 
@@ -81,7 +83,7 @@ HdiDeviceImpl::~HdiDeviceImpl()
 bool HdiDeviceImpl::Init()
 {
     if (g_composer == nullptr) {
-        g_composer = Composer::V1_5::IDisplayComposerInterface::Get();
+        g_composer = Composer::V1_6::IDisplayComposerInterface::Get();
         if (g_composer == nullptr) {
             HLOGE("IDisplayComposerInterface::Get return nullptr.");
             return false;
@@ -705,6 +707,12 @@ int32_t HdiDeviceImpl::SetDisplayPerFrameParameterSmq(uint32_t devId, const std:
 {
     CHECK_FUNC(g_composer);
     return g_composer->SetDisplayPerFrameParameterSmq(devId, key, value);
+}
+
+int32_t HdiDeviceImpl::SetDisplayReadBackSmq(uint32_t screenId, bool disableReadback)
+{
+    CHECK_FUNC(g_composer);
+    return g_composer->SetDisplayReadBackSmq(screenId, disableReadback);
 }
 
 int32_t HdiDeviceImpl::SetLayerTunnelHandle(uint32_t screenId, uint32_t layerId, GraphicExtDataHandle *handle)

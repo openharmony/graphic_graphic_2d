@@ -2023,6 +2023,121 @@ HWTEST_F(HdiOutputTest, Repaint002, Function | MediumTest | Level1)
 }
 
 /**
+ * Function: Repaint003
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set readBackDisabled_ = true
+ *                  2. call Repaint() and verify SetDisplayReadBackSmq(screenId, true) is called
+ */
+HWTEST_F(HdiOutputTest, Repaint003, Function | MediumTest | Level1)
+{
+    HdiOutputTest::hdiOutput_->layerIdMap_.clear();
+    std::shared_ptr<HdiLayer> layer = std::make_shared<HdiLayer>(0);
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->UpdateRSLayer(rsLayer);
+    rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
+    HdiOutputTest::hdiOutput_->layerIdMap_[0] = layer;
+
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
+    int32_t skipState = GRAPHIC_DISPLAY_SUCCESS;
+    bool needFlush = false;
+    std::vector<uint32_t> layersId = {};
+    std::vector<sptr<SyncFence>> fences = {};
+    EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _, _, _, _)).WillRepeatedly(DoAll(
+            ::testing::SetArgReferee<1>(fence),
+            ::testing::SetArgReferee<2>(skipState),
+            ::testing::SetArgReferee<3>(needFlush),
+            ::testing::SetArgReferee<4>(layersId),
+            ::testing::SetArgReferee<5>(fences),
+            ::testing::Return(GRAPHIC_DISPLAY_SUCCESS)
+        ));
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
+    HdiOutputTest::hdiOutput_->SetReadBackDisable(true);
+    EXPECT_CALL(*hdiDeviceMock_, SetDisplayReadBackSmq(_, true))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    HdiOutputTest::hdiOutput_->Repaint();
+}
+
+/**
+ * Function: Repaint004
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set readBackDisabled_ = false
+ *                  2. call Repaint() and verify SetDisplayReadBackSmq(screenId, false) is called
+ */
+HWTEST_F(HdiOutputTest, Repaint004, Function | MediumTest | Level1)
+{
+    HdiOutputTest::hdiOutput_->layerIdMap_.clear();
+    std::shared_ptr<HdiLayer> layer = std::make_shared<HdiLayer>(0);
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->UpdateRSLayer(rsLayer);
+    rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
+    HdiOutputTest::hdiOutput_->layerIdMap_[0] = layer;
+
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
+    int32_t skipState = GRAPHIC_DISPLAY_SUCCESS;
+    bool needFlush = false;
+    std::vector<uint32_t> layersId = {};
+    std::vector<sptr<SyncFence>> fences = {};
+    EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _, _, _, _)).WillRepeatedly(DoAll(
+            ::testing::SetArgReferee<1>(fence),
+            ::testing::SetArgReferee<2>(skipState),
+            ::testing::SetArgReferee<3>(needFlush),
+            ::testing::SetArgReferee<4>(layersId),
+            ::testing::SetArgReferee<5>(fences),
+            ::testing::Return(GRAPHIC_DISPLAY_SUCCESS)
+        ));
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    HdiOutputTest::hdiOutput_->device_ = hdiDeviceMock_;
+    HdiOutputTest::hdiOutput_->SetReadBackDisable(false);
+    EXPECT_CALL(*hdiDeviceMock_, SetDisplayReadBackSmq(_, false))
+        .WillOnce(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    HdiOutputTest::hdiOutput_->Repaint();
+}
+
+/**
+ * Function: Repaint005
+ * Type: Function
+ * Rank: Important(1)
+ * EnvConditions: N/A
+ * CaseDescription: 1. set device_ = nullptr
+ *                  2. call Repaint() and verify no crash when device_ is nullptr
+ */
+HWTEST_F(HdiOutputTest, Repaint005, Function | MediumTest | Level1)
+{
+    HdiOutputTest::hdiOutput_->layerIdMap_.clear();
+    std::shared_ptr<HdiLayer> layer = std::make_shared<HdiLayer>(0);
+    std::shared_ptr<RSLayer> rsLayer = std::make_shared<RSSurfaceLayer>(0, nullptr);
+    layer->UpdateRSLayer(rsLayer);
+    rsLayer->SetSurface(IConsumerSurface::Create("HdiOutputTest"));
+    HdiOutputTest::hdiOutput_->layerIdMap_[0] = layer;
+
+    sptr<SyncFence> fence = SyncFence::InvalidFence();
+    int32_t skipState = GRAPHIC_DISPLAY_SUCCESS;
+    bool needFlush = false;
+    std::vector<uint32_t> layersId = {};
+    std::vector<sptr<SyncFence>> fences = {};
+    EXPECT_CALL(*hdiDeviceMock_, CommitAndGetReleaseFence(_, _, _, _, _, _, _)).WillRepeatedly(DoAll(
+            ::testing::SetArgReferee<1>(fence),
+            ::testing::SetArgReferee<2>(skipState),
+            ::testing::SetArgReferee<3>(needFlush),
+            ::testing::SetArgReferee<4>(layersId),
+            ::testing::SetArgReferee<5>(fences),
+            ::testing::Return(GRAPHIC_DISPLAY_SUCCESS)
+        ));
+    EXPECT_CALL(*hdiDeviceMock_, GetScreenCompChange(_, _, _))
+        .WillRepeatedly(testing::Return(GRAPHIC_DISPLAY_SUCCESS));
+    HdiOutputTest::hdiOutput_->device_ = nullptr;
+    HdiOutputTest::hdiOutput_->SetReadBackDisable(true);
+    HdiOutputTest::hdiOutput_->Repaint();
+}
+
+/**
  * Function: SetAncoSrcRect
  * Type: Function
  * Rank: Important(1)

@@ -139,6 +139,18 @@ public:
 
     void SetFingerprint(bool hasFingerprint);
 
+    bool GetHasPrivacyLayer() const
+    {
+        return hasPrivacyLayer_;
+    }
+
+    void SetHasPrivacyLayer(bool hasPrivacyLayer)
+    {
+        hasPrivacyLayer_ = hasPrivacyLayer;
+    }
+
+    void UpdateSpecialLayerInfo();
+
     void CollectSurface(
         const std::shared_ptr<RSBaseRenderNode>& node, std::vector<RSBaseRenderNode::SharedPtr>& vec,
         bool isUniRender, bool onlyFirstLevel) override;
@@ -613,6 +625,7 @@ private:
     bool hasUniRenderHdrSurface_ = false;
     bool isLuminanceStatusChange_ = false;
     bool hasFingerprint_ = false;
+    bool hasPrivacyLayer_ = false;
     bool hasGlassFree3DLayer_ = false;
     VideoDimType videoDimType_ = VideoDimType::VIDEO_DIM_TYPE_2D;
     UIMode3D uiMode3D_ = UIMode3D::MODE_2D;

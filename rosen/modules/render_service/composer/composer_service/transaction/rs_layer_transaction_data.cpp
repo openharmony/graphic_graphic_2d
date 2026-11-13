@@ -98,7 +98,8 @@ bool RSLayerTransactionData::UnMarshallingPipelineParam(OHOS::MessageParcel& par
         parcel.ReadUint32(composerInfo_.pipelineParam.pendingScreenRefreshRate) &&
         parcel.ReadUint64(composerInfo_.pipelineParam.pendingConstraintRelativeTime) &&
         parcel.ReadBool(composerInfo_.pipelineParam.hasLppVideo) &&
-        parcel.ReadUint32(composerInfo_.pipelineParam.SurfaceFpsOpNum);
+        parcel.ReadUint32(composerInfo_.pipelineParam.SurfaceFpsOpNum) &&
+        parcel.ReadBool(composerInfo_.pipelineParam.hasPrivacyLayer);
     if (!flag) {
         RS_LOGE("%{public}s failed", __func__);
         return flag;
@@ -140,6 +141,7 @@ bool RSLayerTransactionData::MarshallingPipelineParam(std::shared_ptr<OHOS::Mess
     }
 
     flag = flag && parcel->WriteUint32(surfaceFpsOpNum);
+    flag = flag && parcel->WriteBool(composerInfo_.pipelineParam.hasPrivacyLayer);
 
     for (uint32_t i = 0; i < surfaceFpsOpNum; i++) {
         flag = flag && parcel->WriteUint32(composerInfo_.pipelineParam.SurfaceFpsOpList[i].surfaceFpsOpType) &&
