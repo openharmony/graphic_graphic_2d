@@ -18,6 +18,7 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_filter_drawable.h"
 #include "drawable/rs_property_drawable.h"
 #include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "feature/filter_cache_manager/rs_cache_update_manager.h"
@@ -309,7 +310,7 @@ HWTEST_F(RSEffectUtilsTest, HasValidEffectTest001, TestSize.Level1)
 HWTEST_F(RSEffectUtilsTest, UpdateNodeFilterRateToDrawableTest001, TestSize.Level1)
 {
     RSRenderNode node(id, context);
-    auto materialDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    auto materialDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     materialDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     node.drawableVec_ = std::make_unique<RSDrawable::Vec>();
     (*node.drawableVec_)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = materialDrawable;
@@ -359,9 +360,9 @@ HWTEST_F(RSEffectUtilsTest, UpdateNodeFilterRateToDrawableTest003, TestSize.Leve
         std::make_shared<RSFilter>();
     node->GetMutableRenderProperties().GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
 
-    auto materialDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    auto materialDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
     materialDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
-    auto compositingDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    auto compositingDrawable = std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
     compositingDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
     node->drawableVec_ = std::make_unique<RSDrawable::Vec>();
     (*node->drawableVec_)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = materialDrawable;

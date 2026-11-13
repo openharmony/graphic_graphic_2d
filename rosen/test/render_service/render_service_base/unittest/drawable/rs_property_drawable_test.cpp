@@ -499,7 +499,8 @@ HWTEST_F(RSPropertyDrawableTest, RSClipToBoundsDrawableClipShapeOnSyncRRectTest,
  */
 HWTEST_F(RSPropertyDrawableTest, UpdateNodeFilterRateToCacheManagerTest001, TestSize.Level1)
 {
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable =
+        std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
     ASSERT_NE(filterDrawable, nullptr);
     filterDrawable->stagingCacheManager_ = nullptr;
     // null staging cache manager should not crash
@@ -515,7 +516,8 @@ HWTEST_F(RSPropertyDrawableTest, UpdateNodeFilterRateToCacheManagerTest001, Test
  */
 HWTEST_F(RSPropertyDrawableTest, UpdateNodeFilterRateToCacheManagerTest002, TestSize.Level1)
 {
-    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable = std::make_shared<DrawableV2::RSFilterDrawable>();
+    std::shared_ptr<DrawableV2::RSFilterDrawable> filterDrawable =
+        std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
     ASSERT_NE(filterDrawable, nullptr);
     filterDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
 
