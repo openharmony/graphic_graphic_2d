@@ -312,38 +312,37 @@ bool RSTransactionData::IsTreeHierarchyCommand(uint16_t commandType, uint16_t co
 void RSTransactionData::MoveCommandByNodeIdExcludeTreeCommands(
     std::unique_ptr<RSTransactionData>& transactionData, NodeId nodeId)
 {
-    size_t indexVerifier = 0;
+    size_t writeIndex = 0;
     size_t movedCount = 0;
     size_t erasedCount = 0;
-    for (auto it = payload_.begin(); it != payload_.end();) {
-        auto& command = std::get<2>(*it);
-        if (!command) {
-            ++indexVerifier;
-            ++it;
-            continue;
+    // Compact retained commands in one pass to avoid repeated vector erases while preserving migration order.
+    for (size_t readIndex = 0; readIndex < payload_.size(); ++readIndex) {
+        auto& elem = payload_[readIndex];
+        auto& command = std::get<2>(elem);
+        if (command) {
+            bool isTargetTreeCommand = IsTreeHierarchyCommand(command->GetType(), command->GetSubType()) &&
+                                       command->GetTargetNodeId() == nodeId;
+            if (isTargetTreeCommand) {
+                ++erasedCount;
+                continue;
+            }
+
+            if (command->GetNodeId() == nodeId) {
+                transactionData->AddCommand(command, std::get<0>(elem), std::get<1>(elem));
+                ++movedCount;
+                continue;
+            }
+            command->indexVerifier_ = writeIndex;
         }
 
-        bool isTargetTreeCommand = IsTreeHierarchyCommand(command->GetType(), command->GetSubType()) &&
-            command->GetTargetNodeId() == nodeId;
-        if (isTargetTreeCommand) {
-            it = payload_.erase(it);
-            ++erasedCount;
-            continue;
+        if (writeIndex != readIndex) {
+            payload_[writeIndex] = std::move(elem);
         }
-
-        if (command->GetNodeId() == nodeId) {
-            transactionData->AddCommand(command, std::get<0>(*it), std::get<1>(*it));
-            it = payload_.erase(it);
-            ++movedCount;
-            continue;
-        }
-
-        command->indexVerifier_ = indexVerifier;
-        ++indexVerifier;
-        ++it;
+        ++writeIndex;
     }
-    RS_LOGD("MoveCommandByNodeIdExcludeTreeCommands nodeId:%{public}" PRIu64
-            " moved:%{public}zu erased:%{public}zu", nodeId, movedCount, erasedCount);
+    payload_.resize(writeIndex);
+    RS_LOGD("MoveCommandByNodeIdExcludeTreeCommands nodeId:%{public}" PRIu64 " moved:%{public}zu erased:%{public}zu",
+        nodeId, movedCount, erasedCount);
 }
 
 void RSTransactionData::MoveAllCommand(std::unique_ptr<RSTransactionData>& transactionData)
