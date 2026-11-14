@@ -2830,7 +2830,7 @@ HWTEST_F(RSUifirstManagerTest, ProcessDoneNodeInner002, TestSize.Level1)
 /**
  * @tc.name: MergeOldDirtyToDirtyManager001
  * @tc.desc: Test MergeOldDirtyToDirtyManager early return when GetUIFirstDirtyFrameControlEnabled is true
- *               and HandleUIFirstDirtyFrameControl returns false
+ *           and HandleUIFirstDirtyFrameControl returns false
  * @tc.type: FUNC
  * @tc.require: issueDTS2026052746214
  */
@@ -2855,7 +2855,7 @@ HWTEST_F(RSUifirstManagerTest, MergeOldDirtyToDirtyManager001, TestSize.Level1)
     mainThread_->context_->nodeMap.UnregisterRenderNode(surfaceNode->GetId());
 
     // Restore
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1": "0");
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1" : "0");
     uifirstManager_.uifirstType_ = uifirstType;
 }
 
@@ -2883,7 +2883,7 @@ HWTEST_F(RSUifirstManagerTest, GetUIFirstDirtyFrameControlEnabled002, TestSize.L
 
     // Restore
     uifirstManager_.isUIFirstFrameControlEnable_ = isFrameControlEnable;
-    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1": "0");
+    system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1" : "0");
     uifirstManager_.uifirstType_ = uifirstType;
 }
 }

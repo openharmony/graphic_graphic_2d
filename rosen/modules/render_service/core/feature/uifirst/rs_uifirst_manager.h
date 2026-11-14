@@ -267,9 +267,6 @@ private:
     RSUifirstManager(const RSUifirstManager&&);
     RSUifirstManager& operator=(const RSUifirstManager&);
     RSUifirstManager& operator=(const RSUifirstManager&&);
-    void PushPendingMissionCenterScene(SystemAnimatedScenes scene);
-    // return the ended scene only when all pending animations have ended
-    SystemAnimatedScenes PopPendingMissionCenterScene();
 
     void PostSubTask(NodeId id);
     void UpdateCompletedSurface(NodeId id);
@@ -360,6 +357,9 @@ private:
     void CheckAndBlockFirstFrameCallback(RSSurfaceRenderNode& surfaceNode) const;
     void HandleAppWindowChildrenDirty(const std::shared_ptr<RSSurfaceRenderNode>& node);
     bool HandleUIFirstDirtyFrameControl(const std::shared_ptr<RSSurfaceRenderNode>& node);
+    void PushPendingMissionCenterScene(SystemAnimatedScenes scene);
+    // return the ended scene only when all pending animations have ended
+    SystemAnimatedScenes PopPendingMissionCenterScene();
 
     bool rotationChanged_ = false;
     bool isUiFirstOn_ = false;

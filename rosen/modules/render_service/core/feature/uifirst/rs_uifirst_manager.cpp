@@ -342,9 +342,9 @@ bool RSUifirstManager::HandleUIFirstDirtyFrameControl(const std::shared_ptr<RSSu
         return false;
     }
 
-    bool uifirstCacheUpdated = (node->GetLastFrameUifirstCacheType() == MultiThreadCacheType::NONE) ||
+    bool isNotUifirstOrIsCacheNotUpdated = (node->GetLastFrameUifirstCacheType() == MultiThreadCacheType::NONE) ||
             !UifirstCacheUpdate(node->GetId());
-    if (uifirstCacheUpdated && !node->GetNodeAbsRectChanged()) {
+    if (isNotUifirstOrIsCacheNotUpdated && !node->GetNodeAbsRectChanged()) {
         auto curDirtyRegion = curDirtyManager->GetCurrentFrameDirtyRegion();
         curDirtyManager->MergeUifirstDirtyRect(curDirtyRegion);
         auto uifirstDirtyRegion = curDirtyManager->GetUifirstFrameDirtyRegion();
@@ -929,11 +929,6 @@ bool RSUifirstManager::NeedPurgePendingPostNodesInner(
         return false;
     }
     auto& [id, node] = *it;
-    // Check if the node and its parent should be painted
-    if (!node->GetSelfAndParentShouldPaint()) {
-        return true;
-    }
-
     auto& subThreadCache = drawable->GetRsSubThreadCache();
     bool needPurge = purgeEnable_ && subThreadCache.HasCachedTexture() &&
         (cachedStaticContent || CheckVisibleDirtyRegionIsEmpty(node)) &&
