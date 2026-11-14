@@ -46,7 +46,7 @@ std::shared_ptr<Drawing::GPUContext> RSCanvasModifiersContext::GetGpuContext()
 {
     if (renderContext_ == nullptr) {
         renderContext_ = RenderContext::Create();
-        renderContext_->Init(RenderEngineType::BASIC_RENDER, cacheDir_);
+        renderContext_->Init(RenderEngineType::UNPROTECTED_REDRAW, cacheDir_);
         gpuContext_ = renderContext_->GetSharedDrGPUContext();
     }
     return gpuContext_;
