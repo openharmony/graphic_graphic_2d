@@ -37,6 +37,7 @@ namespace {
 const uint8_t* DATA = nullptr;
 size_t g_size = 0;
 size_t g_pos;
+auto g_pid = getpid();
 } // namespace
 
 template<class T>
@@ -65,10 +66,12 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size, RSContext
     DATA = data;
     g_size = size;
     g_pos = 0;
-    NodeId nodeId = GetData<NodeId>();
-    NodeId linkNodeId = GetData<NodeId>();
+    NodeId nodeId = (static_cast<NodeId>(g_pid) << 32) | GetData<uint32_t>();
+    NodeId linkNodeId = (static_cast<NodeId>(g_pid) << 32) | GetData<uint32_t>();
     RSWindowKeyFrameNodeCommandHelper::Create(rsContext, nodeId, GetData<bool>());
     RSWindowKeyFrameNodeCommandHelper::LinkNode(rsContext, nodeId, linkNodeId);
+    rsContext.GetMutableNodeMap().FilterNodeByPid(g_pid, true);
+    RSRenderNodeGC::Instance().ReleaseNodeMemory(true);
     return true;
 }
 } // namespace Rosen
@@ -80,6 +83,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     /* Run your code on data */
     OHOS::Rosen::RSContext rsContext;
     OHOS::Rosen::DoSomethingInterestingWithMyAPI(data, size, rsContext);
-    OHOS::Rosen::RSRenderNodeGC::Instance().ReleaseNodeMemory();
     return 0;
 }
