@@ -99,6 +99,19 @@ void IsRepaintBoundaryCmdModifier::UpdateToRender()
     AddCommand(command, node->IsRenderServiceNode());
 }
 
+void NodeTargetRateCmdModifier::UpdateToRender()
+{
+    auto node = GetNode();
+    if (!node) return;
+    std::unique_ptr<RSCommand> command = std::make_unique<RSSetNodeTargetRate>(node->GetId(), param_.nodeTargetRate_);
+    AddCommand(command, node->IsRenderServiceNode());
+}
+
+void NodeTargetRateCmdModifier::DumpParam(std::string& out) const
+{
+    out += "{nodeTargetRate:" + std::to_string(param_.nodeTargetRate_) + "}";
+}
+
 void MarkOpincNodeCmdModifier::UpdateToRender()
 {
     auto node = GetNode();

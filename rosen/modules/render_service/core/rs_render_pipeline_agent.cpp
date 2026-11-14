@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <charconv>
 #include "rs_render_pipeline_agent.h"
 #include "common/rs_background_thread.h"
 #include "common/rs_special_layer_manager.h"
@@ -62,6 +63,7 @@
 #include "pipeline/main_thread/rs_render_service_listener.h"
 #include "pipeline/main_thread/rs_surface_permission.h"
 #include "rs_profiler.h"
+#include "pipeline/rs_effect_utils.h"
 #include "pipeline/rs_render_node_map.h"
 #include "pipeline/rs_surface_buffer_callback_manager.h"
 #include "pipeline/rs_surface_render_node.h"
@@ -94,6 +96,7 @@ constexpr uint32_t MEM_BYTE_TO_MB = 1024 * 1024;
 constexpr uint32_t PIDLIST_SIZE_MAX = 128;
 constexpr uint64_t MAX_TIME_OUT_NS = 1e9;
 constexpr int64_t MAX_FREEZE_SCREEN_TIME = 3000;
+constexpr int MAX_VALID_RATE = 120;
 const std::string UNFREEZE_SCREEN_TASK_NAME = "UNFREEZE_SCREEN_TASK";
 
 }
@@ -2195,6 +2198,10 @@ bool RSRenderPipelineAgent::GetBehindWindowFilterEnabled()
 ErrCode RSRenderPipelineAgent::SetApsConfigParams(
     ApsEventType event, const std::unordered_map<std::string, std::string>& params)
 {
+    auto pipeline = rsRenderPipeline_.lock();
+    if (pipeline == nullptr) {
+        return StatusCode::INVALID_ARGUMENTS;
+    }
     if (event == ApsEventType::HVE) {
         auto it = params.find("ENABLE");
         bool enabled = (it != params.end() && it->second == "true");
@@ -2208,6 +2215,27 @@ ErrCode RSRenderPipelineAgent::SetApsConfigParams(
             layerSplitManager->SetEnabled(enabled);
         }
         return ERR_OK;
+    } else if (event == ApsEventType::FILTER_CACHE_FRAME) {
+        std::string appName = "";
+        int rate = 0;
+        auto itName = params.find("BUNDLE_NAME");
+        if (itName != params.end()) {
+            appName = itName->second;
+        }
+        auto itRate = params.find("FRAME_RATE");
+        if (itRate != params.end()) {
+            std::from_chars(itRate->second.data(), itRate->second.data() + itRate->second.size(), rate);
+            if (rate < 0 || rate > MAX_VALID_RATE) { rate = 0; }
+        }
+        RS_TRACE_NAME_FMT("SetApsConfigParams rate:%d, appName:%s", rate, appName.c_str());
+        std::function<void()> updateSurfaceFilterRateTask = [renderPipeline = pipeline, appName, rate]() -> void {
+            auto mainThread = renderPipeline->GetMainThread();
+            if (mainThread == nullptr) {
+                return;
+            }
+            RSEffectUtils::UpdateSurfaceFilterRate(appName, rate, mainThread->GetContext().GetNodeMap());
+        };
+        pipeline->PostMainThreadTask(updateSurfaceFilterRateTask);
     }
     return ERR_OK;
 }

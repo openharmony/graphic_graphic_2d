@@ -16,8 +16,10 @@
 #include "pipeline/rs_effect_utils.h"
 
 #include "common/rs_optional_trace.h"
+#include "drawable/rs_property_drawable.h"
 #include "feature/filter_cache_manager/rs_filter_cache_manager.h"
 #include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_render_node_map.h"
 #include "platform/common/rs_log.h"
 
 namespace OHOS {
@@ -92,6 +94,99 @@ bool RSEffectUtils::HasBackgroundDependentFilter(const RSProperties& properties)
 {
     return properties.GetBackgroundFilter() || properties.GetNeedDrawBehindWindow() || properties.GetMaterialFilter();
 }
+
+void RSEffectUtils::UpdateNodeFilterRateToDrawable(
+    RSRenderNode& node, const FilterRateUpdateFunc& rateUpdateFunc, int32_t rate, const char* traceTag)
+{
+#ifdef RS_ENABLE_GPU
+    const auto& properties = node.GetRenderProperties();
+    RS_TRACE_NAME_FMT("%s MaterialFilter:%d BackgroundFilter:%d CompositingFilter:%d", traceTag,
+        properties.GetMaterialFilter() != nullptr, properties.GetBackgroundFilter() != nullptr,
+        properties.GetCompositingFilter() != nullptr);
+    if (properties.GetMaterialFilter()) {
+        node.InvokeFilterDrawable(RSDrawableSlot::MATERIAL_FILTER,
+            [ rate, &rateUpdateFunc ](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable) {
+                rateUpdateFunc(drawable, rate);
+            });
+    }
+    if (properties.GetBackgroundFilter()) {
+        node.InvokeFilterDrawable(RSDrawableSlot::BACKGROUND_FILTER,
+            [ rate, &rateUpdateFunc ](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable) {
+                rateUpdateFunc(drawable, rate);
+            });
+    }
+    if (properties.GetCompositingFilter()) {
+        auto drawable = node.GetFilterDrawable(RSDrawableSlot::COMPOSITING_FILTER);
+        if (drawable != nullptr) {
+            rateUpdateFunc(drawable, rate);
+        }
+    }
+#endif
+}
+
+void RSEffectUtils::UpdateNodeFilterApsRateToDrawable(RSRenderNode& node, int32_t nodeApsRate)
+{
+    UpdateNodeFilterRateToDrawable(
+        node,
+        [](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable, int32_t rate) {
+            drawable->UpdateNodeFilterApsRateToCacheManager(rate);
+        },
+        nodeApsRate, "UpdateNodeFilterApsRateToDrawable");
+}
+
+void RSEffectUtils::UpdateNodeFilterAppRateToDrawable(RSRenderNode& node, int32_t nodeAppRate)
+{
+    UpdateNodeFilterRateToDrawable(
+        node,
+        [](std::shared_ptr<DrawableV2::RSFilterDrawable> drawable, int32_t rate) {
+            drawable->UpdateNodeFilterAppRateToCacheManager(rate);
+        },
+        nodeAppRate, "UpdateNodeFilterAppRateToDrawable");
+}
+
+void RSEffectUtils::UpdateNodeFilterApsRate(RSSurfaceRenderNode& curSurfaceNode, const RSRenderNodeMap& nodeMap)
+{
+    int rate = curSurfaceNode.GetApsFilterRate();
+    if (rate > 0) {
+        // Traverse and process child nodes
+        const auto& visibleFilterChild = curSurfaceNode.GetVisibleFilterChild();
+        RS_TRACE_NAME_FMT("RSEffectUtils::UpdateNodeFilterApsRate visibleFilterChild size: %zu",
+            visibleFilterChild.size());
+        for (auto& child : visibleFilterChild) {
+            auto& filterNode = nodeMap.GetRenderNode<RSRenderNode>(child);
+            if (filterNode == nullptr) {
+                continue;
+            }
+            RSEffectUtils::UpdateNodeFilterApsRateToDrawable(*filterNode, rate);
+        }
+    }
+}
+
+void RSEffectUtils::UpdateSurfaceFilterRate(const std::string& param, int rate, const RSRenderNodeMap& nodeMap)
+{
+    std::string nodeNameMark;
+    auto lastDotPos = param.find_last_of(".");
+    if (lastDotPos != std::string::npos && lastDotPos + 1 < param.size()) {
+        nodeNameMark = param.substr(lastDotPos + 1);
+    }
+    std::function<void(const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode)> updateSurfaceFilterRateFunc =
+        [param, rate, nodeNameMark](const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode) {
+        if (surfaceNode == nullptr) {
+            return;
+        }
+        const auto& nodeName = surfaceNode->GetName();
+        RS_TRACE_NAME_FMT("RSEffectUtils::UpdateSurfaceFilterRate surfaceNode->GetName: %s",
+            nodeName.c_str());
+        if (nodeNameMark.empty() || nodeName.find(nodeNameMark) == std::string::npos) {
+            return;
+        }
+        RS_TRACE_NAME_FMT("RSEffectUtils::UpdateSurfaceFilterRate -> modify lastApsParam: %s, targetRate: %d",
+            param.c_str(), rate);
+        surfaceNode->SetApsFilterRate(rate);
+    };
+    nodeMap.TraverseSurfaceNodes(updateSurfaceFilterRateFunc);
+}
+
 
 void RSEffectUtils::Sync(int64_t vsyncStartTime)
 {

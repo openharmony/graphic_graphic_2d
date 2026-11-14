@@ -368,6 +368,16 @@ void RSNode::SetFrameNodeInfo(int32_t id, std::string tag)
 #endif
 }
 
+void RSNode::AppSetNodeRate(int32_t nodeTargetRate)
+{
+    if (nodeTargetRate_ == nodeTargetRate) {
+        return;
+    }
+    nodeTargetRate_ = nodeTargetRate;
+    RS_OPTIONAL_TRACE_NAME_FMT("RSNode::AppSetNodeRate nodeTargetRate is [%d]", nodeTargetRate_);
+    SetRSCmdProperty<NodeTargetRateCmdModifier>(NodeTargetRateCmdParam { nodeTargetRate_ });
+}
+
 int32_t RSNode::GetFrameNodeId()
 {
     return frameNodeId_;
@@ -4806,6 +4816,7 @@ std::string RSCmdModifierTypeToString(RSCmdModifierType type)
         { RSCmdModifierType::EXCLUDE_NODE_GROUP,               "EXCLUDE_NODE_GROUP" },
         { RSCmdModifierType::MARK_NODE_SINGLE_FRAME_COMPOSER,  "MARK_NODE_SINGLE_FRAME_COMPOSER" },
         { RSCmdModifierType::IS_REPAINT_BOUNDARY,              "IS_REPAINT_BOUNDARY" },
+        { RSCmdModifierType::NODE_TARGET_RATE,                 "NODE_TARGET_RATE" },
         { RSCmdModifierType::MARK_OPINC_NODE,                  "MARK_OPINC_NODE" },
         { RSCmdModifierType::IS_UIFIRST_NODE,                  "IS_UIFIRST_NODE" },
         { RSCmdModifierType::IS_FORCE_UIFIRST_NODE,            "IS_FORCE_UIFIRST_NODE" },

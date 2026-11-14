@@ -36,6 +36,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "rs_render_pipeline_agent.h"
 #include "rs_render_pipeline.h"
+#include "screen_manager/screen_types.h"
 #include "surface_utils.h"
 #include "transaction/rs_client_to_render_connection.h"
 #include "transaction/rs_frame_stability_types.h"
@@ -379,8 +380,65 @@ HWTEST_F(RSRenderPipelineAgentTest, SetApsConfigParams, TestSize.Level1)
         params["key" + std::to_string(i)] = "value" + std::to_string(i);
     }
 
-    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::HVE, params), 0);
-    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params), 0);
+    // null pipeline now returns INVALID_ARGUMENTS for all events
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::HVE, params),
+        static_cast<ErrCode>(StatusCode::INVALID_ARGUMENTS));
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::SPLIT_LAYER, params),
+        static_cast<ErrCode>(StatusCode::INVALID_ARGUMENTS));
+}
+
+/**
+ * @tc.name: SetApsConfigParamsFilterCacheFrame001
+ * @tc.desc: Verify SetApsConfigParams with FILTER_CACHE_FRAME event when pipeline is null or has no main thread
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetApsConfigParamsFilterCacheFrame001, TestSize.Level1)
+{
+    std::unordered_map<std::string, std::string> params = { { "BUNDLE_NAME", "com.test.demo" },
+        { "FRAME_RATE", "30" } };
+
+    std::shared_ptr<RSRenderPipeline> nullPipeline = nullptr;
+    sptr<RSRenderPipelineAgent> nullAgent = sptr<RSRenderPipelineAgent>::MakeSptr(nullPipeline);
+    ASSERT_NE(nullAgent, nullptr);
+    EXPECT_EQ(nullAgent->SetApsConfigParams(ApsEventType::FILTER_CACHE_FRAME, params),
+        static_cast<ErrCode>(StatusCode::INVALID_ARGUMENTS));
+
+    // pipeline without main thread should return ERR_OK and not crash
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+    std::unordered_map<std::string, std::string> emptyParams;
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::FILTER_CACHE_FRAME, emptyParams), ERR_OK);
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::FILTER_CACHE_FRAME, params), ERR_OK);
+    // event that is neither HVE, SPLIT_LAYER nor FILTER_CACHE_FRAME falls through to the common ERR_OK return
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::SWIPER_BOOST_OFF, params), ERR_OK);
+}
+
+/**
+ * @tc.name: SetApsConfigParamsFilterCacheFrame002
+ * @tc.desc: Verify SetApsConfigParams with FILTER_CACHE_FRAME event dispatches to real main thread
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetApsConfigParamsFilterCacheFrame002, TestSize.Level1)
+{
+    std::shared_ptr<RSRenderPipeline> renderPipeline = std::make_shared<RSRenderPipeline>();
+    ASSERT_NE(renderPipeline->mainThread_, nullptr);
+    renderPipeline->mainThread_ = RSMainThread::Instance();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::unordered_map<std::string, std::string> params = { { "BUNDLE_NAME", "com.test.demo" },
+        { "FRAME_RATE", "30" } };
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::FILTER_CACHE_FRAME, params), ERR_OK);
+
+    // param without dot separator should also be handled
+    std::unordered_map<std::string, std::string> noDotParams = { { "BUNDLE_NAME", "nodotparam" },
+        { "FRAME_RATE", "60" } };
+    EXPECT_EQ(agent->SetApsConfigParams(ApsEventType::FILTER_CACHE_FRAME, noDotParams), ERR_OK);
+
+    renderPipeline->mainThread_ = nullptr;
 }
 
 /**

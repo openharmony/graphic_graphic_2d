@@ -2106,6 +2106,16 @@ public:
     bool IsDelegateModeNodeWithBuffer();
     bool GetDelegateMode() override;
 
+    void SetApsFilterRate(int rate)
+    {
+        apsFilterRate_ = rate;
+    }
+
+    int GetApsFilterRate() const
+    {
+        return apsFilterRate_;
+    }
+
 protected:
     void OnSync() override;
     void OnSkipSync() override;
@@ -2276,6 +2286,9 @@ private:
     bool hasVisitedCrossNode_ = false;
     std::weak_ptr<RSSurfaceRenderNode> sourceCrossNode_;
     std::vector<std::shared_ptr<RSSurfaceRenderNode>> cloneCrossNodeVec_;
+
+    // app filter rate
+    int apsFilterRate_ = INVALID_FILTER_RATE;
 
     // hpae offline
     bool deviceOfflineEnable_ = false;

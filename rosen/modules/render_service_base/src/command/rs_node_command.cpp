@@ -18,6 +18,7 @@
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_simple_draw_cmd_list.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_effect_utils.h"
 #include "platform/common/rs_log.h"
 #include "common/rs_optional_trace.h"
 #include "feature/layer/rs_layer_cache_manager_base.h"
@@ -117,6 +118,15 @@ void RSNodeCommandHelper::MarkRepaintBoundary(RSContext& context, NodeId nodeId,
     auto& nodeMap = context.GetNodeMap();
     if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
         node->MarkRepaintBoundary(isRepaintBoundary);
+    }
+}
+
+void RSNodeCommandHelper::SetNodeTargetRate(RSContext& context, NodeId nodeId, uint32_t nodeTargetRate)
+{
+    auto& nodeMap = context.GetNodeMap();
+    if (auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId)) {
+        RS_TRACE_NAME_FMT("RSNodeCommandHelper::SetNodeTargetRate nodeTargetRate is [%d]", nodeTargetRate);
+        RSEffectUtils::UpdateNodeFilterAppRateToDrawable(*node, nodeTargetRate);
     }
 }
 

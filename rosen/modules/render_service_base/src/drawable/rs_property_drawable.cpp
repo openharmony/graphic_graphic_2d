@@ -20,6 +20,8 @@
 #include "common/rs_optional_trace.h"
 #include "drawable/rs_property_drawable_utils.h"
 #include "effect/rs_render_shape_base.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
+#include "feature/filter_cache_manager/rs_cache_update_manager.h"
 #include "ge_render.h"
 #include "ge_visual_effect.h"
 #include "ge_visual_effect_container.h"

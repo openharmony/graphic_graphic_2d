@@ -98,6 +98,8 @@
 #include "metadata_helper.h"
 #include "monitor/self_drawing_node_monitor.h"
 #include "params/rs_surface_render_params.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
+#include "feature/filter_cache_manager/rs_cache_update_manager.h"
 #include "pipeline/render_thread/rs_base_surface_util.h"
 #include "pipeline/rs_base_render_node.h"
 #include "pipeline/rs_canvas_drawing_render_node.h"
@@ -3176,7 +3178,10 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
     if (receiver_) {
         receiver_->GetVSyncPeriod(rsPeriod);
     }
-    rsVsyncRateReduceManager_.ResetFrameValues(impl::CalculateRefreshRate(rsPeriod));
+    uint32_t refreshRate = impl::CalculateRefreshRate(rsPeriod);
+    rsVsyncRateReduceManager_.ResetFrameValues(refreshRate);
+    RS_TRACE_NAME_FMT("RSMainThread::UniRender refreshRate -> %u", refreshRate);
+    RSCacheUpdateManager::SetCurrentVsyncRefreshRate(refreshRate);
 
     if (isHardwareForcedDisabled_) {
         uniVisitor->MarkHardwareForcedDisabled();

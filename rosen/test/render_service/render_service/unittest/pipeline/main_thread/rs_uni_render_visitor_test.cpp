@@ -45,6 +45,7 @@
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_screen_render_node.h"
 #include "pipeline/rs_effect_render_node.h"
+#include "pipeline/rs_effect_utils.h"
 #include "pipeline/rs_depth_render_node.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "pipeline/rs_processor_factory.h"
@@ -12305,6 +12306,67 @@ HWTEST_F(RSUniRenderVisitorTest, UpdateSurfaceDirtyAndGlobalDirty005, TestSize.L
     rsUniRenderVisitor->UpdateSurfaceDirtyAndGlobalDirty();
     ASSERT_TRUE(surfaceNode->GetVisibleRegion().IsEmpty());
     system::SetParameter("rosen.ui.first.dirty.frame.control.enabled", checkType ? "1": "0");
+}
+
+/**
+ * @tc.name: UpdateNodeFilterApsRate001
+ * @tc.desc: test UpdateNodeFilterApsRate with node without aps rate and with positive rate but no filter child
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateNodeFilterApsRate001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    RSSurfaceRenderNodeConfig config = { .id = 920001, .name = "aps_rate_surface" };
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(surfaceNode, nullptr);
+
+    // node without aps rate should return directly
+    RSEffectUtils::UpdateNodeFilterApsRate(*surfaceNode, RSMainThread::Instance()->GetContext().GetNodeMap());
+
+    // node with positive rate but no visible filter child should not crash
+    surfaceNode->SetApsFilterRate(30);
+    RSEffectUtils::UpdateNodeFilterApsRate(*surfaceNode, RSMainThread::Instance()->GetContext().GetNodeMap());
+}
+
+/**
+ * @tc.name: UpdateNodeFilterApsRate002
+ * @tc.desc: test UpdateNodeFilterApsRate dispatches to existing and missing filter children
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, UpdateNodeFilterApsRate002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    constexpr NodeId filterChildId = 920003;
+    auto filterChild = std::make_shared<RSRenderNode>(filterChildId, RSMainThread::Instance()->context_);
+    ASSERT_NE(filterChild, nullptr);
+    auto& nodeMap = RSMainThread::Instance()->GetContext().GetMutableNodeMap();
+    nodeMap.RegisterRenderNode(filterChild);
+
+    RSSurfaceRenderNodeConfig config = { .id = 920002, .name = "aps_rate_dispatch_surface" };
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetApsFilterRate(30);
+    // missing node id exercises the null filter node branch, existing id exercises the dispatch branch
+    surfaceNode->visibleFilterChild_ = { 920099, filterChildId };
+    RSEffectUtils::UpdateNodeFilterApsRate(*surfaceNode, nodeMap);
+
+    nodeMap.UnregisterRenderNode(filterChildId);
+}
+
+/**
+ * @tc.name: TestNextVsync001
+ * @tc.desc: test TestNextVsync does not crash when no next vsync is requested
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniRenderVisitorTest, TestNextVsync001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    rsUniRenderVisitor->TestNextVsync();
 }
 } // namespace OHOS::Rosen
 #endif // RS_ENABLE_UNI_RENDER

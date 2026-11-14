@@ -120,6 +120,7 @@ const std::unordered_map<std::string, std::function<bool(std::unique_ptr<RSTrans
     DECLARE_ADD_RANDOM(RSNodeCommand, RSDumpClientNodeTree),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSCommitDumpClientNodeTree),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSMarkRepaintBoundary),
+    DECLARE_ADD_RANDOM(RSNodeCommand, RSSetNodeTargetRate),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSModifierNGAttachProperty),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSModifierNGDetachProperty),
     DECLARE_ADD_RANDOM(RSNodeCommand, RSUpdateOcclusionCullingStatus),

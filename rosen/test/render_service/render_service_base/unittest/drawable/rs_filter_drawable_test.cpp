@@ -359,9 +359,9 @@ HWTEST_F(RSFilterDrawableTest, RSFilterDrawable_MarkMethod, TestSize.Level1)
     drawable->MarkInForegroundFilterAndCheckNeedForceClearCache(INVALID_NODEID);
     drawable->MarkDebugEnabled();
     drawable->MarkAIBarCacheStatus(true);
-    drawable->stagingCacheManager_->filterType_ = RSFilter::NONE;
+    drawable->stagingCacheManager_->GetRSCacheUpdateManager()->filterType_ = RSFilter::NONE;
     drawable->MarkForceReduceAIBarCacheInterval(true);
-    drawable->stagingCacheManager_->filterType_ = RSFilter::AIBAR;
+    drawable->stagingCacheManager_->GetRSCacheUpdateManager()->filterType_ = RSFilter::AIBAR;
     drawable->MarkForceReduceAIBarCacheInterval(true);
     drawable->MarkForceReduceAIBarCacheInterval(false);
 

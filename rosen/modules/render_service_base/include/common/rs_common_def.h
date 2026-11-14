@@ -56,6 +56,7 @@ using SurfaceId = uint64_t;
 constexpr uint32_t UNI_MAIN_THREAD_INDEX = UINT32_MAX;
 constexpr uint32_t UNI_RENDER_THREAD_INDEX = UNI_MAIN_THREAD_INDEX - 1;
 constexpr uint64_t INVALID_NODEID = 0;
+constexpr int INVALID_FILTER_RATE = -1;
 constexpr int32_t INSTANCE_ID_UNDEFINED = -1;
 constexpr uint32_t RGBA_MAX = 255;
 constexpr uint64_t INVALID_LEASH_PERSISTENTID = 0;
@@ -863,6 +864,7 @@ enum class EnergyEvent : int32_t {
 enum class ApsEventType : uint32_t {
     SPLIT_LAYER = 0,
     HVE = 1,
+    FILTER_CACHE_FRAME = 2,
     SWIPER_BOOST_OFF = 3,
 };
 using EnergyCommonDataMap = std::unordered_map<EnergyEvent, std::unordered_map<std::string, std::string>>;

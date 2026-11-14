@@ -437,6 +437,7 @@ ohos_source_set("render_service_base_src") {
     "src/feature/color_picker/rs_hetero_color_picker.cpp",
     "src/feature/dynamic_layer_skip/rs_dynamic_layer_skip_controller.cpp",
     "src/feature/filter_cache_manager/rs_filter_cache_manager.cpp",
+    "src/feature/filter_cache_manager/rs_cache_update_manager.cpp",
     "src/feature/filter_cache_manager/rs_filter_cache_memory_controller.cpp",
     "src/feature/hdr/rs_colorspace_util.cpp",
     "src/feature/hyper_graphic_manager/rs_render_frame_rate_linker.cpp",

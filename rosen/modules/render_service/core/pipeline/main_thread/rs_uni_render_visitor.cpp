@@ -1414,6 +1414,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     auto preGlobalShouldPaint = globalShouldPaint_;
     globalShouldPaint_ &= node.ShouldPaint();
     node.SetSelfAndParentShouldPaint(globalShouldPaint_);
+    RSEffectUtils::UpdateNodeFilterApsRate(
+        node, RSMainThread::Instance()->GetContext().GetNodeMap());
     CheckFilterCacheNeedForceClearOrSave(node);
     MarkFilterInForegroundFilterAndCheckNeedForceClearCache(node);
     node.CheckContainerDirtyStatusAndUpdateDirty(curContainerDirty_);

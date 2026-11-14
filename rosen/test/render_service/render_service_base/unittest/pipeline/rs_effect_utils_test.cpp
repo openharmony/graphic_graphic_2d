@@ -18,9 +18,15 @@
 
 #include "common/rs_common_def.h"
 #include "common/rs_obj_abs_geometry.h"
+#include "drawable/rs_filter_drawable.h"
+#include "drawable/rs_property_drawable.h"
+#include "feature/filter_cache_manager/rs_filter_cache_manager.h"
+#include "feature/filter_cache_manager/rs_cache_update_manager.h"
 #include "pipeline/rs_canvas_render_node.h"
+#include "pipeline/rs_context.h"
 #include "pipeline/rs_effect_render_node.h"
 #include "pipeline/rs_effect_utils.h"
+#include "pipeline/rs_surface_render_node.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -294,6 +300,195 @@ HWTEST_F(RSEffectUtilsTest, HasValidEffectTest001, TestSize.Level1)
     testNode->SetGlobalAlpha(1.0f);
     rootSurfaceNode->RemoveChild(effectNode);
     EXPECT_FALSE(RSEffectUtils::HasValidEffect(rootSurfaceNode.get()));
+}
+
+/**
+ * @tc.name: UpdateNodeFilterRateToDrawableTest001
+ * @tc.desc: test UpdateNodeFilterApsRateToDrawable and UpdateNodeFilterAppRateToDrawable on node without filter
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectUtilsTest, UpdateNodeFilterRateToDrawableTest001, TestSize.Level1)
+{
+    RSRenderNode node(id, context);
+    auto materialDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    materialDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    node.drawableVec_ = std::make_unique<RSDrawable::Vec>();
+    (*node.drawableVec_)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = materialDrawable;
+
+    // node without any filter properties: rates must not be written to the drawable
+    RSEffectUtils::UpdateNodeFilterApsRateToDrawable(node, 30);
+    RSEffectUtils::UpdateNodeFilterAppRateToDrawable(node, 60);
+    EXPECT_EQ(materialDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterApsRate(),
+        INVALID_FILTER_RATE);
+    EXPECT_EQ(materialDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterAppRate(),
+        INVALID_FILTER_RATE);
+}
+
+/**
+ * @tc.name: UpdateNodeFilterRateToDrawableTest002
+ * @tc.desc: test UpdateNodeFilterApsRateToDrawable and UpdateNodeFilterAppRateToDrawable with filter properties but
+ *           no filter drawable
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectUtilsTest, UpdateNodeFilterRateToDrawableTest002, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    node->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ =
+        std::make_shared<RSFilter>();
+    node->GetMutableRenderProperties().GetEffectProperties().SetBackgroundFilter(std::make_shared<RSFilter>());
+    node->GetMutableRenderProperties().GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
+    node->drawableVec_ = std::make_unique<RSDrawable::Vec>();
+
+    // filter properties are set but no filter drawable exists: nothing is created or updated
+    RSEffectUtils::UpdateNodeFilterApsRateToDrawable(*node, 30);
+    RSEffectUtils::UpdateNodeFilterAppRateToDrawable(*node, 60);
+    EXPECT_EQ((*node->drawableVec_)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)], nullptr);
+    EXPECT_EQ((*node->drawableVec_)[static_cast<int8_t>(RSDrawableSlot::BACKGROUND_FILTER)], nullptr);
+    EXPECT_EQ((*node->drawableVec_)[static_cast<int8_t>(RSDrawableSlot::COMPOSITING_FILTER)], nullptr);
+}
+
+/**
+ * @tc.name: UpdateNodeFilterRateToDrawableTest003
+ * @tc.desc: test UpdateNodeFilterApsRateToDrawable and UpdateNodeFilterAppRateToDrawable write rates into filter
+ *           drawables through InvokeFilterDrawable and GetFilterDrawable
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectUtilsTest, UpdateNodeFilterRateToDrawableTest003, TestSize.Level1)
+{
+    auto node = std::make_shared<RSCanvasRenderNode>(id, context);
+    node->GetMutableRenderProperties().GetEffectProperties().GetFilterEffect().materialFilter_ =
+        std::make_shared<RSFilter>();
+    node->GetMutableRenderProperties().GetEffectProperties().SetCompositingFilter(std::make_shared<RSFilter>());
+
+    auto materialDrawable = std::make_shared<DrawableV2::RSMaterialFilterDrawable>();
+    materialDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    auto compositingDrawable = std::make_shared<DrawableV2::RSCompositingFilterDrawable>();
+    compositingDrawable->stagingCacheManager_ = std::make_unique<RSFilterCacheManager>();
+    node->drawableVec_ = std::make_unique<RSDrawable::Vec>();
+    (*node->drawableVec_)[static_cast<int8_t>(RSDrawableSlot::MATERIAL_FILTER)] = materialDrawable;
+    (*node->drawableVec_)[static_cast<int8_t>(RSDrawableSlot::COMPOSITING_FILTER)] = compositingDrawable;
+
+    RSEffectUtils::UpdateNodeFilterApsRateToDrawable(*node, 30);
+    EXPECT_EQ(materialDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterApsRate(), 30);
+    EXPECT_EQ(compositingDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterApsRate(), 30);
+
+    RSEffectUtils::UpdateNodeFilterAppRateToDrawable(*node, 60);
+    EXPECT_EQ(materialDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterAppRate(), 60);
+    EXPECT_EQ(compositingDrawable->stagingCacheManager_->GetRSCacheUpdateManager()->GetNodeFilterAppRate(), 60);
+}
+
+/**
+ * @tc.name: UpdateSurfaceFilterRate001
+ * @tc.desc: test UpdateSurfaceFilterRate updates matched surface nodes only
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectUtilsTest, UpdateSurfaceFilterRate001, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSContext>();
+    ASSERT_NE(ctx, nullptr);
+    auto& nodeMap = ctx->GetMutableNodeMap();
+
+    constexpr NodeId matchedId = 920101;
+    constexpr NodeId unmatchedId = 920102;
+    RSSurfaceRenderNodeConfig matchedConfig = { .id = matchedId, .name = "demo_surface" };
+    RSSurfaceRenderNodeConfig unmatchedConfig = { .id = unmatchedId, .name = "other_surface" };
+    auto matchedNode = std::make_shared<RSSurfaceRenderNode>(matchedConfig, ctx);
+    auto unmatchedNode = std::make_shared<RSSurfaceRenderNode>(unmatchedConfig, ctx);
+    ASSERT_NE(matchedNode, nullptr);
+    ASSERT_NE(unmatchedNode, nullptr);
+    nodeMap.RegisterRenderNode(matchedNode);
+    nodeMap.RegisterRenderNode(unmatchedNode);
+
+    // suffix after last dot must be contained in node name to match
+    RSEffectUtils::UpdateSurfaceFilterRate("com.test.demo", 30, ctx->GetNodeMap());
+    EXPECT_EQ(matchedNode->GetApsFilterRate(), 30);
+    EXPECT_EQ(unmatchedNode->GetApsFilterRate(), INVALID_FILTER_RATE);
+
+    // zero rate is still applied to matched nodes
+    RSEffectUtils::UpdateSurfaceFilterRate("com.test.demo", 0, ctx->GetNodeMap());
+    EXPECT_EQ(matchedNode->GetApsFilterRate(), 0);
+    EXPECT_EQ(unmatchedNode->GetApsFilterRate(), INVALID_FILTER_RATE);
+
+    nodeMap.UnregisterRenderNode(matchedId);
+    nodeMap.UnregisterRenderNode(unmatchedId);
+}
+
+/**
+ * @tc.name: UpdateSurfaceFilterRate002
+ * @tc.desc: test UpdateSurfaceFilterRate with empty suffix updates nothing
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectUtilsTest, UpdateSurfaceFilterRate002, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSContext>();
+    ASSERT_NE(ctx, nullptr);
+    auto& nodeMap = ctx->GetMutableNodeMap();
+
+    constexpr NodeId nodeId = 920103;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "demo_surface" };
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, ctx);
+    ASSERT_NE(surfaceNode, nullptr);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    surfaceNode->SetApsFilterRate(30);
+
+    // param without dot: suffix is empty, no surface should be updated
+    RSEffectUtils::UpdateSurfaceFilterRate("nodotparam", 60, ctx->GetNodeMap());
+    EXPECT_EQ(surfaceNode->GetApsFilterRate(), 30);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: UpdateSurfaceFilterRate003
+ * @tc.desc: test UpdateSurfaceFilterRate with trailing dot param updates nothing
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectUtilsTest, UpdateSurfaceFilterRate003, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSContext>();
+    ASSERT_NE(ctx, nullptr);
+    auto& nodeMap = ctx->GetMutableNodeMap();
+
+    constexpr NodeId nodeId = 920104;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "demo_surface" };
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, ctx);
+    ASSERT_NE(surfaceNode, nullptr);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    surfaceNode->SetApsFilterRate(30);
+
+    // param ending with a dot: suffix after last dot is empty, no surface should be updated
+    RSEffectUtils::UpdateSurfaceFilterRate("com.test.", 60, ctx->GetNodeMap());
+    EXPECT_EQ(surfaceNode->GetApsFilterRate(), 30);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+}
+
+/**
+ * @tc.name: UpdateSurfaceFilterRate004
+ * @tc.desc: test UpdateSurfaceFilterRate skips null surface entries without crash
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSEffectUtilsTest, UpdateSurfaceFilterRate004, TestSize.Level1)
+{
+    auto ctx = std::make_shared<RSContext>();
+    ASSERT_NE(ctx, nullptr);
+    auto& nodeMap = ctx->GetMutableNodeMap();
+
+    constexpr NodeId nodeId = 920105;
+    constexpr NodeId nullEntryId = 920106;
+    RSSurfaceRenderNodeConfig config = { .id = nodeId, .name = "demo_surface" };
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config, ctx);
+    ASSERT_NE(surfaceNode, nullptr);
+    nodeMap.RegisterRenderNode(surfaceNode);
+    // a null entry in the surface map exercises the null surfaceNode branch in the traversal lambda
+    nodeMap.surfaceNodeMap_[nullEntryId] = nullptr;
+
+    RSEffectUtils::UpdateSurfaceFilterRate("com.test.demo", 60, ctx->GetNodeMap());
+    // traversal continues past the null entry and updates matched node
+    EXPECT_EQ(surfaceNode->GetApsFilterRate(), 60);
+
+    nodeMap.UnregisterRenderNode(nodeId);
+    nodeMap.surfaceNodeMap_.erase(nullEntryId);
 }
 } // namespace Rosen
 } // namespace OHOS

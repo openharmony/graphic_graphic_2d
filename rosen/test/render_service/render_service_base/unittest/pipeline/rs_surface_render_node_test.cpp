@@ -1955,7 +1955,7 @@ HWTEST_F(RSSurfaceRenderNodeTest, CheckValidFilterCacheFullyCoverTargetTest, Tes
     EXPECT_FALSE(node->isFilterCacheStatusChanged_);
     auto drawable = std::make_shared<DrawableV2::RSBackgroundFilterDrawable>();
     if (RSFilterCacheManager::IsFilterCacheEnabled()) {
-        drawable->stagingCacheManager_->isFilterCacheValid_ = true;
+        drawable->stagingCacheManager_->GetRSCacheUpdateManager()->isFilterCacheValid_ = true;
     }
     filterNode.GetDrawableVec(__func__)[static_cast<uint32_t>(RSDrawableSlot::BACKGROUND_FILTER)] = drawable;
     node->isFilterCacheFullyCovered_ = false;
@@ -3821,6 +3821,23 @@ HWTEST_F(RSSurfaceRenderNodeTest, UpdateDelegateRectToSurfaceParamsCoverage001, 
     n3.UpdateDelegateRectToSurfaceParams();
     EXPECT_EQ(p3Raw->GetDelegateDstRect(), RectF(1.f, 2.f, 3.f, 4.f));
     EXPECT_EQ(p3Raw->GetDelegateSrcRect(), RectF(5.f, 6.f, 7.f, 8.f));
+}
+
+/**
+ * @tc.name: ApsFilterRateTest001
+ * @tc.desc: test SetApsFilterRate and GetApsFilterRate with default invalid value
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSSurfaceRenderNodeTest, ApsFilterRateTest001, TestSize.Level1)
+{
+    RSSurfaceRenderNodeConfig config = { .id = id };
+    RSSurfaceRenderNode node(config);
+    EXPECT_EQ(node.GetApsFilterRate(), INVALID_FILTER_RATE);
+
+    node.SetApsFilterRate(30);
+    EXPECT_EQ(node.GetApsFilterRate(), 30);
+    node.SetApsFilterRate(INVALID_FILTER_RATE);
+    EXPECT_EQ(node.GetApsFilterRate(), INVALID_FILTER_RATE);
 }
 } // namespace Rosen
 } // namespace OHOS

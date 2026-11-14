@@ -24,6 +24,7 @@
 #include "common/rs_rect.h"
 #include "drawable/rs_drawable.h"
 #include "feature/filter_cache_manager/rs_filter_cache_manager.h"
+#include "feature/filter_cache_manager/rs_cache_update_manager.h"
 #include "modifier_ng/rs_modifier_ng_type.h"
 #include "property/rs_properties_def.h"
 #include "render/rs_filter.h"
@@ -32,6 +33,7 @@ namespace OHOS::Rosen {
 class RSRenderNode;
 class RSFilter;
 class RSFilterCacheManager;
+class RSCacheUpdateManager;
 namespace DrawableV2 {
 class RSFilterDrawable : public RSDrawable {
 public:
@@ -99,6 +101,9 @@ public:
     bool IsFilterCacheValidForOcclusion();
     bool IsFilterCacheValidForPartialRender() const;
     const RectI GetFilterCachedRegion() const;
+
+    void UpdateNodeFilterApsRateToCacheManager(int32_t nodeApsRate);
+    void UpdateNodeFilterAppRateToCacheManager(int32_t nodeApsRate);
 protected:
     virtual std::shared_ptr<RSFilter> GetFilter(const RSRenderNode& node) const = 0;
     virtual bool RenderWithDRM(Drawing::Canvas* canvas, const Drawing::Rect* rect) const = 0;

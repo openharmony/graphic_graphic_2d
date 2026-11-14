@@ -14,6 +14,7 @@
  */
 
 #include "feature/filter_cache_manager/rs_filter_cache_manager.h"
+#include "feature/filter_cache_manager/rs_cache_update_manager.h"
 #include "rs_trace.h"
 #include "common/rs_occlusion_region.h"
 #include "render/rs_filter.h"
@@ -44,9 +45,6 @@
 
 namespace OHOS {
 namespace Rosen {
-
-constexpr int AIBAR_CACHE_UPDATE_INTERVAL = 6;
-constexpr int ROTATION_CACHE_UPDATE_INTERVAL = 1;
 
 int64_t RSFilterCacheManager::frameTimestamp_ = 0;
 
@@ -79,6 +77,14 @@ RSFilterCacheManager::RSFilterCacheManager()
 RSFilterCacheManager::~RSFilterCacheManager()
 {
     InvalidateFilterCache(FilterCacheType::BOTH);
+}
+
+std::shared_ptr<RSCacheUpdateManager> RSFilterCacheManager::GetRSCacheUpdateManager()
+{
+    if (rsCacheUpdateManager_ == nullptr) {
+        rsCacheUpdateManager_ = std::make_shared<RSCacheUpdateManager>();
+    }
+    return rsCacheUpdateManager_;
 }
 
 std::string RSFilterCacheManager::GetCacheState() const
@@ -179,7 +185,7 @@ void RSFilterCacheManager::DrawFilter(RSPaintFilterCanvas& canvas, const std::sh
     RS_TRACE_NAME_FMT("RSFilterCacheManager::DrawFilter status: %s", GetCacheState().c_str());
 #ifdef RS_ENABLE_GPU
     RSTagTracker tagTrackerCache(canvas.GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FILTER_CACHE);
-    RSTagTracker tag = GetFilterType() == RSFilter::FilterType::MATERIAL ?
+    RSTagTracker tag = GetRSCacheUpdateManager()->GetFilterType() == RSFilter::FilterType::MATERIAL ?
         RSTagTracker(canvas.GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FILTER_MATERIAL_CACHE) :
         RSTagTracker(canvas.GetGPUContext(), RSTagTracker::TAGTYPE::TAG_FILTER_CACHE);
     RSTagTracker tagTracker(canvas.GetGPUContext(), RSTagTracker::SOURCETYPE::SOURCE_FILTERCACHEENABLEVMA, nodeId);
@@ -237,7 +243,7 @@ const std::shared_ptr<RSPaintFilterCanvas::CachedEffectData> RSFilterCacheManage
     // snapshotNeedUpdate_ is used to notify update snapshot for next frame
     // if GetBlurContentChanged(), snapshot should be task again
     snapshotNeedUpdate_ = RSHpaeBaseData::GetInstance().GetBlurContentChanged() &&
-        (!forceUseCache_) && (filterType_ != RSFilter::AIBAR);
+        (!GetRSCacheUpdateManager()->forceUseCache_) && (GetRSCacheUpdateManager()->filterType_ != RSFilter::AIBAR);
 
     if (cachedFilteredSnapshot_ == nullptr || cachedFilteredSnapshot_->cachedImage_ == nullptr) {
         GenerateFilteredSnapshot(canvas, filter, dst);
@@ -434,253 +440,46 @@ void RSFilterCacheManager::SetFilterInvalid(bool invalidFilter)
     filterInvalid_ = invalidFilter;
 }
 
-bool RSFilterCacheManager::IsForceUseFilterCache() const
-{
-    return stagingForceUseCache_;
-}
-
-void RSFilterCacheManager::MarkFilterForceUseCache(bool forceUseCache)
-{
-    stagingForceUseCache_ = forceUseCache;
-}
-
-bool RSFilterCacheManager::IsForceClearFilterCache() const
-{
-    return stagingForceClearCache_;
-}
-
-void RSFilterCacheManager::MarkFilterForceClearCache()
-{
-    stagingForceClearCache_ = true;
-}
-
-void RSFilterCacheManager::RecordFilterInfos(const std::shared_ptr<RSFilter>& rsFilter)
-{
-    auto filter = std::static_pointer_cast<RSDrawingFilter>(rsFilter);
-    if (filter == nullptr) {
-        return;
-    }
-    stagingFilterHashChanged_ = stagingCachedFilterHash_ != filter->Hash();
-    if (stagingFilterHashChanged_) {
-        stagingCachedFilterHash_ = filter->Hash();
-    }
-    filterType_ = filter->GetFilterType();
-    canSkipFrame_ = filter->CanSkipFrame();
-}
-
-void RSFilterCacheManager::MarkFilterRegionChanged()
-{
-    stagingFilterRegionChanged_ = true;
-}
-
-void RSFilterCacheManager::MarkFilterRegionInteractWithDirty()
-{
-    stagingFilterInteractWithDirty_ = true;
-}
-
-void RSFilterCacheManager::MarkForceClearCacheWithLastFrame()
-{
-    stagingForceClearCacheForLastFrame_ = true;
-}
-
-void RSFilterCacheManager::MarkFilterRegionIsLargeArea()
-{
-    stagingIsLargeArea_ = true;
-}
-
-void RSFilterCacheManager::MarkInForegroundFilterAndCheckNeedForceClearCache(NodeId offscreenCanvasNodeId)
-{
-    offscreenNodeId_ = offscreenCanvasNodeId;
-    if (offscreenNodeId_ != lastOffscreenNodeId_ && lastCacheType_ != FilterCacheType::NONE) {
-        MarkFilterForceClearCache();
-    }
-}
-
-void RSFilterCacheManager::UpdateFlags(FilterCacheType type, bool cacheValid)
-{
-    stagingClearType_ = type;
-    isFilterCacheValid_ = cacheValid;
-    if (!cacheValid) {
-        cacheUpdateInterval_ = stagingRotationChanged_ ? ROTATION_CACHE_UPDATE_INTERVAL :
-            (filterType_ == RSFilter::AIBAR ? AIBAR_CACHE_UPDATE_INTERVAL :
-            (stagingIsLargeArea_ && canSkipFrame_ ? RSSystemProperties::GetFilterCacheUpdateInterval() : 0));
-        pendingPurge_ = false;
-        return;
-    }
-    if (stagingIsAIBarInteractWithHWC_ || stagingFilterInteractWithDirty_ || stagingRotationChanged_) {
-        ReduceCacheUpdateInterval();
-    }
-    stagingIsAIBarInteractWithHWC_ = false;
-}
-
-bool RSFilterCacheManager::ReduceCacheUpdateInterval()
-{
-    if (cacheUpdateInterval_ <= 0) {
-        return false;
-    }
-
-    cacheUpdateInterval_--;
-    pendingPurge_ = true;
-    return true;
-}
-
-bool RSFilterCacheManager::ReduceCacheUpdateIntervalIfPendingPurge()
-{
-    if (cacheUpdateInterval_ <= 0) {
-        return false;
-    }
-
-    if (pendingPurge_) {
-        cacheUpdateInterval_--;
-    }
-    return true;
-}
-
-bool RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus(bool intersectHwcDamage)
-{
-    if (filterType_ != RSFilter::AIBAR) {
-        return false;
-    }
-    // should mark stagingIsAIBarInteractWithHWC_ once intersectHwcDamage is true
-    // or pendingPurge_ is true (which means AIBar has been intersected with damage during cache consuming)
-    if (intersectHwcDamage || pendingPurge_) {
-        stagingIsAIBarInteractWithHWC_ = true;
-    }
-    RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::CheckAndUpdateAIBarCacheStatus \
-        cacheUpdateInterval_:%d forceClearCacheForLastFrame_:%d",
-        cacheUpdateInterval_, stagingForceClearCacheForLastFrame_);
-    if (cacheUpdateInterval_ == 0 || stagingForceClearCacheForLastFrame_) {
-        return false;
-    } else {
-        MarkFilterForceUseCache(true);
-        return true;
-    }
-}
-
-void RSFilterCacheManager::MarkEffectNode()
-{
-    stagingIsEffectNode_  = true;
-}
-
 void RSFilterCacheManager::SwapDataAndInitStagingFlags(std::unique_ptr<RSFilterCacheManager>& cacheManager)
 {
     if (cacheManager == nullptr) {
         return;
     }
     // stagingParams to renderParams
-    cacheManager->renderFilterHashChanged_ = stagingFilterHashChanged_;
-    cacheManager->renderForceClearCacheForLastFrame_ = stagingForceClearCacheForLastFrame_;
-    cacheManager->renderIsEffectNode_ = stagingIsEffectNode_;
-    cacheManager->renderIsSkipFrame_ = stagingIsSkipFrame_;
-    cacheManager->renderClearType_ = stagingClearType_;
+    cacheManager->renderFilterHashChanged_ = GetRSCacheUpdateManager()->stagingFilterHashChanged_;
+    cacheManager->renderForceClearCacheForLastFrame_ = GetRSCacheUpdateManager()->stagingForceClearCacheForLastFrame_;
+    cacheManager->renderIsEffectNode_ = GetRSCacheUpdateManager()->stagingIsEffectNode_;
+    cacheManager->renderIsSkipFrame_ = GetRSCacheUpdateManager()->stagingIsSkipFrame_;
+    cacheManager->renderClearType_ = GetRSCacheUpdateManager()->stagingClearType_;
 
-    cacheManager->stagingFilterRegionChanged_ = stagingFilterRegionChanged_;
-    cacheManager->filterType_ = filterType_;
-    cacheManager->stagingIsOccluded_ = stagingIsOccluded_;
+    cacheManager->GetRSCacheUpdateManager()->stagingFilterRegionChanged_ =
+        GetRSCacheUpdateManager()->stagingFilterRegionChanged_;
+    cacheManager->GetRSCacheUpdateManager()->filterType_ = GetRSCacheUpdateManager()->filterType_;
+    cacheManager->GetRSCacheUpdateManager()->stagingIsOccluded_ = GetRSCacheUpdateManager()->stagingIsOccluded_;
     cacheManager->ClearFilterCache();
-    cacheManager->forceUseCache_ = stagingForceUseCache_;
-    cacheManager->belowDirty_ = stagingFilterInteractWithDirty_;
-    cacheManager->offscreenNodeId_ = offscreenNodeId_;
+    cacheManager->GetRSCacheUpdateManager()->forceUseCache_ = GetRSCacheUpdateManager()->stagingForceUseCache_;
+    cacheManager->GetRSCacheUpdateManager()->belowDirty_ = GetRSCacheUpdateManager()->stagingFilterInteractWithDirty_;
+    cacheManager->GetRSCacheUpdateManager()->offscreenNodeId_ = GetRSCacheUpdateManager()->offscreenNodeId_;
 
     // renderParams to stagingParams
-    lastCacheType_ = cacheManager->lastCacheType_;
+    GetRSCacheUpdateManager()->lastCacheType_ = cacheManager->GetRSCacheUpdateManager()->lastCacheType_;
     lastHpaeClearCache_ = cacheManager->lastHpaeClearCache_;
     cacheManager->lastHpaeClearCache_ = false;
 
     // save staging param value
-    lastOffscreenNodeId_ = offscreenNodeId_;
+    GetRSCacheUpdateManager()->lastOffscreenNodeId_ = GetRSCacheUpdateManager()->offscreenNodeId_;
 
     // stagingParams init
-    stagingFilterHashChanged_ = false;
-    stagingForceClearCacheForLastFrame_ = false;
-    stagingIsEffectNode_ = false;
-    stagingIsSkipFrame_ = false;
-    stagingClearType_ = FilterCacheType::BOTH;
-
-    stagingFilterRegionChanged_ = false;
-    stagingFilterInteractWithDirty_ = false;
-    stagingRotationChanged_ = false;
-    stagingForceClearCache_ = false;
-    stagingForceUseCache_ = false;
-    stagingIsOccluded_ = false;
-
-    stagingIsLargeArea_ = false;
-    isFilterCacheValid_ = false;
-
-    debugEnabled_ = false;
-}
-
-void RSFilterCacheManager::MarkNeedClearFilterCache(NodeId nodeId)
-{
-    RS_TRACE_NAME_FMT("RSFilterCacheManager::MarkNeedClearFilterCache nodeId[%llu] forceUseCache_:%d,"
-        "forceClearCache_:%d, hashChanged:%d, regionChanged_:%d, belowDirty_:%d,"
-        "lastCacheType:%d, cacheUpdateInterval_:%d, canSkip:%d, isLargeArea:%d, filterType_:%d, pendingPurge_:%d,"
-        "forceClearCacheWithLastFrame:%d, rotationChanged:%d, offscreenNodeId:%llu", nodeId,
-        stagingForceUseCache_, stagingForceClearCache_, stagingFilterHashChanged_,
-        stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
-        lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
-        filterType_, pendingPurge_, stagingForceClearCacheForLastFrame_, stagingRotationChanged_,
-        offscreenNodeId_);
-
-    ROSEN_LOGD("RSFilterDrawable::MarkNeedClearFilterCache, forceUseCache_:%{public}d,"
-        "forceClearCache_:%{public}d, hashChanged:%{public}d, regionChanged_:%{public}d, belowDirty_:%{public}d,"
-        "lastCacheType:%{public}hhu, cacheUpdateInterval_:%{public}d, canSkip:%{public}d, isLargeArea:%{public}d,"
-        "filterType_:%{public}d, pendingPurge_:%{public}d,"
-        "forceClearCacheWithLastFrame:%{public}d, rotationChanged:%{public}d,"
-        "offscreenNodeId:%{public}" PRIu64,
-        stagingForceUseCache_, stagingForceClearCache_,
-        stagingFilterHashChanged_, stagingFilterRegionChanged_, stagingFilterInteractWithDirty_,
-        lastCacheType_, cacheUpdateInterval_, canSkipFrame_, stagingIsLargeArea_,
-        filterType_, pendingPurge_, stagingForceClearCacheForLastFrame_, stagingRotationChanged_,
-        offscreenNodeId_);
-
-    // if do not request NextVsync, close skip
-    if (stagingForceClearCacheForLastFrame_) {
-        cacheUpdateInterval_ = 0;
-    }
-
-    stagingIsSkipFrame_ = stagingIsLargeArea_ && canSkipFrame_ && !stagingFilterRegionChanged_;
-
-    // no valid cache
-    if (lastCacheType_ == FilterCacheType::NONE) {
-        UpdateFlags(FilterCacheType::BOTH, false);
-        return;
-    }
-    // No need to invalidate cache if background image is not null or freezed
-    if (stagingForceUseCache_) {
-        UpdateFlags(FilterCacheType::NONE, true);
-        return;
-    }
-
-    // clear both two type cache: 1. force clear 2. filter region changed 3.skip-frame finished
-    // 4. background changed and effectNode rotated will enable skip-frame, the last frame need to update.
-    if (stagingForceClearCache_ || (stagingFilterRegionChanged_ && !stagingRotationChanged_) || NeedPendingPurge() ||
-        ((stagingFilterInteractWithDirty_ || stagingRotationChanged_) && cacheUpdateInterval_ <= 0)) {
-        UpdateFlags(FilterCacheType::BOTH, false);
-        return;
-    }
-
-    // clear snapshot cache last frame and clear filtered cache current frame
-    if (lastCacheType_ == FilterCacheType::FILTERED_SNAPSHOT && stagingFilterHashChanged_) {
-        UpdateFlags(FilterCacheType::FILTERED_SNAPSHOT, false);
-        return;
-    }
-
-    // when blur filter changes, we need to clear filtered cache if it valid.
-    UpdateFlags(stagingFilterHashChanged_ ?
-        FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::NONE, true);
-}
-
-bool RSFilterCacheManager::NeedPendingPurge() const
-{
-    return !stagingFilterInteractWithDirty_ && pendingPurge_;
+    GetRSCacheUpdateManager()->OnSyncStagingParams(cacheManager->GetRSCacheUpdateManager());
 }
 
 void RSFilterCacheManager::ClearFilterCache()
 {
     // 1. clear memory when region changed and is not the first time occured.
-    bool needClearMemoryForGpu = stagingFilterRegionChanged_ && GetCachedType() != FilterCacheType::NONE;
-    if ((filterType_ == RSFilter::AIBAR && stagingIsOccluded_) || IsFilterCacheMemExceedThreshold()) {
+    bool needClearMemoryForGpu =
+        GetRSCacheUpdateManager()->stagingFilterRegionChanged_ && GetCachedType() != FilterCacheType::NONE;
+    if ((GetRSCacheUpdateManager()->filterType_ == RSFilter::AIBAR && GetRSCacheUpdateManager()->stagingIsOccluded_) ||
+        IsFilterCacheMemExceedThreshold()) {
         InvalidateFilterCache(FilterCacheType::BOTH);
     } else {
         InvalidateFilterCache(renderClearType_);
@@ -693,35 +492,28 @@ void RSFilterCacheManager::ClearFilterCache()
 
     // whether to clear blur images. true: clear blur image, false: clear snapshot
     bool isSaveSnapshot = renderFilterHashChanged_ || GetCachedType() == FilterCacheType::NONE;
-    bool isAIbarWithLastFrame = filterType_ == RSFilter::AIBAR && renderForceClearCacheForLastFrame_; // last vsync
-
-    if ((filterType_ != RSFilter::AIBAR || isAIbarWithLastFrame) && isSaveSnapshot) {
-        renderClearFilteredCacheAfterDrawing_ = true;      // hold snapshot
+    bool isAIbarWithLastFrame =
+        GetRSCacheUpdateManager()->filterType_ == RSFilter::AIBAR && renderForceClearCacheForLastFrame_; // last vsync
+    if ((GetRSCacheUpdateManager()->filterType_ != RSFilter::AIBAR || isAIbarWithLastFrame) && isSaveSnapshot) {
+        renderClearFilteredCacheAfterDrawing_ = true; // hold snapshot
     } else {
         renderClearFilteredCacheAfterDrawing_ = false;     // hold blur image
     }
     if (renderIsEffectNode_ || renderIsSkipFrame_) { renderClearFilteredCacheAfterDrawing_ = renderFilterHashChanged_; }
-    lastCacheType_ = stagingIsOccluded_ ? GetCachedType() : (renderClearFilteredCacheAfterDrawing_ ?
-        FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);
+    GetRSCacheUpdateManager()->lastCacheType_ =
+        GetRSCacheUpdateManager()->stagingIsOccluded_
+            ? GetCachedType()
+            : (renderClearFilteredCacheAfterDrawing_ ? FilterCacheType::SNAPSHOT : FilterCacheType::FILTERED_SNAPSHOT);
     RS_TRACE_NAME_FMT("RSFilterCacheManager::ClearFilterCache, clearType:%d,"
         " isOccluded_:%d, lastCacheType:%d needClearMemoryForGpu:%d ClearFilteredCacheAfterDrawing:%d",
-        renderClearType_, stagingIsOccluded_, lastCacheType_, needClearMemoryForGpu,
-        renderClearFilteredCacheAfterDrawing_);
+        renderClearType_, GetRSCacheUpdateManager()->stagingIsOccluded_, GetRSCacheUpdateManager()->lastCacheType_,
+        needClearMemoryForGpu, renderClearFilteredCacheAfterDrawing_);
     ROSEN_LOGD("RSFilterCacheManager::ClearFilterCache, clearType:%{public}d,"
         " isOccluded_:%{public}d, lastCacheType:%{public}d needClearMemoryForGpu:%{public}d"
         " ClearFilteredCacheAfterDrawing:%{public}d",
-        static_cast<int>(renderClearType_), stagingIsOccluded_, static_cast<int>(lastCacheType_),
-        needClearMemoryForGpu, renderClearFilteredCacheAfterDrawing_);
-}
-
-bool RSFilterCacheManager::IsSkippingFrame() const
-{
-    return (stagingFilterInteractWithDirty_ || stagingRotationChanged_) && cacheUpdateInterval_ > 0;
-}
-
-void RSFilterCacheManager::MarkRotationChanged()
-{
-    stagingRotationChanged_ = true;
+        static_cast<int>(renderClearType_), GetRSCacheUpdateManager()->stagingIsOccluded_,
+        static_cast<int>(GetRSCacheUpdateManager()->lastCacheType_), needClearMemoryForGpu,
+        renderClearFilteredCacheAfterDrawing_);
 }
 
 // called after OnSync()
@@ -729,13 +521,12 @@ bool RSFilterCacheManager::IsFilterCacheValidForOcclusion()
 {
     auto cacheType = GetCachedType();
     RS_OPTIONAL_TRACE_NAME_FMT("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%d renderClearType_:%d"
-        " offscreenNodeId_: %" PRIu64,
-        cacheType, renderClearType_, offscreenNodeId_);
+        " offscreenNodeId_: %" PRIu64, cacheType, renderClearType_, GetRSCacheUpdateManager()->offscreenNodeId_);
     ROSEN_LOGD("RSFilterCacheManager::IsFilterCacheValidForOcclusion cacheType:%{public}d renderClearType_:%{public}d"
         " offscreenNodeId_: %{public}" PRIu64,
-        static_cast<int>(cacheType), static_cast<int>(renderClearType_), offscreenNodeId_);
+        static_cast<int>(cacheType), static_cast<int>(renderClearType_), GetRSCacheUpdateManager()->offscreenNodeId_);
 
-    return cacheType != FilterCacheType::NONE && offscreenNodeId_ == INVALID_NODEID;
+    return cacheType != FilterCacheType::NONE && GetRSCacheUpdateManager()->offscreenNodeId_ == INVALID_NODEID;
 }
 
 bool RSFilterCacheManager::IsFilterCacheValidForPartialRender() const
@@ -747,61 +538,6 @@ bool RSFilterCacheManager::IsFilterCacheValidForPartialRender() const
         " renderClearType_:%{public}d", static_cast<int>(cacheType), static_cast<int>(renderClearType_));
 
     return cacheType == FilterCacheType::FILTERED_SNAPSHOT;
-}
-
-void RSFilterCacheManager::MarkNodeIsOccluded(bool isOccluded)
-{
-    stagingIsOccluded_ = isOccluded;
-}
-
-bool RSFilterCacheManager::IsFilterCacheValid() const
-{
-    return isFilterCacheValid_;
-}
-
-bool RSFilterCacheManager::WouldDrawLargeAreaBlur()
-{
-    RS_TRACE_NAME_FMT("wouldDrawLargeAreaBlur stagingIsLargeArea:%d canSkipFrame:%d"
-        " stagingUpdateInterval:%d stagingFilterInteractWithDirty:%d",
-        stagingIsLargeArea_, canSkipFrame_, cacheUpdateInterval_, stagingFilterInteractWithDirty_);
-    ROSEN_LOGD("wouldDrawLargeAreaBlur stagingIsLargeArea:%{public}d canSkipFrame:%{public}d"
-        " stagingUpdateInterval:%{public}d stagingFilterInteractWithDirty:%{public}d",
-        stagingIsLargeArea_, canSkipFrame_, cacheUpdateInterval_, stagingFilterInteractWithDirty_);
-    if (stagingIsLargeArea_) {
-        if (!canSkipFrame_) {
-            return true;
-        }
-        return cacheUpdateInterval_ == 1 && stagingFilterInteractWithDirty_;
-    }
-    return false;
-}
-
-bool RSFilterCacheManager::WouldDrawLargeAreaBlurPrecisely()
-{
-    RS_TRACE_NAME_FMT("wouldDrawLargeAreaBlurPrecisely stagingIsLargeArea:%d stagingForceClearCache:%d"
-        " canSkipFrame:%d stagingFilterHashChanged:%d stagingFilterInteractWithDirty:%d stagingFilterRegionChanged:%d"
-        " stagingUpdateInterval:%d stagingLastCacheType:%d", stagingIsLargeArea_,
-        stagingForceClearCache_, canSkipFrame_, stagingFilterHashChanged_, stagingFilterInteractWithDirty_,
-        stagingFilterRegionChanged_, cacheUpdateInterval_, lastCacheType_);
-    if (!stagingIsLargeArea_) {
-        return false;
-    }
-    if (stagingForceClearCache_) {
-        return true;
-    }
-    if (!canSkipFrame_ && !stagingFilterHashChanged_) {
-        return true;
-    }
-    if (!stagingFilterInteractWithDirty_ && !stagingFilterHashChanged_ && !stagingFilterRegionChanged_) {
-        return false;
-    }
-    if (cacheUpdateInterval_ == 0) {
-        return true;
-    }
-    if (lastCacheType_ == FilterCacheType::FILTERED_SNAPSHOT && stagingFilterHashChanged_) {
-        return true;
-    }
-    return false;
 }
 
 FilterCacheType RSFilterCacheManager::GetCachedType() const
@@ -879,12 +615,12 @@ bool RSFilterCacheManager::IsFilterCacheMemExceedThreshold() const
 
 bool RSFilterCacheManager::ForceUpadateCacheByHpae()
 {
-    if (belowDirty_) {
+    if (GetRSCacheUpdateManager()->belowDirty_) {
         // if filter hash is changed, return false to use original rule
         return false;
     }
 
-    if (forceUseCache_ || filterType_ == RSFilter::AIBAR) {
+    if (GetRSCacheUpdateManager()->forceUseCache_ || GetRSCacheUpdateManager()->filterType_ == RSFilter::AIBAR) {
         // don't changed the cache rules by forceUseCache_ or AIBAR
         return false;
     }
@@ -906,11 +642,6 @@ void RSFilterCacheManager::CompactFilterCache()
 
     InvalidateFilterCache(renderClearFilteredCacheAfterDrawing_ ?
         FilterCacheType::FILTERED_SNAPSHOT : FilterCacheType::SNAPSHOT);
-}
-
-void RSFilterCacheManager::MarkDebugEnabled()
-{
-    debugEnabled_ = true;
 }
 
 std::shared_ptr<Drawing::Surface> RSFilterCacheManager::CreateOffscreenSurface(
