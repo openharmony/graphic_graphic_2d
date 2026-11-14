@@ -93,7 +93,7 @@ private:
 
     std::string tvPlayerBundleName_;
 
-    std::string surfaceOpaqueType;
+    std::string surfaceOpaqueType_;
 
     std::unordered_map<std::string, std::string> overlappedHwcNodeInAppEnabledConfig_;
 
