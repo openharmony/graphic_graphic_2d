@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef RS_DELEGATE_COMPOSITE_LISTENER_H
 #define RS_DELEGATE_COMPOSITE_LISTENER_H
 #ifndef ROSEN_CROSS_PLATFORM
@@ -41,7 +42,7 @@ private:
     uint64_t uniqueId_ = 0;
     pid_t workTid_ = 0;
     pid_t workPid_ = 0;
-    uint64_t CommandSeqNum_ = 0;
+    uint64_t commandSeqNum_ = 0;
     std::shared_ptr<RSRenderPipelineClient> renderPipelineClient_ = nullptr;
     sptr<IRemoteObject> connectToRender_ = nullptr;
 };
@@ -68,4 +69,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_CROSS_PLATFORM
-#endif
+#endif // RS_DELEGATE_COMPOSITE_LISTENER_H

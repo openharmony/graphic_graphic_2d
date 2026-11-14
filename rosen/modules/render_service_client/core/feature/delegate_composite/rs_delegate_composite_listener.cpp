@@ -37,9 +37,7 @@ static uint64_t CreateUniqueId()
     static uint64_t nextId = 0;
     static constexpr uint64_t NEXTID_MASK_48BIT = 0xFFFFFFFFFFFF;
     nextId++;
-    // 0xFFFF is pid mask. 48 is pid offset.bufferId_ high 16bit is pid, low 48bit is Auto-increment id.
-    // GetRealPid() keeps the encoded pid equal to the binder calling pid seen by the server,
-    // even in sandboxed processes where getpid() is virtualized.
+    // 0xFFFF is pid mask. 48 is pid offset. bufferId_ high 16bit is pid, low 48bit is Auto-increment id.
     uint64_t uniqueId = ((static_cast<uint64_t>(GetRealPid()) & 0xFFFF) << 48);
     uniqueId |= (nextId & NEXTID_MASK_48BIT);
     return uniqueId;
@@ -51,7 +49,7 @@ std::unique_ptr<OHOS::Rosen::RSCommand> SurfaceTransactionListener::GetCommand(u
     if (workTid_ != gettid()) {
         return nullptr;
     }
-    cmdSeqNum = CommandSeqNum_++;
+    cmdSeqNum = commandSeqNum_++;
     // Static is safe: GetRealPid() is constant within a process, and this nodeId
     // is only used to pass server-side PID validation (ExtractPid(nodeId) == callingPid),
     // same as RSModifiersDraw::ConvertTransaction, with the standard NodeId format
@@ -64,8 +62,6 @@ std::unique_ptr<OHOS::Rosen::RSCommand> SurfaceTransactionListener::GetCommand(u
 SurfaceTransactionListener::SurfaceTransactionListener(sptr<IRemoteObject> connectToRender)
 {
     workTid_ = gettid();
-    // GetRealPid() matches the binder calling pid seen by the server, so the identity written
-    // by SurfaceTransactionCommand::Process stays consistent in sandboxed processes.
     workPid_ = GetRealPid();
     uniqueId_ = CreateUniqueId();
     connectToRender_ = connectToRender;
@@ -85,7 +81,7 @@ bool SurfaceTransactionListener::RegisterCommandCompleteCallBack(OnCompleteCallb
 {
     std::lock_guard<std::mutex> lock(mutex_);
     if (callBackStub_ != nullptr || connectToRender_ == nullptr) {
-        RS_LOGE("DelegateModeDebugTag: RegisterCommandCompleteCallBack fail, repeat register");
+        RS_LOGE("DelegateModeDebugTag:RegisterCommandCompleteCallBack fail, repeat register");
         return false;
     }
 

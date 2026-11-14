@@ -24,6 +24,7 @@
 #include "ui/rs_ui_context.h"
 #include "transaction/rs_transaction_handler.h"
 #include "common/rs_common_def.h"
+
 namespace OHOS {
 namespace Rosen {
 
@@ -108,4 +109,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_CROSS_PLATFORM
-#endif
+#endif // RS_DELEGATE_COMPOSITE_BUFFER_MANAGER_H

@@ -14,12 +14,9 @@
  */
 #ifndef ROSEN_CROSS_PLATFORM
 #include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
-
 #include <charconv>
 #include <string>
-
 #include "buffer_extra_data_impl.h"
-
 #include "command/rs_delegate_composite_command.h"
 #include "common/rs_optional_trace.h"
 #include "platform/common/rs_log.h"
@@ -489,7 +486,6 @@ void RsDelegateCompositeCallbackManager::PrepareDelegateCompositeCommand(
         !CheckSurfaceTransactionIdentity(transactionData->GetSendingPid(), transactionData->GetSendingTid())) {
         return;
     }
-
     RS_TRACE_NAME_FMT("PrepareDelegateCompositeCommand");
     auto& processPayload = transactionData->GetPayload();
     std::queue<std::unique_ptr<RSCommand>> cmdQueue;
@@ -685,7 +681,7 @@ void RsDelegateCompositeCallbackManager::DumpInfo(std::string &dumpString)
         std::lock_guard<std::mutex> lock(surfaceNodeBufferReleaseCallbackMapMutex_);
         dumpString.append("surfaceNodeBufferReleaseCallbackMap size: " +
             std::to_string(surfaceNodeBufferReleaseCallbackMap_.size()) + "\n");
-        dumpString.append("currentSurfaceNodeBufferReleaseInfoMap size:" +
+        dumpString.append("currentSurfaceNodeBufferReleaseInfoMap size: " +
             std::to_string(currentSurfaceNodeBufferReleaseInfoMap_.size()) + "\n");
     }
     DumpTotleInfo(dumpString);

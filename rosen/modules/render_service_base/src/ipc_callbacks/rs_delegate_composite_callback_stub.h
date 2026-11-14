@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef RS_DELEGATE_COMPOSITE_CALLBACK_STUB_H
-#define RS_DELEGATE_COMPOSITE_CALLBACK_STUB_H
+#ifndef ROSEN_RENDER_SERVICE_BASE_DELEGATE_COMPOSITE_CALLBACK_STUB_H
+#define ROSEN_RENDER_SERVICE_BASE_DELEGATE_COMPOSITE_CALLBACK_STUB_H
 
 #include <iremote_stub.h>
 #include "ipc_callbacks/rs_delegate_composite_callback.h"
@@ -27,7 +27,7 @@ class RSB_EXPORT RSWebProxyComposerCallbackStub : public IRemoteStub<RSISurfaceT
 public:
     int32_t OnRemoteRequest(uint32_t code, MessageParcel& arguments,
         MessageParcel& reply, MessageOption& option) override;
-    GSError OnComplete(uint64_t timestamp, uint64_t srcId, std::queue<uint64_t> &seqNums) override;
+    GSError OnComplete(uint64_t timestamp, uint64_t srcId, std::queue<uint64_t>& seqNums) override;
 
     using OnCompleteCallback = std::function<void(uint64_t timestamp,
         uint64_t srcId, const std::queue<uint64_t>& seqNums)>;
@@ -49,10 +49,11 @@ public:
     void RegisterReleaseBufferCallBack(OnCompleteCallback cb);
     void UnRegisterReleaseBufferCallBack();
     GSError OnBufferComplete(std::queue<OnCompletedRet>& queue) override;
+
 private:
     std::mutex mutex_;
     OnCompleteCallback onCompleteCallback_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // RS_DELEGATE_COMPOSITE_CALLBACK_STUB_H
+#endif // ROSEN_RENDER_SERVICE_BASE_DELEGATE_COMPOSITE_CALLBACK_STUB_H
