@@ -897,5 +897,33 @@ HWTEST_F(RSCanvasDrawingNodeTest, GetBitmap_HybridEnabledGetBitmapSuccess001, Te
     rsUIContext->DestroyModifiersDraw();
     RSUIContextManager::MutableInstance().DestroyContext(rsUIContext->GetToken());
 }
+
+/**
+ * @tc.name: Create_SceneBoardDisablesHybridEnabled
+ * @tc.desc: Test Create() forces hybridEnabled_ to false when the RSUIContext is a scene board
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSCanvasDrawingNodeTest, Create_SceneBoardDisablesHybridEnabled, TestSize.Level1)
+{
+    ASSERT_NE(RSCanvasDrawingNode::Create(true, true), nullptr);
+    bool savedHybrid = RSCanvasDrawingNode::globalHybridEnabled_;
+    bool savedDma = RSCanvasDrawingNode::preAllocateDmaCcm_;
+    RSCanvasDrawingNode::globalHybridEnabled_ = true;
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = false;
+    auto screenId = RSInterfaces::GetInstance().GetDefaultScreenId();
+    sptr<IRemoteObject> token = RSInterfaces::GetInstance().GetConnectToRenderToken(screenId);
+    auto ctx = RSUIContextManager::MutableInstance().CreateRSUIContext(token);
+    ASSERT_NE(ctx, nullptr);
+    ctx->MarkAsSceneBoard();
+    auto node = RSCanvasDrawingNode::Create(true, false, ctx);
+    ASSERT_NE(node, nullptr);
+    bool hybridEnabled = node->hybridEnabled_;
+    node = nullptr;
+    ctx->isSceneBoard_ = false;
+    RSCanvasDrawingNode::globalHybridEnabled_ = savedHybrid;
+    RSCanvasDrawingNode::preAllocateDmaCcm_ = savedDma;
+    RSUIContextManager::MutableInstance().DestroyContext(ctx->GetToken());
+    EXPECT_FALSE(hybridEnabled);
+}
 #endif
 } // namespace OHOS::Rosen
