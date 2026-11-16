@@ -54,8 +54,8 @@ const Vector4f BASE_COLOR = { 0.0f, 0.0f, 0.0f, 0.7f };
 const std::vector<float> ringRadiusValues = { 100.0f, 200.0f, 300.0f, 400.0f, 0.0f, 4096.0f, -1.0f, 99999.0f };
 // shadowRingWidth [0, 1024]
 const std::vector<float> ringWidthValues = { 20.0f, 60.0f, 180.0f, 540.0f, 0.0f, 1024.0f, -1.0f, 99999.0f };
-// shadowRadius [0, 256]
-const std::vector<float> blurRadiusValues = { 20.0f, 60.0f, 120.0f, 240.0f, 0.0f, 256.0f, -1.0f, 99999.0f };
+// shadowRadius [-1, 256]
+const std::vector<float> blurRadiusValues = { 20.0f, 60.0f, 120.0f, 240.0f, -1.0f, 0.0f, 256.0f, -2.0f, 99999.0f };
 // shadowRadialOffset [-4096, 4096]
 const std::vector<float> radialOffsetValues = { -200.0f, 0.0f, 200.0f, -4096.0f, 4096.0f, -5000.0f, 99999.0f };
 // softness [0, 1]
