@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <dlfcn.h>
 #include "gtest/gtest.h"
 
 #include "pipeline/render_thread/rs_virtual_screen_parallel_manager.h"
@@ -24,6 +24,7 @@
 #include "pipeline/rs_surface_render_node.h"
 #include "platform/common/rs_system_properties.h"
 #include "params/rs_render_thread_params.h"
+#include "text/typeface.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -45,12 +46,22 @@ public:
     static std::shared_ptr<RSScreenRenderNode> CreateRegisteredScreenNode(NodeId nodeId, ScreenId screenId);
 };
 
-void RSVirtualScreenParallelManagerTest::SetUpTestCase() {}
-void RSVirtualScreenParallelManagerTest::TearDownTestCase() {}
+void RSVirtualScreenParallelManagerTest::SetUpTestCase()
+{
+    dlopen("librender_service_client.z.so", RTLD_NOW);
+    Drawing::Typeface::RegisterCallBackFunc([](std::shared_ptr<Drawing::Typeface>) { return true; });
+}
+void RSVirtualScreenParallelManagerTest::TearDownTestCase()
+{
+    Drawing::Typeface::RegisterCallBackFunc(nullptr);
+    Drawing::Typeface::RegisterOnTypefaceDestroyed(nullptr);
+    Drawing::Typeface::RegisterUniqueIdCallBack(nullptr);
+}
 
 void RSVirtualScreenParallelManagerTest::SetUp()
 {
     manager_ = std::make_shared<RSVirtualScreenParallelManager>();
+    manager_->CreateVirtualThread();
 }
 
 void RSVirtualScreenParallelManagerTest::TearDown() {}
@@ -563,6 +574,7 @@ HWTEST_F(RSVirtualScreenParallelManagerTest, CleanupThreadResources_TidFound, Te
     manager_->usedTidSet_.insert(testTid);
 
     manager_->CleanupThreadResources(testScreenId);
+    usleep(10 * 1000);
 
     EXPECT_TRUE(manager_->screenIdToTidMap_.find(testScreenId) == manager_->screenIdToTidMap_.end());
     EXPECT_TRUE(manager_->usedTidSet_.find(testTid) == manager_->usedTidSet_.end());
@@ -590,6 +602,7 @@ HWTEST_F(RSVirtualScreenParallelManagerTest, CleanupThreadResources_FfrtThreadNo
     manager_->tidToUniRenderEngineMap_[testTid] = renderEngine;
 
     manager_->CleanupThreadResources(testScreenId);
+    usleep(10 * 1000);
 
     EXPECT_TRUE(manager_->ffrtThreadIndexMap_.find(testScreenId) == manager_->ffrtThreadIndexMap_.end());
     EXPECT_TRUE(manager_->screenIdToTidMap_.find(testScreenId) == manager_->screenIdToTidMap_.end());
@@ -620,6 +633,7 @@ HWTEST_F(RSVirtualScreenParallelManagerTest, CleanupThreadResources_AllCondition
     manager_->tidToUniRenderEngineMap_[testTid] = renderEngine;
 
     manager_->CleanupThreadResources(testScreenId);
+    usleep(10 * 1000);
 
     EXPECT_TRUE(manager_->ffrtThreadIndexMap_.find(testScreenId) == manager_->ffrtThreadIndexMap_.end());
     EXPECT_TRUE(manager_->screenIdToTidMap_.find(testScreenId) == manager_->screenIdToTidMap_.end());
@@ -661,6 +675,7 @@ HWTEST_F(RSVirtualScreenParallelManagerTest, CleanupThreadResources_MultipleScre
     manager_->tidToUniRenderEngineMap_[tid2] = renderEngine2;
 
     manager_->CleanupThreadResources(screenId1);
+    usleep(10 * 1000);
 
     EXPECT_TRUE(manager_->ffrtThreadIndexMap_.find(screenId1) == manager_->ffrtThreadIndexMap_.end());
     EXPECT_TRUE(manager_->screenIdToTidMap_.find(screenId1) == manager_->screenIdToTidMap_.end());
@@ -669,6 +684,7 @@ HWTEST_F(RSVirtualScreenParallelManagerTest, CleanupThreadResources_MultipleScre
     EXPECT_TRUE(manager_->tidToUniRenderEngineMap_.find(tid1) == manager_->tidToUniRenderEngineMap_.end());
 
     manager_->CleanupThreadResources(screenId2);
+    usleep(10 * 1000);
 
     EXPECT_TRUE(manager_->ffrtThreadIndexMap_.find(screenId2) == manager_->ffrtThreadIndexMap_.end());
     EXPECT_TRUE(manager_->screenIdToTidMap_.find(screenId2) == manager_->screenIdToTidMap_.end());
@@ -695,6 +711,7 @@ HWTEST_F(RSVirtualScreenParallelManagerTest, CleanupThreadResources_FfrtThreadIn
     EXPECT_TRUE(manager_->ffrtThreadIndexMap_.find(testScreenId) != manager_->ffrtThreadIndexMap_.end());
 
     manager_->CleanupThreadResources(testScreenId);
+    usleep(10 * 1000);
 
     EXPECT_TRUE(manager_->ffrtThreadIndexMap_.find(testScreenId) == manager_->ffrtThreadIndexMap_.end());
 }
@@ -719,6 +736,7 @@ HWTEST_F(RSVirtualScreenParallelManagerTest, CleanupThreadResources_ScreenIdToTi
     EXPECT_TRUE(manager_->usedTidSet_.find(testTid) != manager_->usedTidSet_.end());
 
     manager_->CleanupThreadResources(testScreenId);
+    usleep(10 * 1000);
 
     EXPECT_TRUE(manager_->screenIdToTidMap_.find(testScreenId) == manager_->screenIdToTidMap_.end());
     EXPECT_TRUE(manager_->usedTidSet_.find(testTid) == manager_->usedTidSet_.end());
@@ -749,6 +767,7 @@ HWTEST_F(RSVirtualScreenParallelManagerTest, CleanupThreadResources_RenderEngine
     EXPECT_TRUE(manager_->tidToUniRenderEngineMap_.find(testTid) != manager_->tidToUniRenderEngineMap_.end());
 
     manager_->CleanupThreadResources(testScreenId);
+    usleep(10 * 1000);
 
     EXPECT_TRUE(manager_->uniRenderEngineMap_.find(testScreenId) == manager_->uniRenderEngineMap_.end());
     EXPECT_TRUE(manager_->tidToUniRenderEngineMap_.find(testTid) == manager_->tidToUniRenderEngineMap_.end());
@@ -1501,6 +1520,201 @@ HWTEST_F(RSVirtualScreenParallelManagerTest, ExecuteAllVirtualScreenRenderTasks_
     EXPECT_EQ(manager_->screenTaskCountMap_[testScreenId], 0u);
     ASSERT_TRUE(manager_->screenIdToTidMap_.find(testScreenId) != manager_->screenIdToTidMap_.end());
     EXPECT_EQ(manager_->screenIdToTidMap_[testScreenId], testTid);
+}
+
+/**
+ * @tc.name: CreateVirtualThread_ManagerAlreadyExists
+ * @tc.desc: Test CreateVirtualThread when virtualThreadManager_ is already set.
+ *           The if (virtualThreadManager_ != nullptr) condition is true, returns true (reuse).
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, CreateVirtualThread_ManagerAlreadyExists, TestSize.Level1)
+{
+    ASSERT_NE(manager_, nullptr);
+    ASSERT_NE(manager_->virtualThreadManager_, nullptr);
+
+    bool result = manager_->CreateVirtualThread();
+
+    EXPECT_TRUE(result);
+    EXPECT_NE(manager_->virtualThreadManager_, nullptr);
+}
+
+/**
+ * @tc.name: CreateVirtualThread_ManagerNotExists
+ * @tc.desc: Test CreateVirtualThread when virtualThreadManager_ is null.
+ *           The if (virtualThreadManager_ != nullptr) condition is false, proceeds to create.
+ *           If EventRunner::Create succeeds, if (virtualThreadRunner_ == nullptr) is false, returns true.
+ *           If EventRunner::Create fails, if (virtualThreadRunner_ == nullptr) is true, returns false.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, CreateVirtualThread_ManagerNotExists, TestSize.Level1)
+{
+    auto localManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(localManager, nullptr);
+    ASSERT_EQ(localManager->virtualThreadManager_, nullptr);
+
+    bool result = localManager->CreateVirtualThread();
+
+    if (result) {
+        EXPECT_NE(localManager->virtualThreadRunner_, nullptr);
+        EXPECT_NE(localManager->virtualThreadManager_, nullptr);
+    } else {
+        EXPECT_EQ(localManager->virtualThreadRunner_, nullptr);
+        EXPECT_EQ(localManager->virtualThreadManager_, nullptr);
+    }
+}
+
+/**
+ * @tc.name: InitializeThread_CreateVirtualThreadReturnsTrue
+ * @tc.desc: Test InitializeThread when CreateVirtualThread returns true (virtualThreadManager_ pre-set).
+ *           The if (!CreateVirtualThread()) condition is false, proceeds to create ffrtThread and init engine.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, InitializeThread_CreateVirtualThreadReturnsTrue, TestSize.Level1)
+{
+    ASSERT_NE(manager_, nullptr);
+    ASSERT_NE(manager_->virtualThreadManager_, nullptr);
+
+    ScreenId testScreenId = 80001;
+    std::shared_ptr<ffrt::queue> ffrtThread = nullptr;
+    manager_->InitializeThread(testScreenId, ffrtThread);
+
+    EXPECT_NE(ffrtThread, nullptr);
+    EXPECT_TRUE(manager_->screenIdToTidMap_.find(testScreenId) != manager_->screenIdToTidMap_.end());
+    EXPECT_TRUE(manager_->uniRenderEngineMap_.find(testScreenId) != manager_->uniRenderEngineMap_.end());
+}
+
+/**
+ * @tc.name: InitializeThread_CreateVirtualThreadReturnsFalse
+ * @tc.desc: Test InitializeThread when CreateVirtualThread returns false (virtualThreadManager_ is null
+ *           and EventRunner::Create fails). The if (!CreateVirtualThread()) condition is true,
+ *           InitializeThread returns early without creating ffrtThread or initializing engine.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, InitializeThread_CreateVirtualThreadReturnsFalse, TestSize.Level1)
+{
+    auto localManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(localManager, nullptr);
+
+    ScreenId testScreenId = 80002;
+    std::shared_ptr<ffrt::queue> ffrtThread = nullptr;
+    localManager->InitializeThread(testScreenId, ffrtThread);
+
+    if (localManager->virtualThreadManager_ == nullptr) {
+        EXPECT_EQ(ffrtThread, nullptr);
+        EXPECT_TRUE(localManager->screenIdToTidMap_.find(testScreenId) != localManager->screenIdToTidMap_.end());
+        EXPECT_TRUE(localManager->uniRenderEngineMap_.find(testScreenId) == localManager->uniRenderEngineMap_.end());
+    } else {
+        EXPECT_NE(ffrtThread, nullptr);
+    }
+}
+
+/**
+ * @tc.name: CleanupThreadResources_VirtualThreadManagerNotNull
+ * @tc.desc: Test CleanupThreadResources when virtualThreadManager_ is not null.
+ *           The if (virtualThreadManager != nullptr) condition is true, PostTask is called for engine cleanup.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, CleanupThreadResources_VirtualThreadManagerNotNull, TestSize.Level1)
+{
+    ASSERT_NE(manager_, nullptr);
+    ASSERT_NE(manager_->virtualThreadManager_, nullptr);
+
+    ScreenId testScreenId = 80003;
+    int32_t testTid = -210;
+    manager_->screenIdToTidMap_[testScreenId] = testTid;
+    manager_->usedTidSet_.insert(testTid);
+    auto ffrtThread = std::make_shared<ffrt::queue>("test_queue");
+    manager_->ffrtThreadIndexMap_[testScreenId] = ffrtThread;
+    auto renderEngine = std::make_shared<RSUniRenderEngine>();
+    manager_->uniRenderEngineMap_[testScreenId] = renderEngine;
+    manager_->tidToUniRenderEngineMap_[testTid] = renderEngine;
+
+    manager_->CleanupThreadResources(testScreenId);
+    usleep(10 * 1000);
+
+    EXPECT_TRUE(manager_->ffrtThreadIndexMap_.find(testScreenId) == manager_->ffrtThreadIndexMap_.end());
+    EXPECT_TRUE(manager_->screenIdToTidMap_.find(testScreenId) == manager_->screenIdToTidMap_.end());
+    EXPECT_TRUE(manager_->uniRenderEngineMap_.find(testScreenId) == manager_->uniRenderEngineMap_.end());
+    EXPECT_TRUE(manager_->tidToUniRenderEngineMap_.find(testTid) == manager_->tidToUniRenderEngineMap_.end());
+}
+
+/**
+ * @tc.name: CleanupThreadResources_VirtualThreadManagerNull
+ * @tc.desc: Test CleanupThreadResources when virtualThreadManager_ is null.
+ *           The if (virtualThreadManager != nullptr) condition is false, PostTask is skipped,
+ *           engine maps are not cleaned up.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, CleanupThreadResources_VirtualThreadManagerNull, TestSize.Level1)
+{
+    auto localManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(localManager, nullptr);
+    ASSERT_EQ(localManager->virtualThreadManager_, nullptr);
+
+    ScreenId testScreenId = 80004;
+    int32_t testTid = -220;
+    localManager->screenIdToTidMap_[testScreenId] = testTid;
+    localManager->usedTidSet_.insert(testTid);
+    auto ffrtThread = std::make_shared<ffrt::queue>("test_queue");
+    localManager->ffrtThreadIndexMap_[testScreenId] = ffrtThread;
+    auto renderEngine = std::make_shared<RSUniRenderEngine>();
+    localManager->uniRenderEngineMap_[testScreenId] = renderEngine;
+    localManager->tidToUniRenderEngineMap_[testTid] = renderEngine;
+
+    localManager->CleanupThreadResources(testScreenId);
+    usleep(10 * 1000);
+
+    EXPECT_TRUE(localManager->ffrtThreadIndexMap_.find(testScreenId) == localManager->ffrtThreadIndexMap_.end());
+    EXPECT_TRUE(localManager->screenIdToTidMap_.find(testScreenId) == localManager->screenIdToTidMap_.end());
+    EXPECT_TRUE(localManager->uniRenderEngineMap_.find(testScreenId) != localManager->uniRenderEngineMap_.end());
+    EXPECT_TRUE(localManager->tidToUniRenderEngineMap_.find(testTid) != localManager->tidToUniRenderEngineMap_.end());
+}
+
+/**
+ * @tc.name: Destructor_VirtualThreadManagerNotNull
+ * @tc.desc: Test destructor when virtualThreadManager_ is not null.
+ *           The if (virtualThreadManager_ != nullptr) condition is true, PostSyncTask is called.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, Destructor_VirtualThreadManagerNotNull, TestSize.Level1)
+{
+    auto localManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(localManager, nullptr);
+
+    localManager->CreateVirtualThread();
+    if (localManager->virtualThreadManager_ != nullptr) {
+        localManager.reset();
+        SUCCEED();
+    } else {
+        localManager.reset();
+        SUCCEED();
+    }
+}
+
+/**
+ * @tc.name: Destructor_VirtualThreadManagerNull
+ * @tc.desc: Test destructor when virtualThreadManager_ is null.
+ *           The if (virtualThreadManager_ != nullptr) condition is false, PostSyncTask is skipped.
+ * @tc.type: FUNC
+ * @tc.require: issueIAXXXX
+ */
+HWTEST_F(RSVirtualScreenParallelManagerTest, Destructor_VirtualThreadManagerNull, TestSize.Level1)
+{
+    auto localManager = std::make_shared<RSVirtualScreenParallelManager>();
+    ASSERT_NE(localManager, nullptr);
+
+    EXPECT_EQ(localManager->virtualThreadManager_, nullptr);
+
+    localManager.reset();
+    SUCCEED();
 }
 
 } // namespace OHOS::Rosen

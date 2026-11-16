@@ -25,6 +25,31 @@ namespace OHOS {
 namespace Rosen {
 constexpr int32_t VIRTUAL_SCREEN_TASK_WAIT_TIMEOUT_MS = 1000;
 constexpr int32_t MAX_VIRTUAL_SCREEN_COUNT = 99;
+const char* MANAGEMENT_THREAD_NAME = "RSVsScreenThread";
+
+RSVirtualScreenParallelManager::~RSVirtualScreenParallelManager()
+{
+    if (virtualThreadManager_ != nullptr) {
+        virtualThreadManager_->PostSyncTask([]() {}, AppExecFwk::EventQueue::Priority::IMMEDIATE);
+    }
+    virtualThreadManager_ = nullptr;
+    virtualThreadRunner_ = nullptr;
+}
+
+bool RSVirtualScreenParallelManager::CreateVirtualThread()
+{
+    if (virtualThreadManager_ != nullptr) {
+        return true;
+    }
+    virtualThreadRunner_ = AppExecFwk::EventRunner::Create(MANAGEMENT_THREAD_NAME);
+    if (virtualThreadRunner_ == nullptr) {
+        RS_LOGE("%{public}s create management runner failed", __func__);
+        return false;
+    }
+    virtualThreadManager_ = std::make_shared<AppExecFwk::EventHandler>(virtualThreadRunner_);
+    virtualThreadRunner_->Run();
+    return true;
+}
 
 void RSVirtualScreenParallelManager::CollectVirtualScreenNodeId(ScreenId screenId,
     NodeId nodeId, CompositeType compositeType)
@@ -179,8 +204,8 @@ void RSVirtualScreenParallelManager::CleanupThreadResources(ScreenId screenId)
 {
     RS_TRACE_NAME_FMT("%s screenId: %" PRIu64, __func__, screenId);
     RS_LOGI("%{public}s screenId: %{public}" PRIu64, __func__, screenId);
-    std::shared_ptr<ffrt::queue> ffrtThread = nullptr;
     int32_t tid = 0;
+    std::shared_ptr<AppExecFwk::EventHandler> virtualThreadManager = nullptr;
     {
         std::unique_lock<ffrt::mutex> lock(taskMutex_);
         constexpr auto timeoutMs = std::chrono::milliseconds(VIRTUAL_SCREEN_TASK_WAIT_TIMEOUT_MS);
@@ -198,7 +223,6 @@ void RSVirtualScreenParallelManager::CleanupThreadResources(ScreenId screenId)
         auto iterFfrt = ffrtThreadIndexMap_.find(screenId);
         if (iterFfrt != ffrtThreadIndexMap_.end()) {
             RS_TRACE_NAME_FMT("%s erase screenId: %" PRIu64, __func__, screenId);
-            ffrtThread = iterFfrt->second;
             ffrtThreadIndexMap_.erase(iterFfrt);
         }
         screenTaskCountMap_.erase(screenId);
@@ -209,17 +233,28 @@ void RSVirtualScreenParallelManager::CleanupThreadResources(ScreenId screenId)
             screenIdToTidMap_.erase(iterTid);
             virtualScreenCnt_--;
         }
+        virtualThreadManager = virtualThreadManager_;
     }
-    if (ffrtThread != nullptr) {
-        auto handle = ffrtThread->submit_h([this, screenId, tid]() {
+    if (virtualThreadManager != nullptr) {
+        virtualThreadManager->PostTask([this, screenId, tid]() {
             RS_TRACE_NAME_FMT("CleanupThreadResources erase engine screenId: %" PRIu64, screenId);
+            std::shared_ptr<RSUniRenderEngine> engine = nullptr;
             {
                 std::unique_lock<ffrt::mutex> lock(taskMutex_);
+                auto iter = uniRenderEngineMap_.find(screenId);
+                if (iter != uniRenderEngineMap_.end()) {
+                    engine = iter->second;
+                }
                 tidToUniRenderEngineMap_.erase(tid);
                 uniRenderEngineMap_.erase(screenId);
             }
-        }, ffrt::task_attr().qos(ffrt_qos_user_interactive));
-        ffrtThread->wait(handle);
+            if (engine != nullptr) {
+                auto renderContext = engine->GetRenderContext();
+                if (renderContext) {
+                    renderContext->AbandonContext();
+                }
+            }
+        }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     }
 }
 
@@ -228,16 +263,22 @@ void RSVirtualScreenParallelManager::InitializeThread(ScreenId screenId, std::sh
     RS_TRACE_NAME_FMT("%s post task screenId: %" PRIu64, __func__, screenId);
     RS_LOGI("%{public}s post task screenId: %{public}" PRIu64, __func__, screenId);
     int32_t tid = 0;
+    std::shared_ptr<AppExecFwk::EventHandler> virtualThreadManager = nullptr;
     {
         std::unique_lock<ffrt::mutex> lock(taskMutex_);
+        if (!CreateVirtualThread()) {
+            RS_LOGE("%{public}s management handler null, screenId: %{public}" PRIu64, __func__, screenId);
+            return;
+        }
+        virtualThreadManager = virtualThreadManager_;
         if (virtualScreenCnt_ >= MAX_VIRTUAL_SCREEN_COUNT) {
             RS_LOGE("%{public}s virtual screen count more than max, screenId: %{public}" PRIu64, __func__, screenId);
             return;
         }
         /* The range of 'tid' should be between -200 and -299. */
         bool tidFound = false;
-        for (tid = -RSVirtualScreenThreadIdAdapt::VIRTUAL_SCREEN_THREAD_INDEX.first;
-            tid > -RSVirtualScreenThreadIdAdapt::VIRTUAL_SCREEN_THREAD_INDEX.second; tid--) {
+        for (tid = static_cast<int32_t>(-RSVirtualScreenThreadIdAdapt::VIRTUAL_SCREEN_THREAD_INDEX.first);
+            tid > static_cast<int32_t>(-RSVirtualScreenThreadIdAdapt::VIRTUAL_SCREEN_THREAD_INDEX.second); tid--) {
             if (usedTidSet_.find(tid) == usedTidSet_.end()) {
                 usedTidSet_.insert(tid);
                 tidFound = true;
@@ -254,7 +295,7 @@ void RSVirtualScreenParallelManager::InitializeThread(ScreenId screenId, std::sh
     std::string threadName = "virtualExtended_" + std::to_string(screenId);
     ffrtThread = std::make_shared<ffrt::queue>(threadName.c_str());
     auto renderEngine = std::make_shared<RSUniRenderEngine>();
-    auto handle = ffrtThread->submit_h([this, &screenId, &renderEngine, &tid]() {
+    virtualThreadManager->PostSyncTask([this, &screenId, &renderEngine, &tid]() {
         RS_TRACE_NAME_FMT("InitializeThread init engine screenId: %" PRIu64 "tid: %d", screenId, tid);
         renderEngine->Init();
         {
@@ -262,8 +303,7 @@ void RSVirtualScreenParallelManager::InitializeThread(ScreenId screenId, std::sh
             uniRenderEngineMap_[screenId] = renderEngine;
             tidToUniRenderEngineMap_[tid] = renderEngine;
         }
-    }, ffrt::task_attr().qos(ffrt_qos_user_interactive));
-    ffrtThread->wait(handle);
+    }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
 }
 
 void RSVirtualScreenParallelManager::IncrementPendingTaskCount(size_t nodeCount)
