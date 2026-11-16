@@ -366,6 +366,7 @@ void RSRenderThread::CreateAndInitRenderContextIfNeed()
 void RSRenderThread::RenderLoop()
 {
     SystemCallSetThreadName("RSRenderThread");
+    threadId_ = std::this_thread::get_id();
 
 #ifdef OHOS_RSS_CLIENT
     std::unordered_map<std::string, std::string> payload;
