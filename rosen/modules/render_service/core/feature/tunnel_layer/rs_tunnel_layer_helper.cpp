@@ -75,9 +75,10 @@ RSSurfaceHandler::SurfaceBufferEntry CreateTunnelPendingBuffer(
 bool RejectDirectCommit(NodeId nodeId, const char* reason, uint64_t tunnelLayerId = 0,
     uint32_t property = TUNNEL_PROP_INVALID)
 {
-    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s nodeId=%" PRIu64 " , reson=%s, tunnelLayerId=%" PRIu64 ", property=%u",
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s nodeId=%" PRIu64 " , reason=%s, tunnelLayerId=%" PRIu64 ", property=%u",
         __func__, nodeId, reason, tunnelLayerId, property);
-    RS_LOGD_IF(DEBUG_TUNNEL, "%s %s nodeId=%{public}" PRIu64 " , reson=%{public}s,"
+    RS_LOGI_IF(DEBUG_TUNNEL,
+        "%{public}s %{public}s nodeId=%{public}" PRIu64 " , reason=%{public}s,"
         "tunnelLayerId=%{public}" PRIu64 ", property=%{public}u",
         TUNNEL_DEBUG_PREFIX, __func__, nodeId, reason, tunnelLayerId, property);
     return false;
@@ -279,6 +280,12 @@ bool RSTunnelLayerHelper::TryCommitPendingBuffer(const std::shared_ptr<RSSurface
     ScreenPowerStatus powerStatus = GetCachedScreenPowerStatus(tunnelRuntime.GetScreenId());
     if (!IsScreenPowerOff(powerStatus)) {
         if (!CommitBuffer(commitInfo, composerClientManager, releaseFence)) {
+            RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s CommitBuffer failed, nodeId=%" PRIu64 ", tunnelLayerId=%" PRIu64
+                ", screenId=%" PRIu64, __func__, node->GetId(), tunnelLayerId, tunnelRuntime.GetScreenId());
+            RS_LOGI_IF(DEBUG_TUNNEL,
+                "TUNNEL_DEBUG %{public}s CommitBuffer failed, nodeId=%{public}" PRIu64
+                ", tunnelLayerId=%{public}" PRIu64 ", screenId=%{public}" PRIu64,
+                __func__, node->GetId(), tunnelLayerId, tunnelRuntime.GetScreenId());
             tunnelRuntime.DisableTunnelLayer();
             pendingBuffer.bufferOwnerCount_->OnBufferReleased();
             return false;

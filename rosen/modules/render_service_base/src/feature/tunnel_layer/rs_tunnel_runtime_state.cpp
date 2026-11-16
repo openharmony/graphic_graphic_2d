@@ -102,18 +102,22 @@ bool RSTunnelRuntimeState::IsCurrentTunnelLayerGeneration(uint64_t tunnelLayerGe
 
 void RSTunnelRuntimeState::DisableTunnelLayer()
 {
-    RS_LOGD_IF(DEBUG_TUNNEL, "TUNNEL_DEBUG %{public}s disable tunnelId:%{public}" PRIu64
-        " tunnelLayerProperty:%{public}u", __func__, tunnelLayerId_.load(std::memory_order_acquire),
-        tunnelLayerProperty_.load(std::memory_order_acquire));
-    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s disable tunnelId:%" PRIu64 "tunnelLayerProperty:%u",
-         __func__, tunnelLayerId_.load(std::memory_order_acquire),
-        tunnelLayerProperty_.load(std::memory_order_acquire));
+    RS_LOGI_IF(DEBUG_TUNNEL,
+        "TUNNEL_DEBUG %{public}s disable tunnelId:%{public}" PRIu64 " tunnelLayerProperty:%{public}u", __func__,
+        tunnelLayerId_.load(std::memory_order_acquire), tunnelLayerProperty_.load(std::memory_order_acquire));
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s disable tunnelId:%" PRIu64 "tunnelLayerProperty:%u", __func__,
+        tunnelLayerId_.load(std::memory_order_acquire), tunnelLayerProperty_.load(std::memory_order_acquire));
     SetNotTunnel();
     ClearCommittedTunnelBuffer();
 }
 
 void RSTunnelRuntimeState::ResetStateKeepLayerInfo()
 {
+    RS_LOGI_IF(DEBUG_TUNNEL,
+        "TUNNEL_DEBUG %{public}s reset tunnelId:%{public}" PRIu64 " tunnelLayerProperty:%{public}u", __func__,
+        tunnelLayerId_.load(std::memory_order_acquire), tunnelLayerProperty_.load(std::memory_order_acquire));
+    RS_TRACE_NAME_FMT("TUNNEL_DEBUG %s reset tunnelId:%" PRIu64 "tunnelLayerProperty:%u", __func__,
+        tunnelLayerId_.load(std::memory_order_acquire), tunnelLayerProperty_.load(std::memory_order_acquire));
     phase_.store(Phase::TUNNEL_IDLE, std::memory_order_release);
     pendingParam_.store(false, std::memory_order_release);
     tunnelState_.store(TunnelState::NOT_TUNNEL, std::memory_order_release);
