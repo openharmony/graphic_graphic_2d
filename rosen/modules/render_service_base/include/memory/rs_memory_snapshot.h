@@ -60,7 +60,7 @@ public:
     void FillMemorySnapshot(std::unordered_map<pid_t, MemorySnapshotInfo>& infoMap);
     size_t GetTotalMemory();
     void PrintMemorySnapshotToHilog();
-    
+
     /**
     * @brief Update GPU memory information for a process.
     * @param pid Process ID.
@@ -88,6 +88,7 @@ private:
     float CalculateRiskScore(const MemorySnapshotInfo memorySnapshotInfo, size_t maxCpu, size_t maxGpu, size_t maxSum);
     void UpdateGpuInfoHelper(MemorySnapshotInfo& info, const size_t memorySize, bool isAdd, bool isEngine);
     void RemoveAbnormalProcess(pid_t pid);
+    void CleanupExpiredAbnormalProcess();
 
     std::mutex mutex_;
     std::unordered_map<pid_t, MemorySnapshotInfo> appMemorySnapshots_;
@@ -103,7 +104,7 @@ private:
     int64_t memorySnapshotHilogTime_ = 0;
     std::shared_mutex killProcessSetMutex_;
     std::atomic<int32_t> killProcessSetSize_ = 0;
-    std::unordered_set<pid_t> killProcessSet_;
+    std::unordered_map<pid_t, uint64_t> killProcessSet_;    // pid -> timestamp when marked abnormal
 };
 } // namespace OHOS
 } // namespace Rosen

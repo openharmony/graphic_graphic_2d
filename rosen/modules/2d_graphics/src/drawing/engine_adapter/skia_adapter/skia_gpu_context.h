@@ -135,9 +135,7 @@ public:
 
     void InitGpuMemoryInfoStatProc(GpuMemoryInfoStatProcCallback callback) override;
 
-    void SetAbnormalPid(pid_t pid) override;
-
-    void RemoveAbnormalPid(pid_t pid) override;
+    void InitIsAbnormalProcessProc(IsAbnormalProcessProcCallback callback) override;
 
 #ifdef RS_ENABLE_VK
     void StoreVkPipelineCacheData() override;

@@ -939,6 +939,29 @@ HWTEST_F(RSMemoryManagerTest, SetGpuMemoryLimit002, testing::ext::TestSize.Level
 }
 
 /**
+ * @tc.name: SetGpuMemoryLimit003
+ * @tc.desc: Verify SetGpuMemoryLimit forwards the limit and the callbacks to the gpuContext when
+ *     both gpuContext and gpuMemoryControl_ are valid, then restores the sentinel value so the
+ *     shared static state does not leak into subsequent tests.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, SetGpuMemoryLimit003, testing::ext::TestSize.Level1)
+{
+    Drawing::GPUContext* gpuContext = new Drawing::GPUContext;
+    ASSERT_NE(gpuContext, nullptr);
+    // Configure a real limit so the main path runs through SkiaGPUContext (no-op impls).
+    constexpr uint64_t testGpuMemoryLimit = 2048UL * 1024 * 1024; // 2 GiB
+    MemoryManager::gpuMemoryControl_ = testGpuMemoryLimit;
+    // Should not crash; SkiaGPUContext implementations are no-ops.
+    MemoryManager::SetGpuMemoryLimit(gpuContext);
+    EXPECT_EQ(MemoryManager::gpuMemoryControl_, testGpuMemoryLimit);
+    // Restore the uninitizlized sentinel to avoid polluting other tests.
+    MemoryManager::gpuMemoryControl_ = UINT64_MAX;
+    delete gpuContext;
+}
+
+/**
  * @tc.name: MemoryOverflow001
  * @tc.desc: Test MemoryOverflow
  * @tc.type: FUNC
@@ -1553,7 +1576,11 @@ HWTEST_F(RSMemoryManagerTest, GpuReportFromKernel001, TestSize.Level1)
         }
         rtThread2.uniRenderEngine_->skContext_ = nullptr;
         rtThread2.uniRenderEngine_->renderContext_ = nullptr;
+        rtThread2.uniRenderEngine_->protectedRenderContext_ = nullptr;
+        rtThread2.uniRenderEngine_->imageManager_ = nullptr;
+        rtThread2.uniRenderEngine_->gpuCacheManager_ = nullptr;
     }
+    rtThread2.uniRenderEngine_ = std::make_shared<RSRenderEngine>();
     auto renderContext = RenderContext::Create();
     renderContext->Init();
     RSUniRenderThread::Instance().uniRenderEngine_->renderContext_ = renderContext;
@@ -2277,4 +2304,65 @@ HWTEST_F(RSMemoryManagerTest, MemoryOverReportWithQuotaTest001, TestSize.Level1)
     std::filesystem::remove(filePath);
 }
 
+/**
+ * @tc.name: IsAbnormalProcessFromEngineTest001
+ * @tc.desc: Test IsAbnormalProcessFromEngine.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, IsAbnormalProcessFromEngineTest001, TestSize.Level1)
+{
+    pid_t pid = 5001;
+    std::set<pid_t> exitedPids = {pid};
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+
+    // Not abnormal initially
+    ASSERT_FALSE(MemoryManager::IsAbnormalProcessFromEngine(pid));
+
+    // mark as abnormal
+    MemorySnapshot::Instance().SetAbnormalProcess(pid);
+    ASSERT_TRUE(MemoryManager::IsAbnormalProcessFromEngine(pid));
+
+    pid = 0;
+    ASSERT_FALSE(MemoryManager::IsAbnormalProcessFromEngine(pid));
+
+    // Cleanup
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
+
+/**
+ * @tc.name: IsAbnormalProcessFromEngineTest002
+ * @tc.desc: Verify IsAbnormalProcessFromEngine distinguishes between multiple processes: only the
+ *     pid that was marked abnormal returns true while another pid in the same set returns false.
+ *     Also verifies that pid == 0 short-circuits to false even when it has been marked abnormal.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMemoryManagerTest, IsAbnormalProcessFromEngineTest002, TestSize.Level1)
+{
+    constexpr pid_t abnormalPid = 6001;
+    constexpr pid_t normalPid = 6002;
+    std::set<pid_t> exitedPids = {abnormalPid, normalPid};
+    // Ensure a clean starting state for both pids.
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+    ASSERT_FALSE(MemoryManager::IsAbnormalProcessFromEngine(abnormalPid));
+    ASSERT_FALSE(MemoryManager::IsAbnormalProcessFromEngine(normalPid));
+
+    // Mark only abnormalPid as abnormal.
+    MemorySnapshot::Instance().SetAbnormalProcess(abnormalPid);
+    EXPECT_TRUE(MemoryManager::IsAbnormalProcessFromEngine(abnormalPid));
+    EXPECT_FALSE(MemoryManager::IsAbnormalProcessFromEngine(normalPid));
+
+    // pid == 0 must short-circuit to false regardless of the abnormal set.
+    MemorySnapshot::Instance().SetAbnormalProcess(0);
+    EXPECT_FALSE(MemoryManager::IsAbnormalProcessFromEngine(0));
+
+    // Removing the abnormal mark should make the pid report as normal again.
+    MemorySnapshot::Instance().RemoveAbnormalProcess(abnormalPid);
+    EXPECT_FALSE(MemoryManager::IsAbnormalProcessFromEngine(abnormalPid));
+
+    // Cleanup
+    MemorySnapshot::Instance().RemoveAbnormalProcess(0);
+    MemorySnapshot::Instance().EraseSnapshotInfoByPid(exitedPids);
+}
 } // namespace OHOS::Rosen
