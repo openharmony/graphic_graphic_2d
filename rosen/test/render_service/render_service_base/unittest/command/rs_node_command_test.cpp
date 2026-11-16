@@ -47,11 +47,11 @@ void RSNodeCommandTest::TearDown() {}
 namespace {
 // DumpNodeTreeProcessor is a plain function pointer, so the callback cannot capture local state.
 // A file-scope flag records whether the processor was invoked.
-bool gDumpNodeTreeCalled = false;
+bool g_dumpNodeTreeCalled = false;
 
 void DumpNodeTreeProcessorStub(NodeId, pid_t, uint64_t, uint32_t)
 {
-    gDumpNodeTreeCalled = true;
+    g_dumpNodeTreeCalled = true;
 }
 } // namespace
 
@@ -694,15 +694,15 @@ HWTEST_F(RSNodeCommandTest, CommitDumpClientNodeTreeTest, TestSize.Level1)
 HWTEST_F(RSNodeCommandTest, DumpClientNodeTree001, TestSize.Level1)
 {
     RSContext context;
-    gDumpNodeTreeCalled = false;
+    g_dumpNodeTreeCalled = false;
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(DumpNodeTreeProcessorStub);
     RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0, 0);
-    ASSERT_TRUE(gDumpNodeTreeCalled);
+    ASSERT_TRUE(g_dumpNodeTreeCalled);
 
-    gDumpNodeTreeCalled = false;
+    g_dumpNodeTreeCalled = false;
     RSNodeCommandHelper::SetDumpNodeTreeProcessor(nullptr);
     RSNodeCommandHelper::DumpClientNodeTree(context, 0, 0, 0, 0);
-    ASSERT_FALSE(gDumpNodeTreeCalled);
+    ASSERT_FALSE(g_dumpNodeTreeCalled);
 
     SUCCEED();
 }
