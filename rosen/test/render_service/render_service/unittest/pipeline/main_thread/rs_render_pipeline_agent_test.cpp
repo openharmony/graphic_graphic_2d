@@ -2850,7 +2850,7 @@ HWTEST_F(RSRenderPipelineAgentTest, RegisterSurfaceOcclusionChangeCallback004, T
 
 /**
  * @tc.name: SetApsConfigParams_LTPO_InvalidEnum
- * @tc.desc: Test SetApsConfigParams covers: (1) ApsEventType::SELF_DRAWING_LTPO ; (2) invalid enum value
+ * @tc.desc: Test SetApsConfigParams covers: (1) ApsEventType::SELF_DRAWING_LTPO; (2) invalid enum value
  * @tc.type: FUNC
  * @tc.require:
  */
@@ -2862,9 +2862,9 @@ HWTEST_F(RSRenderPipelineAgentTest, SetApsConfigParams_LTPO_InvalidEnum, TestSiz
 
     std::unordered_map<std::string, std::string> params = { { "key", "value" } };
 
-    // Branch 1: event == ApsEventType::SELF_DRAWING_LTPO , triggers SetAdapterLtpoConfig
+    // Branch 1: event == ApsEventType::SELF_DRAWING_LTPO, triggers SetAdapterLtpoConfig
     renderPipeline->mainThread_ = mainThread_;
-    auto ret1 = agent->SetApsConfigParams(ApsEventType::SELF_DRAWING_LTPO , params);
+    auto ret1 = agent->SetApsConfigParams(ApsEventType::SELF_DRAWING_LTPO, params);
     EXPECT_EQ(ret1, ERR_OK);
     usleep(DEFAULT_TIME);
 
