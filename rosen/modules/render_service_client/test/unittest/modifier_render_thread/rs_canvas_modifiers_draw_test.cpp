@@ -1662,26 +1662,40 @@ HWTEST_F(RSCanvasModifiersDrawTest, RestoreGpuCacheLimitsTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: OnNodeCreate_NullGpuContext001
- * @tc.desc: Test OnNodeCreate when GetGpuContext returns null
+ * @tc.name: OnNodeCreate_RecreateGpuContext001
+ * @tc.desc: Test OnNodeCreate when gpuContext_ is null but renderContext_ is non-null.
+ *           GetGpuContext only short-circuits on a non-null gpuContext_, so it must
+ *           re-create the GPU context instead of reusing the stale renderContext_.
+ *           When creation succeeds the drawable is registered; otherwise OnNodeCreate
+ *           returns early and the node is not registered.
  * @tc.type: FUNC
  */
-HWTEST_F(RSCanvasModifiersDrawTest, OnNodeCreate_NullGpuContext001, TestSize.Level1)
+HWTEST_F(RSCanvasModifiersDrawTest, OnNodeCreate_RecreateGpuContext001, TestSize.Level1)
 {
     auto canvasModifiersDraw = CreateCanvasModifiersDraw();
     ASSERT_NE(canvasModifiersDraw, nullptr);
     canvasModifiersDraw->StartThread();
-    // Set renderContext_ to a non-null value so GetGpuContext skips re-creation,
-    // but keep gpuContext_ null so GetGpuContext returns null
+    canvasModifiersDraw->canvasModifiersContext_->cacheDir_ = "/data/local/tmp";
+    // A non-null renderContext_ with a null gpuContext_ is not a ready state: GetGpuContext
+    // caches only on a non-null gpuContext_, so it re-creates the context here.
     canvasModifiersDraw->canvasModifiersContext_->renderContext_ = RenderContext::Create();
     canvasModifiersDraw->canvasModifiersContext_->gpuContext_ = nullptr;
+    auto gpuContext = canvasModifiersDraw->canvasModifiersContext_->GetGpuContext();
     NodeId nodeId = RSNode::GenerateId();
     canvasModifiersDraw->OnNodeCreate(nodeId, GraphicColorGamut::GRAPHIC_COLOR_GAMUT_SRGB);
-    // OnNodeCreate returns early when gpuContext_ is null, so node should NOT be in drawableMap_
     auto future = canvasModifiersDraw->ScheduleTask(
         [canvasModifiersDraw, nodeId]() { return canvasModifiersDraw->drawableMap_.count(nodeId) > 0; });
     ASSERT_EQ(future.wait_for(std::chrono::milliseconds(1000)), std::future_status::ready);
-    EXPECT_FALSE(future.get());
+    if (gpuContext == nullptr) {
+        // Vulkan unavailable in this environment: OnNodeCreate must early-return.
+        EXPECT_FALSE(future.get());
+        EXPECT_EQ(canvasModifiersDraw->canvasModifiersContext_->gpuContext_, nullptr);
+    } else {
+        // Context re-created successfully: the node is registered with a valid drawable.
+        EXPECT_TRUE(future.get());
+        EXPECT_NE(canvasModifiersDraw->canvasModifiersContext_->gpuContext_, nullptr);
+        EXPECT_NE(canvasModifiersDraw->canvasModifiersContext_->renderContext_, nullptr);
+    }
     canvasModifiersDraw->Destroy();
 }
 
