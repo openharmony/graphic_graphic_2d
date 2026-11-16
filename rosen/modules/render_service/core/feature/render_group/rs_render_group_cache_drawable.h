@@ -52,8 +52,7 @@ public:
     static void SetContinuousUpdateInfo(NodeId nodeId, int32_t count, uint64_t vsyncId);
     static void ClearContinuousUpdateCount(NodeId nodeId);
     static void UpdateContinuousUpdateCount(NodeId nodeId, uint64_t vsyncId);
-    static int32_t GetOrClearContinuousUpdateCount(
-        NodeId nodeId, uint64_t currentVsyncId, bool needUpdateCache);
+    static int32_t GetOrClearContinuousUpdateCount(NodeId nodeId, uint64_t currentVsyncId, bool needUpdateCache);
 
     void SetShouldClipHole(bool value)
     {
@@ -92,7 +91,6 @@ private:
     std::shared_ptr<Drawing::Image> renderGroupCachedImage_ = nullptr;
     std::atomic<pid_t> renderGroupCacheThreadId_ = 0;
     std::atomic<DrawableCacheType> drawableCacheType_ = DrawableCacheType::NONE;
-    bool shouldClipHole_ = false;
 
 #if defined(RS_ENABLE_GL) || defined(RS_ENABLE_VK)
     Drawing::BackendTexture cachedBackendTexture_;
@@ -100,6 +98,7 @@ private:
 
     static thread_local bool drawBlurForCache_;
     static thread_local bool drawExcludedSubTreeForCache_;
+    bool shouldClipHole_ = false;
 
     static inline std::mutex continuousUpdateTimeMapMutex_;
     static inline std::unordered_map<NodeId, ContinuousUpdateInfo> continuousUpdateTimeMap_;

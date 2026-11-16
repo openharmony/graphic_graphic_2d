@@ -17,8 +17,8 @@
 
 #include "app_mgr_client.h"
 #include "engine/rs_base_render_util.h"
-#include "ffrt_inner.h"
 #include "feature/delegate_composite/rs_delegate_composite_callback_manager.h"
+#include "ffrt_inner.h"
 #include "hisysevent.h"
 #include "pipeline/main_thread/rs_main_thread.h"
 #include "platform/common/rs_log.h"
@@ -72,6 +72,14 @@ void RSUnmarshalThread::Start()
     queue_ = std::make_shared<ffrt::queue>(
         static_cast<ffrt::queue_type>(ffrt_inner_queue_type_t::ffrt_queue_eventhandler_adapter), "RSUnmarshalThread",
         ffrt::queue_attr().qos(ffrt::qos_user_interactive));
+}
+
+void RSUnmarshalThread::PostTask(const std::function<void()>& task)
+{
+    if (queue_) {
+        queue_->submit(std::move(task),
+            ffrt::task_attr().priority(static_cast<ffrt_queue_priority_t>(ffrt_inner_queue_priority_immediate)));
+    }
 }
 
 void RSUnmarshalThread::PostTask(const std::function<void()>& task, const std::string& name)
