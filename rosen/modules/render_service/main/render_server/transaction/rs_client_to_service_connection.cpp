@@ -1554,6 +1554,10 @@ int32_t RSClientToServiceConnection::RegisterAshmemTypeface(
 {
     if (sharedTypeface.fd_ < 0 || sharedTypeface.size_ == 0) {
         RS_LOGE("RegisterTypeface(ashmem): invalid parameters, %{public}s", sharedTypeface.ToString().c_str());
+        if (sharedTypeface.fd_ >= 0) {
+            ::close(sharedTypeface.fd_);
+            sharedTypeface.fd_ = -1;
+        }
         needUpdate = -1;
         return -1;
     }
