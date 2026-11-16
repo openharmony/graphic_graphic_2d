@@ -136,7 +136,7 @@ public:
             case RSNGEffectType::FRACTAL_GLASS_MASK: return "FractalGlassMask";
             case RSNGEffectType::BINOCULAR_MASK: return "BinocularMask";
             case RSNGEffectType::SWEEP_REFRACTION_MASK: return "SweepRefractionMask";
-            case RSNGEffectType::GLASS_EFFECT: return "GlassEffect";
+            case RSNGEffectType::GLASS_MARBLE_EFFECT: return "GlassMarbleEffect";
             case RSNGEffectType::ATLAS_FRAME_MASK: return "AtlasFrameMask";
             case RSNGEffectType::DISTORT_LIGHT: return "DistortLight";
             case RSNGEffectType::POINT_LIGHT: return "PointLight";

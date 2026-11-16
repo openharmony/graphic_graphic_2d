@@ -43,9 +43,6 @@ public:
     SweepRefractionMaskPara(const SweepRefractionMaskPara& other);
     ~SweepRefractionMaskPara() override = default;
 
-    bool Marshalling(Parcel& parcel) const override;
-    static void RegisterUnmarshallingCallback();
-    static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val);
     std::shared_ptr<MaskPara> Clone() const override;
 
     void SetMaskRadius(float maskRadius)

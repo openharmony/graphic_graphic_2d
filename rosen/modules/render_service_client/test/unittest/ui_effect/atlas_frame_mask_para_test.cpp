@@ -18,7 +18,6 @@
 #include "mask/include/atlas_frame_mask_para.h"
 #include "mask/include/mask.h"
 #include "mask/include/mask_para.h"
-#include "mask/include/mask_unmarshalling_singleton.h"
 #include "pixel_map.h"
 
 namespace OHOS {
@@ -73,7 +72,6 @@ public:
 void RSAtlasFrameMaskParaTest::SetUpTestCase()
 {
     Mask::RegisterUnmarshallingCallback();
-    AtlasFrameMaskPara::RegisterUnmarshallingCallback();
 }
 void RSAtlasFrameMaskParaTest::TearDownTestCase() {}
 void RSAtlasFrameMaskParaTest::SetUp() {}
@@ -287,74 +285,6 @@ HWTEST_F(RSAtlasFrameMaskParaTest, AtlasFrameMaskParaCloneNullPixelMap, TestSize
     ASSERT_NE(clone, nullptr);
     auto atlasClone = std::static_pointer_cast<AtlasFrameMaskPara>(clone);
     EXPECT_EQ(atlasClone->GetAtlasInfo().pixelMap, nullptr);
-}
-
-/**
- * @tc.name: AtlasFrameMaskParaMarshallingRoundTrip
- * @tc.desc: Verify Marshalling/OnUnmarshalling round trip with pixelMap
- * @tc.type: FUNC
- */
-HWTEST_F(RSAtlasFrameMaskParaTest, AtlasFrameMaskParaMarshallingRoundTrip, TestSize.Level1)
-{
-    auto para = std::make_shared<AtlasFrameMaskPara>();
-    ASSERT_NE(para, nullptr);
-    para->SetAtlasInfo(MakeFullAtlasInfo());
-
-    Parcel parcel;
-    EXPECT_TRUE(para->Marshalling(parcel));
-    std::shared_ptr<MaskPara> val = nullptr;
-    EXPECT_TRUE(MaskPara::Unmarshalling(parcel, val));
-    ASSERT_NE(val, nullptr);
-    EXPECT_EQ(val->GetMaskParaType(), MaskPara::Type::ATLAS_FRAME_MASK);
-    auto recovered = std::static_pointer_cast<AtlasFrameMaskPara>(val);
-    const auto& got = recovered->GetAtlasInfo();
-    EXPECT_EQ(got.mode, ATLAS_TEST_MODE_FRAME_BLEND);
-    EXPECT_EQ(got.rows, ATLAS_TEST_ROWS);
-    EXPECT_EQ(got.cols, ATLAS_TEST_COLS);
-    EXPECT_EQ(got.totalFrame, ATLAS_TEST_TOTAL_FRAME);
-    EXPECT_FLOAT_EQ(got.frameWidth, ATLAS_TEST_FRAME_WIDTH);
-    EXPECT_FLOAT_EQ(got.frameHeight, ATLAS_TEST_FRAME_HEIGHT);
-    EXPECT_FLOAT_EQ(got.padding, ATLAS_TEST_PADDING);
-    EXPECT_NE(got.pixelMap, nullptr);
-}
-
-/**
- * @tc.name: AtlasFrameMaskParaOnUnmarshallingBadType
- * @tc.desc: Verify OnUnmarshalling fails on wrong type
- * @tc.type: FUNC
- */
-HWTEST_F(RSAtlasFrameMaskParaTest, AtlasFrameMaskParaOnUnmarshallingBadType, TestSize.Level1)
-{
-    Parcel parcel;
-    parcel.WriteUint16(static_cast<uint16_t>(MaskPara::Type::RIPPLE_MASK));
-    std::shared_ptr<MaskPara> val = nullptr;
-    EXPECT_FALSE(AtlasFrameMaskPara::OnUnmarshalling(parcel, val));
-    EXPECT_EQ(val, nullptr);
-}
-
-/**
- * @tc.name: AtlasFrameMaskParaOnUnmarshallingEmpty
- * @tc.desc: Verify OnUnmarshalling fails on empty parcel
- * @tc.type: FUNC
- */
-HWTEST_F(RSAtlasFrameMaskParaTest, AtlasFrameMaskParaOnUnmarshallingEmpty, TestSize.Level1)
-{
-    Parcel parcel;
-    std::shared_ptr<MaskPara> val = nullptr;
-    EXPECT_FALSE(AtlasFrameMaskPara::OnUnmarshalling(parcel, val));
-    EXPECT_EQ(val, nullptr);
-}
-
-/**
- * @tc.name: AtlasFrameMaskParaRegisterCallback
- * @tc.desc: Verify RegisterUnmarshallingCallback registers ATLAS_FRAME_MASK
- * @tc.type: FUNC
- */
-HWTEST_F(RSAtlasFrameMaskParaTest, AtlasFrameMaskParaRegisterCallback, TestSize.Level1)
-{
-    auto& singleton = MaskUnmarshallingSingleton::GetInstance();
-    auto cb = singleton.GetCallback(static_cast<uint16_t>(MaskPara::Type::ATLAS_FRAME_MASK));
-    EXPECT_NE(cb, nullptr);
 }
 } // namespace Rosen
 } // namespace OHOS

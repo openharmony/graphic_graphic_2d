@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef UIEFFECT_EFFECT_GLASS_EFFECT_PARA_H
-#define UIEFFECT_EFFECT_GLASS_EFFECT_PARA_H
+#ifndef UIEFFECT_EFFECT_GLASS_MARBLE_EFFECT_PARA_H
+#define UIEFFECT_EFFECT_GLASS_MARBLE_EFFECT_PARA_H
 #include <iostream>
 
 #include "visual_effect_para.h"
@@ -23,13 +23,13 @@
 
 namespace OHOS {
 namespace Rosen {
-class GlassEffectPara : public VisualEffectPara {
+class GlassMarbleEffectPara : public VisualEffectPara {
 public:
-    GlassEffectPara()
+    GlassMarbleEffectPara()
     {
-        this->type_ = VisualEffectPara::ParaType::GLASS_EFFECT;
+        this->type_ = VisualEffectPara::ParaType::GLASS_MARBLE_EFFECT;
     }
-    ~GlassEffectPara() override = default;
+    ~GlassMarbleEffectPara() override = default;
 
     void SetSphereCenter(const Vector2f& center)
     {
@@ -255,4 +255,4 @@ private:
 };
 } // namespace Rosen
 } // namespace OHOS
-#endif // UIEFFECT_EFFECT_GLASS_EFFECT_PARA_H
+#endif // UIEFFECT_EFFECT_GLASS_MARBLE_EFFECT_PARA_H

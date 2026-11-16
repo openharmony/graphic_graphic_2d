@@ -189,12 +189,12 @@ HWTEST_F(RSNGRenderEffectTemplateTest, GetEffectTypeStringForUnknownType, TestSi
 
 /**
  * @tc.name: GetEffectTypeStringForGlassAndAtlasFrameTypes
- * @tc.desc: Verify GetEffectTypeString for GLASS_EFFECT and ATLAS_FRAME_MASK
+ * @tc.desc: Verify GetEffectTypeString for GLASS_MARBLE_EFFECT and ATLAS_FRAME_MASK
  * @tc.type: FUNC
  */
 HWTEST_F(RSNGRenderEffectTemplateTest, GetEffectTypeStringForGlassAndAtlasFrameTypes, TestSize.Level1)
 {
-    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::GLASS_EFFECT), "GlassEffect");
+    EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::GLASS_MARBLE_EFFECT), "GlassMarbleEffect");
     EXPECT_EQ(RSNGRenderEffectHelper::GetEffectTypeString(RSNGEffectType::ATLAS_FRAME_MASK), "AtlasFrameMask");
 }
 

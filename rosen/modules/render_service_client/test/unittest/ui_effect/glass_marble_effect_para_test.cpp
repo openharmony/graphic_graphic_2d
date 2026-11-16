@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#include "effect/include/glass_effect_para.h"
+#include "effect/include/glass_marble_effect_para.h"
 #include "effect/include/visual_effect.h"
 #include "effect/include/visual_effect_para.h"
 #include "mask/include/ripple_mask_para.h"
@@ -27,7 +27,7 @@ namespace Rosen {
 using namespace testing;
 using namespace testing::ext;
 
-class RSGlassEffectParaTest : public testing::Test {
+class RSGlassMarbleEffectParaTest : public testing::Test {
 public:
     static void SetUpTestCase();
     static void TearDownTestCase();
@@ -35,35 +35,35 @@ public:
     void TearDown() override;
 };
 
-void RSGlassEffectParaTest::SetUpTestCase() {}
-void RSGlassEffectParaTest::TearDownTestCase() {}
-void RSGlassEffectParaTest::SetUp() {}
-void RSGlassEffectParaTest::TearDown() {}
+void RSGlassMarbleEffectParaTest::SetUpTestCase() {}
+void RSGlassMarbleEffectParaTest::TearDownTestCase() {}
+void RSGlassMarbleEffectParaTest::SetUp() {}
+void RSGlassMarbleEffectParaTest::TearDown() {}
 
 /**
- * @tc.name: GlassEffectParaType001
- * @tc.desc: Verify GlassEffectPara type is GLASS_EFFECT
+ * @tc.name: GlassMarbleEffectParaType001
+ * @tc.desc: Verify GlassMarbleEffectPara type is GLASS_MARBLE_EFFECT
  * @tc.type: FUNC
  */
-HWTEST_F(RSGlassEffectParaTest, GlassEffectParaType001, TestSize.Level1)
+HWTEST_F(RSGlassMarbleEffectParaTest, GlassMarbleEffectParaType001, TestSize.Level1)
 {
-    auto para = std::make_shared<GlassEffectPara>();
+    auto para = std::make_shared<GlassMarbleEffectPara>();
     ASSERT_NE(para, nullptr);
-    EXPECT_EQ(para->type_, VisualEffectPara::ParaType::GLASS_EFFECT);
+    EXPECT_EQ(para->type_, VisualEffectPara::ParaType::GLASS_MARBLE_EFFECT);
 }
 
 /**
- * @tc.name: GlassEffectParaDefaultValues001
- * @tc.desc: Verify GlassEffectPara default values
+ * @tc.name: GlassMarbleEffectParaDefaultValues001
+ * @tc.desc: Verify GlassMarbleEffectPara default values
  * @tc.type: FUNC
  */
-HWTEST_F(RSGlassEffectParaTest, GlassEffectParaDefaultValues001, TestSize.Level1)
+HWTEST_F(RSGlassMarbleEffectParaTest, GlassMarbleEffectParaDefaultValues001, TestSize.Level1)
 {
-    auto para = std::make_shared<GlassEffectPara>();
+    auto para = std::make_shared<GlassMarbleEffectPara>();
     ASSERT_NE(para, nullptr);
     EXPECT_FLOAT_EQ(para->GetSphereCenter().x_, 0.5f);
     EXPECT_FLOAT_EQ(para->GetSphereCenter().y_, 0.5f);
-    EXPECT_FLOAT_EQ(para->GetSphereRadius(), 0.18f);
+    EXPECT_FLOAT_EQ(para->GetSphereRadius(), 0.0f);
     EXPECT_FLOAT_EQ(para->GetOpacity(), 0.0f);
     EXPECT_FLOAT_EQ(para->GetShapeScale(), 0.0f);
     EXPECT_FLOAT_EQ(para->GetShadowOffset(), 0.0f);
@@ -83,13 +83,13 @@ HWTEST_F(RSGlassEffectParaTest, GlassEffectParaDefaultValues001, TestSize.Level1
 }
 
 /**
- * @tc.name: GlassEffectParaSetterGetter001
- * @tc.desc: Verify GlassEffectPara setters and getters
+ * @tc.name: GlassMarbleEffectParaSetterGetter001
+ * @tc.desc: Verify GlassMarbleEffectPara setters and getters
  * @tc.type: FUNC
  */
-HWTEST_F(RSGlassEffectParaTest, GlassEffectParaSetterGetter001, TestSize.Level1)
+HWTEST_F(RSGlassMarbleEffectParaTest, GlassMarbleEffectParaSetterGetter001, TestSize.Level1)
 {
-    auto para = std::make_shared<GlassEffectPara>();
+    auto para = std::make_shared<GlassMarbleEffectPara>();
     ASSERT_NE(para, nullptr);
 
     Vector2f center(0.1f, 0.2f);
@@ -155,13 +155,13 @@ HWTEST_F(RSGlassEffectParaTest, GlassEffectParaSetterGetter001, TestSize.Level1)
 }
 
 /**
- * @tc.name: GlassEffectParaMaskParams001
- * @tc.desc: Verify GlassEffectPara mask and reflection image setters
+ * @tc.name: GlassMarbleEffectParaMaskParams001
+ * @tc.desc: Verify GlassMarbleEffectPara mask and reflection image setters
  * @tc.type: FUNC
  */
-HWTEST_F(RSGlassEffectParaTest, GlassEffectParaMaskParams001, TestSize.Level1)
+HWTEST_F(RSGlassMarbleEffectParaTest, GlassMarbleEffectParaMaskParams001, TestSize.Level1)
 {
-    auto para = std::make_shared<GlassEffectPara>();
+    auto para = std::make_shared<GlassMarbleEffectPara>();
     ASSERT_NE(para, nullptr);
 
     auto shapeMask = std::make_shared<RippleMaskPara>();
@@ -183,12 +183,12 @@ HWTEST_F(RSGlassEffectParaTest, GlassEffectParaMaskParams001, TestSize.Level1)
 
 /**
  * @tc.name: VisualEffectAddGlassPara001
- * @tc.desc: Verify VisualEffect accepts GlassEffectPara
+ * @tc.desc: Verify VisualEffect accepts GlassMarbleEffectPara
  * @tc.type: FUNC
  */
-HWTEST_F(RSGlassEffectParaTest, VisualEffectAddGlassPara001, TestSize.Level1)
+HWTEST_F(RSGlassMarbleEffectParaTest, VisualEffectAddGlassPara001, TestSize.Level1)
 {
-    auto para = std::make_shared<GlassEffectPara>();
+    auto para = std::make_shared<GlassMarbleEffectPara>();
     ASSERT_NE(para, nullptr);
     auto visualEffect = std::make_shared<VisualEffect>();
     ASSERT_NE(visualEffect, nullptr);

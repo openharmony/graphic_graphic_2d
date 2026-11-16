@@ -66,12 +66,6 @@ public:
         return atlasInfo_;
     }
 
-    bool Marshalling(Parcel& parcel) const override;
-
-    static void RegisterUnmarshallingCallback();
-
-    [[nodiscard]] static bool OnUnmarshalling(Parcel& parcel, std::shared_ptr<MaskPara>& val);
-
     std::shared_ptr<MaskPara> Clone() const override;
 
 private:

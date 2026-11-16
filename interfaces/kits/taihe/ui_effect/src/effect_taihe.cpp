@@ -20,7 +20,7 @@
 #include "effect/include/border_light_effect_para.h"
 #include "effect/include/brightness_blender.h"
 #include "effect/include/color_gradient_effect_para.h"
-#include "effect/include/glass_effect_para.h"
+#include "effect/include/glass_marble_effect_para.h"
 #include "effect/include/harmonium_effect_para.h"
 #include "effect/include/visual_effect.h"
 #include "ohos.graphics.uiEffect.uiEffect.BrightnessBlender.proj.1.hpp"
@@ -109,12 +109,7 @@ VisualEffect VisualEffectImpl::GlassMarbleEffect(
     ::ohos::graphics::uiEffect::uiEffect::GlassMarbleShell const& marbleShell,
     optional_view<::ohos::graphics::uiEffect::uiEffect::GlassMarbleContentParam> content)
 {
-    if (!IsVisualEffectValid()) {
-        UIEFFECT_LOG_E("VisualEffectImpl::glassMarbleEffect failed, visual effect is invalid");
-        return make_holder<VisualEffectImpl, VisualEffect>(nativeVisualEffect_);
-    }
-
-    auto para = std::make_shared<OHOS::Rosen::GlassEffectPara>();
+    auto para = std::make_shared<OHOS::Rosen::GlassMarbleEffectPara>();
 
     // Parse material params
     OHOS::Rosen::Vector4f bgColor(static_cast<float>(material.averageBgColor.red),
