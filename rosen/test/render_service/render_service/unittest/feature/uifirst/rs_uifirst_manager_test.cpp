@@ -2225,6 +2225,46 @@ HWTEST_F(RSUifirstManagerTest, GetSubNodeIsTransparent_AbilityBgAlpha, TestSize.
 }
 
 /**
+ * @tc.name: GetSubNodeIsTransparent_AppWindowIgnoreGlobalAlpha
+ * @tc.desc: app window child ignores global alpha, non-app-window child does not
+ * @tc.type: FUNC
+ * @tc.require: issueIBMDEJ
+ */
+HWTEST_F(RSUifirstManagerTest, GetSubNodeIsTransparent_AppWindowIgnoreGlobalAlpha, TestSize.Level1)
+{
+    uifirstManager_.currentFrameEvent_.clear();
+    const float halfAlpha = 0.5f;
+    std::string dfxMsg;
+    NodeId leashId = static_cast<uint64_t>(1);
+
+    auto leashNode = std::make_shared<RSSurfaceRenderNode>(leashId);
+    ASSERT_NE(leashNode, nullptr);
+    leashNode->SetSurfaceNodeType(RSSurfaceNodeType::LEASH_WINDOW_NODE);
+
+    // case 1: app window child with opaque ability bg, global alpha < 1 -> not transparent
+    // for app window only ability bg alpha is checked, global alpha is ignored
+    auto appWindow = std::make_shared<RSSurfaceRenderNode>(leashId + 1);
+    appWindow->SetSurfaceNodeType(RSSurfaceNodeType::APP_WINDOW_NODE);
+    appWindow->SetGlobalAlpha(halfAlpha);
+    appWindow->SetAbilityBGAlpha(UINT8_MAX);
+    std::vector<std::shared_ptr<RSRenderNode>> appChildren;
+    appChildren.push_back(appWindow);
+    leashNode->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(appChildren);
+    ASSERT_EQ(uifirstManager_.GetSubNodeIsTransparent(*leashNode, dfxMsg), false);
+
+    // case 2: non-app-window child with opaque ability bg, global alpha < 1 -> transparent
+    // non-app-window still checks global alpha through IsAlphaTransparent
+    auto nonAppWindow = std::make_shared<RSSurfaceRenderNode>(leashId + 2);
+    nonAppWindow->SetSurfaceNodeType(RSSurfaceNodeType::SELF_DRAWING_NODE);
+    nonAppWindow->SetGlobalAlpha(halfAlpha);
+    nonAppWindow->SetAbilityBGAlpha(UINT8_MAX);
+    std::vector<std::shared_ptr<RSRenderNode>> nonAppChildren;
+    nonAppChildren.push_back(nonAppWindow);
+    leashNode->fullChildrenList_ = std::make_shared<std::vector<std::shared_ptr<RSRenderNode>>>(nonAppChildren);
+    ASSERT_EQ(uifirstManager_.GetSubNodeIsTransparent(*leashNode, dfxMsg), true);
+}
+
+/**
  * @tc.name: QuerySubAssignable
  * @tc.desc: test results of QuerySubAssignable
  * @tc.type: FUNC
