@@ -71,6 +71,11 @@ public:
     void UpdateHwcNodeEnableByColorPicker();
     void UpdateHwcNodeEnableByFilterIntersection();
     void UpdateHwcNodeRectInSkippedSubTree(const RSRenderNode& rootNode);
+    void CollectHwcAndFilterNodesInSkippedSubTree(RSRenderNode& node);
+    void CollectHwcAndFilterNodesToParent(RSRenderNode& node, bool isParentPrepareInReverseOrder = false,
+        bool isBlendNeedFilter = false);
+    // Propagate the cross-node subtree's selfDrawing/filter nodes to the parent when its traversal is skipped.
+    void CollectHwcAndFilterNodesForCrossNode(RSSurfaceRenderNode& node, bool isParentPrepareInReverseOrder = false);
     void UpdatePrepareClip(RSRenderNode& node);
     void UpdateTopSurfaceSrcRect(RSSurfaceRenderNode& node,
         const Drawing::Matrix& absMatrix, const RectI& absRect);

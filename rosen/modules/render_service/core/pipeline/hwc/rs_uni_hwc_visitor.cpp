@@ -1284,6 +1284,60 @@ bool RSUniHwcVisitor::IsFindRootSuccess(std::shared_ptr<RSRenderNode>& parent, c
     return isFindInRootSubTree;
 }
 
+void RSUniHwcVisitor::CollectHwcAndFilterNodesInSkippedSubTree(RSRenderNode& node)
+{
+    // Rebuild the aggregated list from children's lists; drop last frame's stale entries first.
+    node.ClearAllHwcNodeAndFilterNode();
+    auto children = node.GetSortedChildren();
+    std::for_each((*children).begin(), (*children).end(), [this, &node](
+        const std::shared_ptr<RSRenderNode>& child) {
+        if (!child) {
+            return;
+        }
+        // Forward order: append at the end
+        node.GetAllHwcNodeAndFilterNode().insert(node.GetAllHwcNodeAndFilterNode().end(),
+            child->GetAllHwcNodeAndFilterNode().begin(), child->GetAllHwcNodeAndFilterNode().end());
+    });
+}
+
+void RSUniHwcVisitor::CollectHwcAndFilterNodesToParent(RSRenderNode& node, bool isParentPrepareInReverseOrder,
+    bool isBlendNeedFilter)
+{
+    if (isBlendNeedFilter || node.IsHardwareEnabledType()) {
+        node.GetAllHwcNodeAndFilterNode().insert(node.GetAllHwcNodeAndFilterNode().begin(),
+            node.weak_from_this());
+    }
+    if (auto nodeParent = node.GetParent().lock()) {
+        auto& parentList = nodeParent->GetAllHwcNodeAndFilterNode();
+        auto& childList = node.GetAllHwcNodeAndFilterNode();
+        if (isParentPrepareInReverseOrder) {
+            parentList.insert(parentList.begin(), childList.begin(), childList.end());
+        } else {
+            parentList.insert(parentList.end(), childList.begin(), childList.end());
+        }
+    }
+}
+
+void RSUniHwcVisitor::CollectHwcAndFilterNodesForCrossNode(RSSurfaceRenderNode& node,
+    bool isParentPrepareInReverseOrder)
+{
+    auto sourceRenderNode = node.GetSourceCrossNode().lock();
+    auto sourceSurfaceNode = sourceRenderNode ?
+        sourceRenderNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
+    if (sourceSurfaceNode) {
+        // Clone: mirror the source's aggregated list into the current node.
+        auto& cloneNodeList = node.GetAllHwcNodeAndFilterNode();
+        cloneNodeList = sourceSurfaceNode->GetAllHwcNodeAndFilterNode();
+    } else if (node.IsCloneCrossNode()) {
+        // Error case: no resolvable source, drop stale data.
+        node.ClearAllHwcNodeAndFilterNode();
+    }
+    if (uniRenderVisitor_.curScreenNode_ && uniRenderVisitor_.curScreenNode_->GetId() != node.GetId()) {
+        CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder,
+            RSUniHwcComputeUtil::IsBlendNeedFilter(node));
+    }
+}
+
 void RSUniHwcVisitor::UpdateHwcNodeClipRect(const std::shared_ptr<RSRenderNode>& hwcNodeParent,
     Drawing::Rect& childRectMapped)
 {
