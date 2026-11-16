@@ -418,6 +418,21 @@ void RSUniHwcVisitor::DisableSolidLayerByDstRectNEBounds(RSSurfaceRenderNode& no
     }
 }
 
+bool RSUniHwcVisitor::IsSurfaceOpaque(RSSurfaceRenderNode& node)
+{
+    auto surfaceHandler = node.GetMutableRSSurfaceHandler();
+    auto consumer = surfaceHandler->GetConsumer();
+    if (consumer != nullptr) {
+        auto fwkType = consumer->GetSurfaceAppFrameworkType();
+        auto surfaceOpaqueType = RsCommonHook::Instance().GetSurfaceOpaqueType();
+        bool surfaceType = fwkType.find(surfaceOpaqueType) != std::string::npos;
+        if (surfaceType) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool RSUniHwcVisitor::IsTargetSolidLayer(RSSurfaceRenderNode& node)
 {
     const std::string& bundleName = node.GetBundleName();
@@ -473,7 +488,7 @@ void RSUniHwcVisitor::UpdateHwcNodeEnableByBackgroundAlpha(RSSurfaceRenderNode& 
     auto stagingSurfaceParams = static_cast<RSSurfaceRenderParams *>(node.GetStagingRenderParams().get());
     stagingSurfaceParams->SetIsHwcEnabledBySolidLayer(false);
     node.SetNodeHasBackgroundColorAlpha(false);
-    if (node.GetAncoForceDoDirect()) {
+    if (node.GetAncoForceDoDirect() || IsSurfaceOpaque(node)) {
         return;
     }
     if (ProcessSolidLayerEnabledByTag(node, stagingSurfaceParams)) {

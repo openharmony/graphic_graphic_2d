@@ -44,6 +44,16 @@ bool RsCommonHook::GetVideoSurfaceFlag() const
     return videoSurfaceFlag_;
 }
 
+void RsCommonHook::SetSurfaceOpaqueType(const std::string &surfaceOpaqueType)
+{
+    surfaceOpaqueType_ = surfaceOpaqueType;
+}
+
+std::string RsCommonHook::GetSurfaceOpaqueType() const
+{
+    return surfaceOpaqueType_;
+}
+
 // use to implement product isolation for the adaptive P3 scheme
 void RsCommonHook::SetAdaptiveColorGamutEnable(bool isAdaptiveColorGamutEnable)
 {

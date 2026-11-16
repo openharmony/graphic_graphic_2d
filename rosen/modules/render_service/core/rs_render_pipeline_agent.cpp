@@ -16,6 +16,7 @@
 #include <charconv>
 #include "rs_render_pipeline_agent.h"
 #include "common/rs_background_thread.h"
+#include "common/rs_common_hook.h"
 #include "common/rs_special_layer_manager.h"
 #include "command/rs_command_verify_helper.h"
 #include "command/rs_delegate_composite_command.h"
@@ -2236,6 +2237,15 @@ ErrCode RSRenderPipelineAgent::SetApsConfigParams(
             RSEffectUtils::UpdateSurfaceFilterRate(appName, rate, mainThread->GetContext().GetNodeMap());
         };
         pipeline->PostMainThreadTask(updateSurfaceFilterRateTask);
+    }
+    if (event == ApsEventType::VCLD) {
+        //FF_SURF:video content is opaque
+        auto it = params.find("FF_SURF");
+        if (it!=params.end()) {
+            std::string surfaceOpaqueType = it->first;
+            RsCommonHook::Instance().SetSurfaceOpaqueType(surfaceOpaqueType);
+        }
+        return ERR_OK;
     }
     return ERR_OK;
 }
