@@ -1798,16 +1798,6 @@ public:
         return isContainerWindowTransparent_;
     }
 
-    bool IsUIRenderDirectorStopped() const
-    {
-        return isUIRenderDirectorStopped_.load();
-    }
-
-    void SetUIRenderDirectorStopped(bool isUIRenderDirectorStopped)
-    {
-        isUIRenderDirectorStopped_ = isUIRenderDirectorStopped;
-    }
-
     bool IsSecureUIExtension() const
     {
         return nodeType_ == RSSurfaceNodeType::UI_EXTENSION_SECURE_NODE;
@@ -2345,7 +2335,6 @@ private:
     Drawing::GPUContext* grContext_ = nullptr;
     ScreenId screenId_ = INVALID_SCREEN_ID;
     bool isRebuildingState_ = false;
-    std::atomic<bool> isUIRenderDirectorStopped_ = false;
     SurfaceId surfaceId_ = 0;
     uint64_t leashPersistentId_ = INVALID_LEASH_PERSISTENTID;
     struct GamutCollector
