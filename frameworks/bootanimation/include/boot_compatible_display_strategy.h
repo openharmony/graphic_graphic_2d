@@ -31,7 +31,6 @@ public:
 private:
     bool PrepareScreenConfig(BootAnimationConfig& config);
     void RunAnimationAndOta(BootAnimationConfig& config, int32_t duration);
-    Rosen::ScreenId SelectHdmiScreen(Rosen::ScreenId fallbackId);
     std::shared_ptr<BootAnimationOperation> operator_;
 };
 } // namespace OHOS
