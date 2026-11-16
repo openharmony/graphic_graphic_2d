@@ -24,11 +24,14 @@
 namespace OHOS {
 namespace Rosen {
 
+class RSRenderParticlePool;
+
+// Every entry point takes (pool, slot): there is no per-particle object to carry the state.
 class RSRenderParticleEffector {
 public:
     RSRenderParticleEffector();
 
-    Vector4<int16_t> CalculateColorInt(const std::shared_ptr<RSRenderParticle>& particle, Vector4<int16_t> colorInt,
+    Vector4<int16_t> CalculateColorInt(RSRenderParticlePool& pool, size_t slot, Vector4<int16_t> colorInt,
         Vector4<float> colorF, Vector4<float> colorSpeed, float deltaTime);
 
     void UpdateCurveValue(float& value,
@@ -37,42 +40,36 @@ public:
     void UpdateColorCurveValue(Color& color,
         const std::vector<std::shared_ptr<ChangeInOverLife<Color>>>& valChangeOverLife, int64_t activeTime);
 
-    void UpdateColor(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime);
-
-    void UpdateOpacity(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime);
-
-    void UpdateScale(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime);
-
-    void UpdateSpin(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime);
-
-    void UpdateAccelerationAngle(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime);
-
-    void UpdateAccelerationValue(const std::shared_ptr<RSRenderParticle>& particle, float deltaTime);
-
-    void UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle,
-        const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
-        const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
-        const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, float deltaTime);
-
-    void UpdateActiveTime(const std::shared_ptr<RSRenderParticle>& particle, int64_t deltaTime);
-
-    void Update(const std::shared_ptr<RSRenderParticle>& particle,
-        const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
-        const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
-        const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, int64_t deltaTime);
-
-    // Unified field collection overloads
-    void UpdatePosition(const std::shared_ptr<RSRenderParticle>& particle,
+    void UpdateColor(RSRenderParticlePool& pool, size_t slot, ParticleRenderParams& params, float deltaTime);
+    void UpdateOpacity(RSRenderParticlePool& pool, size_t slot, ParticleRenderParams& params, float deltaTime);
+    void UpdateScale(RSRenderParticlePool& pool, size_t slot, ParticleRenderParams& params, float deltaTime);
+    void UpdateSpin(RSRenderParticlePool& pool, size_t slot, ParticleRenderParams& params, float deltaTime);
+    void UpdateAccelerationAngle(RSRenderParticlePool& pool, size_t slot, ParticleRenderParams& params,
+        float deltaTime);
+    void UpdateAccelerationValue(RSRenderParticlePool& pool, size_t slot, ParticleRenderParams& params,
+        float deltaTime);
+    void UpdatePosition(RSRenderParticlePool& pool, size_t slot,
         const std::shared_ptr<ParticleFieldCollection>& fields, float deltaTime);
-    void Update(const std::shared_ptr<RSRenderParticle>& particle,
-        const std::shared_ptr<ParticleFieldCollection>& fields, int64_t deltaTime);
 
-    void UpdateToActiveTime(const std::shared_ptr<RSRenderParticle>& particle,
+    void Update(RSRenderParticlePool& pool, size_t slot, ParticleRenderParams& params,
+        const std::shared_ptr<ParticleFieldCollection>& fields, int64_t deltaTime);
+    // One emitter group: skips NONE properties and vectorizes the RANDOM ones over the slot list.
+    void UpdateGroup(RSRenderParticlePool& pool, const std::vector<size_t>& slots, ParticleRenderParams& params,
+        const std::shared_ptr<ParticleFieldCollection>& fields, int64_t deltaTime);
+    void UpdateAccelerationGroup(RSRenderParticlePool& pool, const std::vector<size_t>& slots,
+        ParticleRenderParams& params, float deltaTime);
+    void UpdateColorGroup(RSRenderParticlePool& pool, const std::vector<size_t>& slots,
+        ParticleRenderParams& params, float deltaTime);
+    void UpdateOpacityGroup(RSRenderParticlePool& pool, const std::vector<size_t>& slots,
+        ParticleRenderParams& params, float deltaTime);
+    void UpdateScaleGroup(RSRenderParticlePool& pool, const std::vector<size_t>& slots,
+        ParticleRenderParams& params, float deltaTime);
+    void UpdateSpinGroup(RSRenderParticlePool& pool, const std::vector<size_t>& slots,
+        ParticleRenderParams& params, float deltaTime);
+    void UpdatePositionGroup(RSRenderParticlePool& pool, const std::vector<size_t>& slots,
+        const std::shared_ptr<ParticleFieldCollection>& fields, float deltaTime);
+    void UpdateToActiveTime(RSRenderParticlePool& pool, size_t slot, ParticleRenderParams& params,
         const std::shared_ptr<ParticleFieldCollection>& fields, int64_t activeTimeNs);
-    void UpdateToActiveTime(const std::shared_ptr<RSRenderParticle>& particle,
-        const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields,
-        const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
-        const std::shared_ptr<ParticleVelocityFields>& particleVelocityFields, int64_t activeTimeNs);
 };
 
 } // namespace Rosen

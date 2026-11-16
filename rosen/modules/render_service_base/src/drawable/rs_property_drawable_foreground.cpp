@@ -545,15 +545,15 @@ bool RSParticleDrawable::OnUpdate(const RSRenderNode& node)
 
     RSPropertyDrawCmdListUpdater updater(0, 0, this);
     Drawing::Canvas& canvas = *updater.GetRecordingCanvas();
-    const auto& particles = particleVector.GetParticleVector();
+    const auto& pool = particleVector.GetParticlePool();
     auto bounds = properties.GetDrawRegion();
     auto imageCount = particleVector.GetParticleImageCount();
     auto& imageVector = particleVector.GetParticleImageVector();
 
     if (cachedDrawable_ == nullptr) {
-        cachedDrawable_ = std::make_shared<RSParticlesDrawable>(particles, imageVector, imageCount);
+        cachedDrawable_ = std::make_shared<RSParticlesDrawable>(pool, imageVector, imageCount);
     } else {
-        cachedDrawable_->UpdateData(particles, imageVector, imageCount);
+        cachedDrawable_->UpdateData(pool, imageVector, imageCount);
     }
 
     cachedDrawable_->Draw(canvas, bounds);

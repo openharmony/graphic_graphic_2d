@@ -19,6 +19,7 @@
 #include "animation/rs_particle_field_collection.h"
 #include "animation/rs_particle_noise_field.h"
 #include "animation/rs_particle_ripple_field.h"
+#include "animation/rs_render_particle_pool.h"
 #include "animation/rs_particle_velocity_field.h"
 #include "animation/rs_render_particle.h"
 #include "animation/rs_render_particle_system.h"
@@ -88,6 +89,7 @@ public:
     void SetUp() override
     {
         system_ = std::make_shared<RSRenderParticleSystem>();
+        system_->EnsureParticlePool();
     }
     void TearDown() override
     {
@@ -632,7 +634,7 @@ HWTEST_F(RSRenderParticleSystemTest, UpdateVelocityField001, TestSize.Level1)
 }
 
 /* ==========================================================================
- * IsFinish — empty vs active particles
+ * IsFinish / UpdateParticle operate on the pool, not on a particle vector
  * ========================================================================== */
 
 /**
@@ -642,49 +644,49 @@ HWTEST_F(RSRenderParticleSystemTest, UpdateVelocityField001, TestSize.Level1)
  */
 HWTEST_F(RSRenderParticleSystemTest, IsFinishEmpty001, TestSize.Level1)
 {
-    std::vector<std::shared_ptr<RSRenderParticle>> particles;
-    EXPECT_TRUE(system_->IsFinish(particles));
+    EXPECT_TRUE(system_->IsFinish());
 }
+
+namespace {
+std::shared_ptr<ParticleRenderParams> MakeEmitParams(int emitRate, int particleCount, int64_t lifeTimeMs);
+} // namespace
 
 /**
  * @tc.name: IsFinishNonEmpty001
- * @tc.desc: IsFinish returns false when there are active particles.
+ * @tc.desc: IsFinish returns false when the pool holds a live slot.
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderParticleSystemTest, IsFinishNonEmpty001, TestSize.Level1)
 {
-    std::vector<std::shared_ptr<RSRenderParticle>> particles(1, nullptr);
-    EXPECT_FALSE(system_->IsFinish(particles));
+    auto params = MakeEmitParams(20, 20, 10000);
+    auto system = std::make_shared<RSRenderParticleSystem>(
+        std::vector<std::shared_ptr<ParticleRenderParams>> { params });
+    auto pool = system->GetParticlePool();
+    ASSERT_NE(pool, nullptr);
+    pool->Acquire();
+    EXPECT_FALSE(system->IsFinish());
 }
-
-/* ==========================================================================
- * UpdateParticle branch selection (new vs legacy path)
- * ========================================================================== */
 
 /**
  * @tc.name: UpdateParticleEmpty001
- * @tc.desc: UpdateParticle with empty active particles is a no-op, does not crash.
+ * @tc.desc: UpdateParticle with an empty pool is a no-op, does not crash.
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderParticleSystemTest, UpdateParticleEmpty001, TestSize.Level1)
 {
-    std::vector<std::shared_ptr<RSRenderParticle>> particles;
-    system_->UpdateParticle(16000000, particles);
-    EXPECT_TRUE(particles.empty());
+    system_->UpdateParticle(16000000);
+    EXPECT_EQ(system_->GetParticlePool()->Count(), 0u);
 }
 
 /**
  * @tc.name: UpdateParticleLegacyPath001
- * @tc.desc: When particleFields_ is null, UpdateParticle runs legacy path with nullptr particles.
+ * @tc.desc: When particleFields_ is null, UpdateParticle runs the legacy path without particles.
  * @tc.type: FUNC
  */
 HWTEST_F(RSRenderParticleSystemTest, UpdateParticleLegacyPath001, TestSize.Level1)
 {
-    // particleFields_ is null (no UpdateFields called). A dead particle gets erased.
-    std::vector<std::shared_ptr<RSRenderParticle>> particles;
-    particles.push_back(nullptr);  // null particle is "not alive" and will be erased
-    system_->UpdateParticle(16000000, particles);
-    EXPECT_TRUE(particles.empty());
+    system_->UpdateParticle(16000000);
+    EXPECT_EQ(system_->GetParticlePool()->Count(), 0u);
 }
 
 /**
@@ -697,11 +699,8 @@ HWTEST_F(RSRenderParticleSystemTest, UpdateParticleLegacyRippleFieldsSet001, Tes
     auto ripples = std::make_shared<ParticleRippleFields>();
     ripples->AddRippleField(MakeRippleField());
     system_->UpdateRippleField(ripples, false);
-
-    std::vector<std::shared_ptr<RSRenderParticle>> particles;
-    particles.push_back(nullptr);
-    system_->UpdateParticle(16000000, particles);
-    EXPECT_TRUE(particles.empty());
+    system_->UpdateParticle(16000000);
+    EXPECT_EQ(system_->GetParticlePool()->Count(), 0u);
 }
 
 /**
@@ -714,11 +713,115 @@ HWTEST_F(RSRenderParticleSystemTest, UpdateParticleNewPath001, TestSize.Level1)
     auto col = std::make_shared<ParticleFieldCollection>();
     col->Add(MakeNoiseField());
     system_->UpdateFields(col);
+    system_->UpdateParticle(16000000);
+    EXPECT_EQ(system_->GetParticlePool()->Count(), 0u);
+}
 
-    std::vector<std::shared_ptr<RSRenderParticle>> particles;
-    particles.push_back(nullptr);
-    system_->UpdateParticle(16000000, particles);
-    EXPECT_TRUE(particles.empty());
+namespace {
+constexpr int64_t TEST_FRAME_DELTA_NS = 16000000; // 16 ms
+
+// Point emitter with no motion and no curve updators, so a particle simply ages and dies at lifeTimeMs. Opacity and
+// scale must be non-zero: RSRenderParticleEmitter::PreEmit() stops an emitter whose end values are zero.
+std::shared_ptr<ParticleRenderParams> MakeEmitParams(int emitRate, int particleCount, int64_t lifeTimeMs)
+{
+    EmitterConfig config(emitRate, ShapeType::RECT, Vector2f(0.f, 0.f), Vector2f(0.f, 0.f), particleCount,
+        Range<int64_t>(lifeTimeMs, lifeTimeMs), ParticleType::POINTS, 1.f, nullptr, Vector2f(1.f, 1.f));
+    ParticleVelocity velocity;
+    RenderParticleAcceleration acceleration;
+    RenderParticleColorParaType color;
+    RenderParticleParaType<float> opacity(
+        Range<float>(1.f, 1.f), ParticleUpdator::NONE, Range<float>(0.f, 0.f), {});
+    RenderParticleParaType<float> scale(
+        Range<float>(1.f, 1.f), ParticleUpdator::NONE, Range<float>(0.f, 0.f), {});
+    RenderParticleParaType<float> spin;
+    return std::make_shared<ParticleRenderParams>(config, velocity, acceleration, color, opacity, scale, spin);
+}
+} // namespace
+
+/**
+ * @tc.name: UpdateParticleSteadyState001
+ * @tc.desc: Emitting and expiring over many frames must settle at the steady-state population instead of growing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleSystemTest, UpdateParticleSteadyState001, TestSize.Level1)
+{
+    constexpr int emitRate = 60;       // particles per second
+    constexpr int64_t lifeTimeMs = 200;
+    auto params = MakeEmitParams(emitRate, 1000, lifeTimeMs);
+    auto system = std::make_shared<RSRenderParticleSystem>(
+        std::vector<std::shared_ptr<ParticleRenderParams>> { params });
+
+    std::vector<std::shared_ptr<RSImage>> images;
+    for (int frame = 0; frame < 120; frame++) {
+        system->Emit(TEST_FRAME_DELTA_NS, images);
+        system->UpdateParticle(TEST_FRAME_DELTA_NS);
+    }
+    const auto& pool = system->GetParticlePool();
+    // 60 particles/s with a 200 ms life settles at about 12; a growing population means the dead are not retired.
+    EXPECT_LE(pool->Count(), 20u);
+    EXPECT_GE(pool->Count(), 6u);
+    for (size_t i = 0; i < pool->Count(); i++) {
+        EXPECT_TRUE(pool->IsAlive(i));
+    }
+}
+
+/**
+ * @tc.name: ResetParticlePool001
+ * @tc.desc: A rebuild must start from an empty buffer instead of keeping the previous generation's slots.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleSystemTest, ResetParticlePool001, TestSize.Level1)
+{
+    constexpr int64_t oneSecondNs = 1000000000;
+    auto params = MakeEmitParams(20, 40, 10000);
+    auto system = std::make_shared<RSRenderParticleSystem>(
+        std::vector<std::shared_ptr<ParticleRenderParams>> { params });
+
+    std::vector<std::shared_ptr<RSImage>> images;
+    system->Warmup(oneSecondNs, images);
+    system->UpdateParticle(TEST_FRAME_DELTA_NS);
+    ASSERT_GT(system->GetParticlePool()->Count(), 0u);
+
+    // Rebuild: the population is dropped, so the buffer has to start empty instead of keeping the old slots.
+    system->ResetParticlePool();
+    system->Warmup(oneSecondNs, images);
+    system->UpdateParticle(TEST_FRAME_DELTA_NS);
+    ASSERT_GT(system->GetParticlePool()->Count(), 0u);
+}
+
+/**
+ * @tc.name: UpdateParticleLegacyFields001
+ * @tc.desc: The legacy field path applies the field force to every pooled particle through the field set the system
+ *           rebuilds once per frame, so sharing it does not lose the force.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSRenderParticleSystemTest, UpdateParticleLegacyFields001, TestSize.Level1)
+{
+    auto noiseFields = std::make_shared<ParticleNoiseFields>();
+    // noiseScale 0 keeps the curl noise out of the force, so the displacement only comes from ApplyField.
+    noiseFields->AddField(MakeNoiseField(10, 0.0f));
+
+    auto params = MakeEmitParams(20, 10, 10000);
+    auto system = std::make_shared<RSRenderParticleSystem>(
+        std::vector<std::shared_ptr<ParticleRenderParams>> { params });
+    system->UpdateNoiseField(noiseFields);
+
+    std::vector<std::shared_ptr<RSImage>> images;
+    system->Warmup(1000000000, images);
+    auto pool = system->GetParticlePool();
+    ASSERT_GT(pool->Count(), 0u);
+    for (size_t i = 0; i < pool->Count(); i++) {
+        pool->SetPosition(i, Vector2f(100.0f, 100.0f));
+        pool->SetVelocity(i, Vector2f(0.0f, 0.0f));
+        pool->SetActiveTime(i, 0);
+    }
+
+    system->UpdateParticle(TEST_FRAME_DELTA_NS);
+    for (size_t i = 0; i < pool->Count(); i++) {
+        EXPECT_GT(pool->GetActiveTime(i), 0);
+        // A particle with zero velocity can only move through the field force.
+        EXPECT_NE(pool->GetPosition(i).x_, 100.0f);
+    }
 }
 
 } // namespace Rosen

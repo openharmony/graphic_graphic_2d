@@ -17,6 +17,7 @@
 
 #include "animation/rs_render_curve_animation.h"
 #include "animation/rs_render_particle_animation.h"
+#include "animation/rs_render_particle_pool.h"
 #include "animation/rs_particle_noise_field.h"
 #include "animation/rs_particle_ripple_field.h"
 #include "animation/rs_particle_velocity_field.h"
@@ -476,12 +477,12 @@ HWTEST_F(PropertiesTest, SetParticlesTest, TestSize.Level1)
     RSProperties properties;
     RSRenderParticleVector particles;
     properties.SetParticles(particles);
-    EXPECT_EQ(properties.GetEffectProperties().GetShaderEffect().particles_.renderParticleVector_.size(), 0);
+    EXPECT_EQ(properties.GetEffectProperties().GetShaderEffect().particles_.GetParticleSize(), 0);
 
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    std::shared_ptr<RSRenderParticle> newv = std::make_shared<RSRenderParticle>(particleParams);
-    particles.renderParticleVector_.push_back(newv);
-    properties.SetParticles(particles);
+    auto pool = std::make_shared<RSRenderParticlePool>();
+    pool->Acquire();
+    RSRenderParticleVector particles2(pool, {});
+    properties.SetParticles(particles2);
     EXPECT_EQ(properties.GetEffectProperties().GetShaderEffect().particles_.GetParticleSize(), 1);
 }
 

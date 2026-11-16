@@ -25,6 +25,7 @@
 #include "ge_visual_effect_container.h"
 #include "pipeline/rs_context.h"
 #include "pipeline/rs_depth_render_node.h"
+#include "animation/rs_render_particle_pool.h"
 #include "pipeline/rs_render_node.h"
 #include "property/rs_spatial_effect_def.h"
 #include "property/rs_spatial_effect_manager.h"
@@ -186,16 +187,12 @@ HWTEST_F(RSPropertyDrawableForegroundTest, OnGenerateAndOnUpdateTest005, TestSiz
     std::shared_ptr<DrawableV2::RSParticleDrawable> particleDrawable =
         std::make_shared<DrawableV2::RSParticleDrawable>();
     EXPECT_NE(particleDrawable, nullptr);
-    renderNodeTest13.renderProperties_.GetEffectProperties().GetShaderEffect().particles_.renderParticleVector_.clear();
+    renderNodeTest13.renderProperties_.GetEffectProperties().GetShaderEffect().particles_ = RSRenderParticleVector();
     EXPECT_EQ(particleDrawable->OnGenerate(renderNodeTest13), nullptr);
 
-    std::shared_ptr<ParticleRenderParams> particleParams = std::make_shared<ParticleRenderParams>();
-    EXPECT_NE(particleParams, nullptr);
-    std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector { std::make_shared<RSRenderParticle>(
-        particleParams) };
-    renderParticleVector.at(0)->lifeTime_ = 1;
-    RSRenderParticleVector particles;
-    particles.renderParticleVector_ = renderParticleVector;
+    auto pool = std::make_shared<RSRenderParticlePool>();
+    pool->Acquire();
+    RSRenderParticleVector particles(pool, {});
     renderNodeTest13.GetMutableRenderProperties().SetParticles(particles);
     ASSERT_TRUE(renderNodeTest13.GetRenderProperties().GetParticles().GetParticleSize());
     std::shared_ptr<RectF> rect = std::make_shared<RectF>(1, 1, 1, 1);
@@ -528,13 +525,10 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSParticleDrawableOnUpdateCacheTest00
     EXPECT_EQ(particleDrawable->cachedDrawable_, nullptr);
 
     RSRenderNode renderNode(0);
-    std::shared_ptr<ParticleRenderParams> particleParams = std::make_shared<ParticleRenderParams>();
-    std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector;
-    renderParticleVector.push_back(std::make_shared<RSRenderParticle>(particleParams));
-    renderParticleVector.at(0)->lifeTime_ = 1;
+    auto pool = std::make_shared<RSRenderParticlePool>();
+    pool->Acquire();
 
-    RSRenderParticleVector particles;
-    particles.renderParticleVector_ = renderParticleVector;
+    RSRenderParticleVector particles(pool, {});
     renderNode.GetMutableRenderProperties().SetParticles(particles);
 
     std::shared_ptr<RectF> rect = std::make_shared<RectF>(0, 0, 100, 100);
@@ -557,13 +551,10 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSParticleDrawableOnUpdateCacheTest00
     EXPECT_NE(particleDrawable, nullptr);
 
     RSRenderNode renderNode(0);
-    std::shared_ptr<ParticleRenderParams> particleParams = std::make_shared<ParticleRenderParams>();
-    std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector;
-    renderParticleVector.push_back(std::make_shared<RSRenderParticle>(particleParams));
-    renderParticleVector.at(0)->lifeTime_ = 1;
+    auto pool = std::make_shared<RSRenderParticlePool>();
+    pool->Acquire();
 
-    RSRenderParticleVector particles;
-    particles.renderParticleVector_ = renderParticleVector;
+    RSRenderParticleVector particles(pool, {});
     renderNode.GetMutableRenderProperties().SetParticles(particles);
 
     std::shared_ptr<RectF> rect = std::make_shared<RectF>(0, 0, 100, 100);
@@ -575,9 +566,7 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSParticleDrawableOnUpdateCacheTest00
     EXPECT_NE(firstCachedDrawable, nullptr);
 
     // Second call - should reuse cached drawable (UpdateData branch)
-    renderParticleVector.push_back(std::make_shared<RSRenderParticle>(particleParams));
-    renderParticleVector.at(1)->lifeTime_ = 1;
-    particles.renderParticleVector_ = renderParticleVector;
+    pool->Acquire();
     renderNode.GetMutableRenderProperties().SetParticles(particles);
 
     bool result = particleDrawable->OnUpdate(renderNode);
@@ -598,7 +587,8 @@ HWTEST_F(RSPropertyDrawableForegroundTest, RSParticleDrawableOnUpdateCacheTest00
 
     RSRenderNode renderNode(0);
     // Empty particles
-    RSRenderParticleVector particles;
+    auto pool = std::make_shared<RSRenderParticlePool>();
+    RSRenderParticleVector particles(pool, {});
     renderNode.GetMutableRenderProperties().SetParticles(particles);
 
     bool result = particleDrawable->OnUpdate(renderNode);

@@ -16,6 +16,7 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PARTICLE_EMITTER_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PARTICLE_EMITTER_H
 
+#include <cstdint>
 #include <memory>
 
 #include "rs_render_particle_effector.h"
@@ -23,17 +24,19 @@
 namespace OHOS {
 namespace Rosen {
 
+class RSRenderParticlePool;
+
 class RSRenderParticleEmitter {
 public:
     RSRenderParticleEmitter(std::shared_ptr<ParticleRenderParams> particleParams);
     void PreEmit();
-    void EmitParticle(int64_t deltaTime);
+    // Acquires the slots this frame needs and initializes them straight into the pool.
+    void EmitParticle(RSRenderParticlePool& pool, uint32_t paramsIndex, int64_t deltaTime);
     void SetEmittedCount(float count)
     {
         particleCount_ = count;
         spawnNum_ = 0.f;
     }
-    const std::vector<std::shared_ptr<RSRenderParticle>>& GetParticles();
     bool IsEmitterFinish();
     const std::shared_ptr<ParticleRenderParams>& GetParticleParams()
     {
@@ -41,7 +44,6 @@ public:
     }
 
 private:
-    std::vector<std::shared_ptr<RSRenderParticle>> particles_ = {};
     std::shared_ptr<ParticleRenderParams> particleParams_ = {};
     float particleCount_ = 0.f;
     float spawnNum_ = 0.f;

@@ -20,6 +20,7 @@
 #include "rs_particle_field_collection.h"
 namespace OHOS {
 namespace Rosen {
+class RSRenderParticlePool;
 class RSB_EXPORT RSRenderParticleSystem : RSRenderParticleEffector {
 public:
     explicit RSRenderParticleSystem(const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams);
@@ -27,12 +28,10 @@ public:
     RSRenderParticleSystem() = default;
     void CreateEmitter();
     void ClearEmitter();
-    void Emit(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles,
-        std::vector<std::shared_ptr<RSImage>>& imageVector);
-    void UpdateParticle(int64_t deltaTime, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles);
-    void Warmup(int64_t totalTimeNs, std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles,
-        std::vector<std::shared_ptr<RSImage>>& imageVector);
-    bool IsFinish(const std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles);
+    void Emit(int64_t deltaTime, std::vector<std::shared_ptr<RSImage>>& imageVector);
+    void UpdateParticle(int64_t deltaTime);
+    void Warmup(int64_t totalTimeNs, std::vector<std::shared_ptr<RSImage>>& imageVector);
+    bool IsFinish();
     void UpdateEmitter(const std::vector<std::shared_ptr<ParticleRenderParams>>& particlesRenderParams);
     void UpdateNoiseField(const std::shared_ptr<ParticleNoiseFields>& particleNoiseFields);
     void UpdateRippleField(const std::shared_ptr<ParticleRippleFields>& particleRippleFields,
@@ -63,17 +62,34 @@ public:
                (particleVelocityFields_ != nullptr && particleVelocityFields_->GetVelocityFieldCount() > 0);
     }
 
+    const std::shared_ptr<RSRenderParticlePool>& GetParticlePool() const
+    {
+        return particlePool_;
+    }
+
+    // Replaces the buffer with an empty one; a rebuilt population must not inherit the old slots.
+    void ResetParticlePool();
+
 private:
+    void EnsureParticlePool();
+    // Emits from one emitter straight into the pool; keeps the per-emitter nesting out of Emit().
+    void EmitFromEmitter(int64_t deltaTime, size_t emitterIndex);
+    // Rebuilds the legacy noise / ripple / velocity field set once per frame instead of per particle.
+    const std::shared_ptr<ParticleFieldCollection>& GetLegacyFields();
     void WarmupFields(int64_t totalTimeNs);
-    void WarmupEmitter(const std::shared_ptr<RSRenderParticleEmitter>& emitter, int64_t totalTimeNs,
-        std::vector<std::shared_ptr<RSRenderParticle>>& activeParticles);
+    void WarmupEmitter(size_t emitterIndex, int64_t totalTimeNs);
     std::vector<std::shared_ptr<ParticleRenderParams>> particlesRenderParams_ = {};
     std::vector<std::shared_ptr<RSRenderParticleEmitter>> emitters_ = {};
+    // Indexed by the PARAMS_INDEX row, so a slot can find its emitter parameters after compaction.
+    std::vector<std::shared_ptr<ParticleRenderParams>> emitterParams_ = {};
     std::shared_ptr<ParticleNoiseFields> particleNoiseFields_;
     std::shared_ptr<ParticleRippleFields> particleRippleFields_;
     std::shared_ptr<ParticleVelocityFields> particleVelocityFields_;
     std::shared_ptr<ParticleFieldCollection> particleFields_;
     std::vector<std::shared_ptr<RSImage>> imageVector_;
+    std::shared_ptr<RSRenderParticlePool> particlePool_;
+    std::vector<std::vector<size_t>> groupedSlots_;
+    std::shared_ptr<ParticleFieldCollection> legacyFields_;
 };
 } // namespace Rosen
 } // namespace OHOS

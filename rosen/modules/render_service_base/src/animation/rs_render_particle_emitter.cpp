@@ -14,6 +14,7 @@
  */
 
 #include "animation/rs_render_particle_emitter.h"
+#include "animation/rs_render_particle_pool.h"
 
 #include <cmath>
 #include <cstdint>
@@ -68,7 +69,7 @@ void RSRenderParticleEmitter::PreEmit()
     }
 }
 
-void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
+void RSRenderParticleEmitter::EmitParticle(RSRenderParticlePool& pool, uint32_t paramsIndex, int64_t deltaTime)
 {
     PreEmit();
     if (particleParams_ == nullptr || emitFinish_ == true) {
@@ -79,7 +80,6 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
     auto lifeTimeStart = particleParams_->GetLifeTimeStartValue();
     auto lifeTimeEnd = particleParams_->GetLifeTimeEndValue();
     float last = particleCount_;
-    particles_.clear();
     if (maxParticle == -1) {
         maxParticle = INT32_MAX;
     }
@@ -95,8 +95,11 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
     }
     if (ROSEN_EQ(last, 0.f)) {
         for (int32_t i = 0; i < std::min(static_cast<int32_t>(spawnNum_), maxParticle); i++) {
-            auto particle = std::make_shared<RSRenderParticle>(particleParams_);
-            particles_.push_back(particle);
+            const size_t slot = pool.Acquire();
+            InitParticle(pool, slot, *particleParams_, paramsIndex);
+            if (!pool.IsAlive(slot)) {
+                pool.MarkDead(slot);
+            }
             spawnNum_ -= 1.f;
         }
         if (particleCount_ > static_cast<float>(maxParticle)) {
@@ -104,8 +107,11 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
         }
     }
     while (spawnNum_ >= 1.f && std::ceil(last) <= static_cast<float>(maxParticle)) {
-        auto particle = std::make_shared<RSRenderParticle>(particleParams_);
-        particles_.push_back(particle);
+        const size_t slot = pool.Acquire();
+        InitParticle(pool, slot, *particleParams_, paramsIndex);
+        if (!pool.IsAlive(slot)) {
+            pool.MarkDead(slot);
+        }
         spawnNum_ -= 1.f;
         last += 1.f;
     }
@@ -114,11 +120,6 @@ void RSRenderParticleEmitter::EmitParticle(int64_t deltaTime)
 bool RSRenderParticleEmitter::IsEmitterFinish()
 {
     return emitFinish_;
-}
-
-const std::vector<std::shared_ptr<RSRenderParticle>>& RSRenderParticleEmitter::GetParticles()
-{
-    return particles_;
 }
 
 } // namespace Rosen

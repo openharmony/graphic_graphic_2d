@@ -15,6 +15,8 @@
 #ifndef RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PARTICLE_H
 #define RENDER_SERVICE_CLIENT_CORE_ANIMATION_RS_RENDER_PARTICLE_H
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <sys/types.h>
 #include <utility>
@@ -31,6 +33,8 @@
 
 namespace OHOS {
 namespace Rosen {
+class RSRenderParticlePool;
+
 enum class ParticleUpdator: uint32_t {NONE = 0, RANDOM, CURVE};
 
 enum class ShapeType: uint32_t {RECT = 0, CIRCLE, ELLIPSE, ANNULUS};
@@ -360,155 +364,189 @@ private:
     size_t imageIndex_ = 0;
 };
 
-class RSB_EXPORT RSRenderParticle {
+// One instance per pool: every field is a per-component array, so four consecutive particles load into one
+// SIMD register and callers index the array directly.
+class RSRenderParticle {
 public:
-    explicit RSRenderParticle(const std::shared_ptr<ParticleRenderParams>& particleParams);
-    RSRenderParticle() = default;
-    ~RSRenderParticle() = default;
-    // Set methods
-    void SetPosition(const Vector2f& position);
-    void SetVelocity(const Vector2f& velocity);
-    void SetAcceleration(const Vector2f& acceleration);
-    void SetSpin(const float& spin);
-    void SetOpacity(const float& opacity);
-    void SetColor(const Color& color);
-    void SetScale(const float& scale);
-    void SetRadius(const float& radius);
-    void SetImage(const std::shared_ptr<RSImage>& image);
-    void SetImageSize(const Vector2f& imageSize);
-    void SetParticleType(const ParticleType& particleType);
-    void SetActiveTime(const int64_t& activeTime);
-    void SetAccelerationValue(float accelerationValue);
-    void SetAccelerationAngle(float accelerationAngle);
-    void SetRedF(float redF);
-    void SetGreenF(float greenF);
-    void SetBlueF(float blueF);
-    void SetAlphaF(float alphaF);
-
-    // Get methods
-    const Vector2f& GetPosition();
-    const Vector2f& GetVelocity();
-    const Vector2f& GetAcceleration();
-    float GetSpin();
-    float GetOpacity();
-    const Color& GetColor();
-    float GetScale();
-    float GetRadius();
-    float GetAccelerationValue();
-    float GetAccelerationAngle();
-    float GetRedSpeed();
-    float GetGreenSpeed();
-    float GetBlueSpeed();
-    float GetAlphaSpeed();
-    float GetOpacitySpeed();
-    float GetScaleSpeed();
-    float GetSpinSpeed();
-    float GetAccelerationValueSpeed();
-    float GetAccelerationAngleSpeed();
-    float GetRedF();
-    float GetGreenF();
-    float GetBlueF();
-    float GetAlphaF();
-    const std::shared_ptr<RSImage>& GetImage();
-    const Vector2f& GetImageSize();
-    const ParticleType& GetParticleType();
-    int64_t GetActiveTime();
-    const std::shared_ptr<ParticleRenderParams>& GetParticleRenderParams();
-
-    size_t GetImageIndex() const;
-
-    // Other methods
-    void InitProperty();
-    bool IsAlive() const;
-    void SetIsDead();
+    std::vector<float> posX;
+    std::vector<float> posY;
+    std::vector<float> velX;
+    std::vector<float> velY;
+    std::vector<float> accX;
+    std::vector<float> accY;
+    std::vector<float> forceX;
+    std::vector<float> forceY;
+    std::vector<float> activeTime;
+    std::vector<float> lifeTime;
+    std::vector<float> scale;
+    std::vector<float> opacity;
+    std::vector<float> spin;
+    std::vector<float> spinCos;
+    std::vector<float> spinSin;
+    std::vector<float> colorR;
+    std::vector<float> colorG;
+    std::vector<float> colorB;
+    std::vector<float> colorA;
+    std::vector<float> radius;
+    std::vector<float> depth;
+    std::vector<float> imageDrawWidth;
+    std::vector<float> imageSizeX;
+    std::vector<float> imageSizeY;
+    std::vector<float> accelValue;
+    std::vector<float> accelAngle;
+    std::vector<float> accelCacheValue;
+    std::vector<float> accelCacheAngle;
+    std::vector<float> opacitySpeed;
+    std::vector<float> scaleSpeed;
+    std::vector<float> spinSpeed;
+    std::vector<float> accelValueSpeed;
+    std::vector<float> accelAngleSpeed;
+    std::vector<float> redSpeed;
+    std::vector<float> greenSpeed;
+    std::vector<float> blueSpeed;
+    std::vector<float> alphaSpeed;
+    std::vector<float> redF;
+    std::vector<float> greenF;
+    std::vector<float> blueF;
+    std::vector<float> alphaF;
+    std::vector<uint32_t> imageIndex;
+    std::vector<uint32_t> drawStamp;
+    std::vector<uint32_t> paramsIndex;
+    std::vector<uint32_t> particleType;
+    std::vector<uint8_t> dead;
+    std::vector<uint8_t> accelCacheValid;
+    
     static float GetRandomValue(float min, float max);
-    void SetColor();
-    int GenerateColorComponent(double mean, double stddev);
-    Vector2f CalculateParticlePosition(const ShapeType& emitShape, const Vector2f& position, const Vector2f& emitSize,
-        const std::shared_ptr<Shape>& shape);
-    std::shared_ptr<ParticleRenderParams> particleParams_;
+    static int GenerateColorComponent(double mean, double stddev);
 
-    bool operator==(const RSRenderParticle& rhs)
+    static Vector2f CalculateParticlePosition(const ShapeType& emitShape, const Vector2f& position,
+        const Vector2f& emitSize, const std::shared_ptr<Shape>& shape);
+    static Color LerpColor(const Color& start, const Color& end, float t);
+    static void InitPointColor(RSRenderParticle& data, size_t slot, ParticleRenderParams& params);
+    static void InitImageState(RSRenderParticle& data, size_t slot, ParticleRenderParams& params,
+        const Vector2f& position);
+    static void InitMotion(RSRenderParticle& data, size_t slot, ParticleRenderParams& params);
+    static void InitAppearance(RSRenderParticle& data, size_t slot, ParticleRenderParams& params,
+        const Vector2f& position);
+
+    void Resize(size_t capacity)
     {
-        return (position_ == rhs.position_) && (velocity_ == rhs.velocity_) && (acceleration_ == rhs.acceleration_) &&
-               (scale_ == rhs.scale_) && (spin_ == rhs.spin_) && (opacity_ == rhs.opacity_) && (color_ == rhs.color_) &&
-               (radius_ == rhs.radius_) && (particleType_ == rhs.particleType_) && (activeTime_ == rhs.activeTime_) &&
-               (lifeTime_ == rhs.lifeTime_) && (imageSize_ == rhs.imageSize_) && (imageIndex_ == rhs.imageIndex_);
+        ForEachFloat([capacity](auto& row) { row.resize(capacity, 0.0f); });
+        ForEachU32([capacity](auto& row) { row.resize(capacity, 0u); });
+        ForEachFlag([capacity](auto& row) { row.resize(capacity, 0u); });
+        capacity_ = capacity;
     }
 
-    static Color Lerp(const Color& start, const Color& end, float t)
+    size_t Capacity() const
     {
-        Color result;
-        result.SetRed(start.GetRed() + static_cast<int>(std::round((end.GetRed() - start.GetRed()) * t)));
-        result.SetGreen(start.GetGreen() + static_cast<int>(std::round((end.GetGreen() - start.GetGreen()) * t)));
-        result.SetBlue(start.GetBlue() + static_cast<int>(std::round((end.GetBlue() - start.GetBlue()) * t)));
-        result.SetAlpha(start.GetAlpha() + static_cast<int>(std::round((end.GetAlpha() - start.GetAlpha()) * t)));
-        return result;
+        return capacity_;
+    }
+
+    void CopySlot(size_t dst, size_t src)
+    {
+        ForEachFloat([dst, src](auto& row) { row[dst] = row[src]; });
+        ForEachU32([dst, src](auto& row) { row[dst] = row[src]; });
+        ForEachFlag([dst, src](auto& row) { row[dst] = row[src]; });
+    }
+
+    void ClearSlot(size_t slot)
+    {
+        ForEachFloat([slot](auto& row) { row[slot] = 0.0f; });
+        ForEachU32([slot](auto& row) { row[slot] = 0u; });
+        ForEachFlag([slot](auto& row) { row[slot] = 0u; });
     }
 
 private:
-    Vector2f position_ = {0.f, 0.f};
-    Vector2f velocity_ = {0.f, 0.f};
-    Vector2f acceleration_ = {0.f, 0.f};
-    float scale_ = 1.f;
-    float spin_ = 0.f;
-    float opacity_ = 1.f;
-    Color color_ = RgbPalette::White();
-    float radius_ = 0.f;
-    std::shared_ptr<RSImage> image_;
-    Vector2f imageSize_;
-    ParticleType particleType_ = ParticleType::POINTS;
-    int64_t activeTime_ = 0;
-    int64_t lifeTime_ = 0;
-    bool dead_ = false;
-    float accelerationValue_ = 0.f;
-    float accelerationAngle_ = 0.f;
-    float redSpeed_ = 0.f;
-    float greenSpeed_ = 0.f;
-    float blueSpeed_ = 0.f;
-    float alphaSpeed_ = 0.f;
-    float opacitySpeed_ = 0.f;
-    float scaleSpeed_ = 0.f;
-    float spinSpeed_ = 0.f;
-    float accelerationValueSpeed_ = 0.f;
-    float accelerationAngleSpeed_ = 0.f;
-    float redF_ = 0.f;
-    float greenF_ = 0.f;
-    float blueF_ = 0.f;
-    float alphaF_ = 0.f;
-    size_t imageIndex_ = 0;
+    template <typename Fn>
+    void ForEachFloat(Fn fn)
+    {
+        fn(posX);
+        fn(posY);
+        fn(velX);
+        fn(velY);
+        fn(accX);
+        fn(accY);
+        fn(forceX);
+        fn(forceY);
+        fn(activeTime);
+        fn(lifeTime);
+        fn(scale);
+        fn(opacity);
+        fn(spin);
+        fn(spinCos);
+        fn(spinSin);
+        fn(colorR);
+        fn(colorG);
+        fn(colorB);
+        fn(colorA);
+        fn(radius);
+        fn(depth);
+        fn(imageDrawWidth);
+        fn(imageSizeX);
+        fn(imageSizeY);
+        fn(accelValue);
+        fn(accelAngle);
+        fn(accelCacheValue);
+        fn(accelCacheAngle);
+        fn(opacitySpeed);
+        fn(scaleSpeed);
+        fn(spinSpeed);
+        fn(accelValueSpeed);
+        fn(accelAngleSpeed);
+        fn(redSpeed);
+        fn(greenSpeed);
+        fn(blueSpeed);
+        fn(alphaSpeed);
+        fn(redF);
+        fn(greenF);
+        fn(blueF);
+        fn(alphaF);
+    }
+
+    template <typename Fn>
+    void ForEachU32(Fn fn)
+    {
+        fn(imageIndex);
+        fn(drawStamp);
+        fn(paramsIndex);
+        fn(particleType);
+    }
+
+    template <typename Fn>
+    void ForEachFlag(Fn fn)
+    {
+        fn(dead);
+        fn(accelCacheValid);
+    }
+
+    size_t capacity_ = 0;
 };
+
+// Writes one freshly acquired slot from the emitter parameters: the only place that knows the initial state.
+void InitParticle(RSRenderParticlePool& pool, size_t slot, ParticleRenderParams& params, uint32_t paramsIndex);
 
 class RSB_EXPORT RSRenderParticleVector {
 public:
-    explicit RSRenderParticleVector(std::vector<std::shared_ptr<RSRenderParticle>>&& renderParticleVector,
+    explicit RSRenderParticleVector(const std::shared_ptr<RSRenderParticlePool>& pool,
         std::vector<std::shared_ptr<RSImage>> imageVector)
-        : renderParticleVector_(std::move(renderParticleVector)), imageVector_(std::move(imageVector))
+        : pool_(pool),
+          imageVector_(std::move(imageVector))
     {}
     RSRenderParticleVector() = default;
     ~RSRenderParticleVector() = default;
-    RSRenderParticleVector(const RSRenderParticleVector& other)
-        : renderParticleVector_(other.renderParticleVector_), imageVector_(other.imageVector_)
-    {}
+    RSRenderParticleVector(const RSRenderParticleVector& other) = default;
+    RSRenderParticleVector& operator=(const RSRenderParticleVector& other) = default;
 
-    RSRenderParticleVector& operator=(const RSRenderParticleVector& other)
+    const std::shared_ptr<RSRenderParticlePool>& GetParticlePool() const
     {
-        if (this != &other) {
-            renderParticleVector_ = other.renderParticleVector_;
-            imageVector_ = other.imageVector_;
-        }
-        return *this;
+        return pool_;
+    }
+    void SetParticlePool(const std::shared_ptr<RSRenderParticlePool>& pool)
+    {
+        pool_ = pool;
     }
 
-    int GetParticleSize() const
-    {
-        return renderParticleVector_.size();
-    }
-
-    const std::vector<std::shared_ptr<RSRenderParticle>>& GetParticleVector() const
-    {
-        return renderParticleVector_;
-    }
+    int GetParticleSize() const;
 
     const std::vector<std::shared_ptr<RSImage>>& GetParticleImageVector() const
     {
@@ -520,31 +558,12 @@ public:
         return imageVector_.size();
     }
 
-    bool operator==(const RSRenderParticleVector& rhs) const
-    {
-        bool equal = false;
-        if (this->renderParticleVector_.size() != rhs.renderParticleVector_.size() ||
-            this->imageVector_.size() != rhs.imageVector_.size()) {
-            return false;
-        }
-        if (this->renderParticleVector_.size() == 0 && this->imageVector_.size() == 0) {
-            return true;
-        }
-        for (size_t i = 0; i < this->renderParticleVector_.size(); i++) {
-            equal = equal && (this->renderParticleVector_[i] == rhs.renderParticleVector_[i]) &&
-                    (*(this->renderParticleVector_[i]) == *(rhs.renderParticleVector_[i]));
-        }
-        for (size_t i = 0; i < this->imageVector_.size(); i++) {
-            equal = equal && (this->imageVector_[i] == rhs.imageVector_[i]) &&
-                    ((*(this->imageVector_[i])).IsEqual(*(rhs.imageVector_[i])));
-        }
-        return equal;
-    }
+    bool operator==(const RSRenderParticleVector& rhs) const;
 
     friend class RSRenderParticleAnimation;
 
 private:
-    std::vector<std::shared_ptr<RSRenderParticle>> renderParticleVector_;
+    std::shared_ptr<RSRenderParticlePool> pool_;
     std::vector<std::shared_ptr<RSImage>> imageVector_;
 };
 } // namespace Rosen

@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "animation/rs_render_particle_pool.h"
 #include "property/rs_effect_properties.h"
 
 #include "animation/rs_particle_field_collection.h"
@@ -179,15 +180,15 @@ HWTEST_F(EffectPropertiesTest, Illuminated001, TestSize.Level1)
 HWTEST_F(EffectPropertiesTest, ParticleParams001, TestSize.Level1)
 {
     RSEffectProperties properties;
-    EXPECT_TRUE(properties.GetParticles().renderParticleVector_.empty());
+    EXPECT_EQ(properties.GetParticles().GetParticleSize(), 0);
     EXPECT_TRUE(properties.GetEmitterUpdater().empty());
     EXPECT_EQ(properties.GetParticleNoiseFields(), nullptr);
 
-    RSRenderParticleVector particles;
-    auto particleParams = std::make_shared<ParticleRenderParams>();
-    particles.renderParticleVector_.push_back(std::make_shared<RSRenderParticle>(particleParams));
+    auto pool = std::make_shared<RSRenderParticlePool>();
+    pool->Acquire();
+    RSRenderParticleVector particles(pool, {});
     properties.SetParticles(particles);
-    EXPECT_EQ(properties.GetParticles().renderParticleVector_.size(), particles.renderParticleVector_.size());
+    EXPECT_EQ(properties.GetParticles().GetParticleSize(), 1);
 
     std::vector<std::shared_ptr<EmitterUpdater>> emitters;
     emitters.push_back(std::make_shared<EmitterUpdater>(0));
@@ -202,7 +203,7 @@ HWTEST_F(EffectPropertiesTest, ParticleParams001, TestSize.Level1)
     properties.SetParticleNoiseFields(nullptr);
     EXPECT_EQ(properties.GetParticleNoiseFields(), nullptr);
     properties.SetParticles(RSRenderParticleVector());
-    EXPECT_TRUE(properties.GetParticles().renderParticleVector_.empty());
+    EXPECT_EQ(properties.GetParticles().GetParticleSize(), 0);
     properties.SetEmitterUpdater(std::vector<std::shared_ptr<EmitterUpdater>>());
     EXPECT_TRUE(properties.GetEmitterUpdater().empty());
 }
