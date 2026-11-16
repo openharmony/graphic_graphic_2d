@@ -1122,7 +1122,7 @@ HWTEST_F(RSShaderDrawableTest, RSCoverageNGShaderDrawableOnGenerate002, TestSize
     ASSERT_NE(coverageDrawable, nullptr);
 
     auto result = coverageDrawable->OnGenerate(renderNode);
-    EXPECT_EQ(result, nullptr);
+    EXPECT_NE(result, nullptr);
 }
 
 /**
