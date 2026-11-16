@@ -89,9 +89,17 @@ public:
         : RSRenderNodeDrawableAdapter(std::move(node))
     {}
     void Draw(Drawing::Canvas& canvas) {}
-    
-    // Expose protected method for testing
+
+    // Expose protected methods for testing
     using RSRenderNodeDrawableAdapter::AlignRectToDevicePixels;
+    using RSRenderNodeDrawableAdapter::CollectInfoForUnobscuredUEC;
+    using RSRenderNodeDrawableAdapter::UECChildrenIds_;
+
+    static void EraseUnobscuredUECMatrix(NodeId nodeId)
+    {
+        std::lock_guard<std::mutex> lock(unobscuredUECMatrixMapMutex_);
+        unobscuredUECMatrixMap_.erase(nodeId);
+    }
 };
 
 void RSRenderNodeDrawableAdapterTest::SetUpTestCase() {}
@@ -1109,4 +1117,32 @@ HWTEST(RSRenderNodeDrawableAdapterTest, OnTreeStateChangedTest, TestSize.Level1)
     canvasDrawingNode->OnTreeStateChanged();
 }
 #endif
+
+/**
+ * @tc.name: UnobscuredUECMatrixMapTest
+ * @tc.desc: Test synchronized write and lookup of the unobscured UEC matrix map
+ * @tc.type: FUNC
+ * @tc.require: issue26790
+ */
+HWTEST(RSRenderNodeDrawableAdapterTest, UnobscuredUECMatrixMapTest, TestSize.Level1)
+{
+    constexpr NodeId testParentNodeId = 1000;
+    constexpr NodeId testChildNodeId = 1001;
+    constexpr float testTranslateX = 5.0f;
+    auto node = std::make_shared<RSRenderNode>(testParentNodeId);
+    auto adapter = std::make_shared<ConcreteRSRenderNodeDrawableAdapter>(std::move(node));
+    adapter->UECChildrenIds_->insert(testChildNodeId);
+
+    Drawing::Matrix expectedMatrix;
+    expectedMatrix.Set(Drawing::Matrix::TRANS_X, testTranslateX);
+    Drawing::Canvas canvas;
+    canvas.SetMatrix(expectedMatrix);
+    adapter->CollectInfoForUnobscuredUEC(canvas);
+
+    Drawing::Matrix actualMatrix;
+    EXPECT_TRUE(adapter->TryGetUnobscuredUECMatrix(testChildNodeId, actualMatrix));
+    EXPECT_EQ(actualMatrix, expectedMatrix);
+    EXPECT_FALSE(adapter->TryGetUnobscuredUECMatrix(testChildNodeId + 1, actualMatrix));
+    ConcreteRSRenderNodeDrawableAdapter::EraseUnobscuredUECMatrix(testChildNodeId);
 }
+} // namespace OHOS::Rosen
