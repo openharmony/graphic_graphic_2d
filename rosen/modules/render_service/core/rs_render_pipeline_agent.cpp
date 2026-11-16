@@ -46,6 +46,7 @@
 #include "feature/capture/rs_surface_capture_task_parallel.h"
 #include "feature/frame_stability/rs_frame_stability_manager.h"
 #include "feature/hwc_event/rs_uni_hwc_event_manager.h"
+#include "feature/hyper_graphic_manager/hgm_render_context.h"
 #include "feature/pointer_window_manager/rs_pointer_window_manager.h"
 #ifdef RS_ENABLE_OVERLAY_DISPLAY
 #include "feature/overlay_display/rs_overlay_display_manager.h"
@@ -2242,11 +2243,15 @@ ErrCode RSRenderPipelineAgent::SetApsConfigParams(
         //FF_SURF:video content is opaque
         auto it = params.find("FF_SURF");
         if (it!=params.end()) {
-            std::string surfaceOpaqueType = it->first;
-            RsCommonHook::Instance().SetSurfaceOpaqueType(surfaceOpaqueType);
+            RsCommonHook::Instance().SetSurfaceOpaqueType(it->first);
         }
         return ERR_OK;
     }
+
+    if (event == ApsEventType::LTPO) {
+        RSMainThread::Instance()->PostTask([params]() { RSMainThread::Instance()->SetAdapterLtpoConfig(params); });
+    }
+
     return ERR_OK;
 }
 

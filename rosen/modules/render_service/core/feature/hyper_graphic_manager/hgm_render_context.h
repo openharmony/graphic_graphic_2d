@@ -38,7 +38,7 @@ class HgmRenderContext {
 public:
     using ConvertFrameRateFunc = std::function<int32_t(RSPropertyUnit, float, int32_t, int32_t)>;
 
-    HgmRenderContext(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
+    explicit HgmRenderContext(const sptr<RSIRenderToServiceConnection>& renderToServiceConnection);
     ~HgmRenderContext() noexcept = default;
 
     static void ShowRefreshRateChangeProcess(const char* key, const char* value, void* context);
@@ -66,6 +66,8 @@ public:
     FrameRateRange& GetRSCurrRangeRef() { return rsCurrRange_; }
     void UpdateSurfaceData(const std::shared_ptr<RSSurfaceHandler>& surfaceHandler,
         const std::shared_ptr<RSSurfaceRenderNode>& surfaceNode);
+    
+    void SetAdapterLtpoConfig(const std::unordered_map<std::string, std::string>& config);
 
 private:
     void HandleAdaptiveVsyncCondition(const std::shared_ptr<RSContext>& rsContext);
@@ -90,6 +92,7 @@ private:
 
     FrameRateRange rsCurrRange_;
     std::vector<std::tuple<std::string, pid_t>> surfaceData_;
+    std::unordered_map<std::string, std::string> adapterLtpoConfig_;
 };
 } // namespace OHOS
 } // namespace Rosen

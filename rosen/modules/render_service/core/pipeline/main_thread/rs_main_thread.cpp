@@ -1006,6 +1006,13 @@ void RSMainThread::ClearRebuildTransactionData(pid_t pid)
     pendingSplitTransactions_.erase(pid);
 }
 
+void RSMainThread::SetAdapterLtpoConfig(const std::unordered_map<std::string, std::string>& config)
+{
+    if (hgmRenderContext_ != nullptr) {
+        hgmRenderContext_->SetAdapterLtpoConfig(config);
+    }
+}
+
 void RSMainThread::CleanResources(pid_t pid, bool forRefresh)
 {
     RS_TRACE_NAME_FMT("CleanResources %d, forRefresh: %d", pid, forRefresh);

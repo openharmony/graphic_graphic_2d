@@ -32,7 +32,6 @@ namespace OHOS {
 namespace Rosen {
 namespace {
 constexpr const char* DEFAULT_SURFACE_NODE_NAME = "DefaultSurfaceNodeName";
-constexpr const char* FRAMEWORK_XWEB_NAME = "oh_xweb_";
 constexpr const char* SHELL_ASSISTANT_ANCO_PREFIX = "ShellAssistantAnco_";
 constexpr uint32_t MULTI_WINDOW_PERF_START_NUM = 2;
 }
@@ -197,14 +196,19 @@ void HgmRenderContext::UpdateSurfaceData(const std::shared_ptr<RSSurfaceHandler>
         sourceType != OH_SURFACE_SOURCE_GAME &&
         sourceType != OH_SURFACE_SOURCE_CAMERA &&
         sourceType != OH_SURFACE_SOURCE_VIDEO) {
-        if (auto fwkType = consumer->GetSurfaceAppFrameworkType();
-            fwkType.rfind(FRAMEWORK_XWEB_NAME, 0) == 0) {
-            surfaceData_.emplace_back(std::tuple<std::string, pid_t>({fwkType, ExtractPid(surfaceNode->GetId())}));
-        } else {
+        auto fwkType = consumer->GetSurfaceAppFrameworkType();
+        auto iter = std::find_if(adapterLtpoConfig_.begin(), adapterLtpoConfig_.end(),
+            [fwkType](const auto& it) { return fwkType.find(it.first) != std::string::npos; });
+        if (iter == adapterLtpoConfig_.end()) {
             auto name = surfaceNode->GetName().empty() ? DEFAULT_SURFACE_NODE_NAME : surfaceNode->GetName();
-            surfaceData_.emplace_back(std::tuple<std::string, pid_t>({name, ExtractPid(surfaceNode->GetId())}));
+            surfaceData_.emplace_back(std::tuple<std::string, pid_t>({ name, ExtractPid(surfaceNode->GetId()) }));
         }
     }
+}
+
+void HgmRenderContext::SetAdapterLtpoConfig(const std::unordered_map<std::string, std::string>& config)
+{
+    adapterLtpoConfig_ = std::move(config);
 }
 } // namespace Rosen
 } // namespace OHOS

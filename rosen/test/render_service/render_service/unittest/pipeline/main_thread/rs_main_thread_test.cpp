@@ -10302,5 +10302,33 @@ HWTEST_F(RSMainThreadTest, CleanResourcesReportTimeMap001, TestSize.Level1)
     mainThread->lastDrawOpReportTimeMap_.clear();
     mainThread->lastCommandReportTimeMap_.clear();
 }
+
+/**
+ * @tc.name: SetAdapterLtpoConfig_NullAndNotNull
+ * @tc.desc: Test SetAdapterLtpoConfig with hgmRenderContext_ null and not null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, SetAdapterLtpoConfig_NullAndNotNull, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    auto savedHgmRenderContext = mainThread->hgmRenderContext_;
+    std::unordered_map<std::string, std::string> config = {
+        { "key1", "value1" }, { "key2", "value2" }
+    };
+
+    // Branch 1: hgmRenderContext_ != nullptr, SetAdapterLtpoConfig should be called
+    mainThread->hgmRenderContext_ = std::make_shared<HgmRenderContext>(nullptr);
+    mainThread->SetAdapterLtpoConfig(config);
+    EXPECT_NE(mainThread->hgmRenderContext_, nullptr);
+
+    // Branch 2: hgmRenderContext_ == nullptr, should not crash (guard check)
+    mainThread->hgmRenderContext_ = nullptr;
+    mainThread->SetAdapterLtpoConfig(config);
+
+    mainThread->hgmRenderContext_ = savedHgmRenderContext;
+}
 } // namespace OHOS::Rosen
 #endif
