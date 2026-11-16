@@ -40,8 +40,6 @@ class RSB_EXPORT RSRenderNodeMap final {
 public:
     bool RegisterRenderNode(const std::shared_ptr<RSBaseRenderNode>& nodePtr);
     void UnregisterRenderNode(NodeId id);
-    void RegisterSurfaceRenderNode(pid_t pid, uint64_t token);
-    void RemoveSurfaceNodeMap(pid_t pid, uint64_t token);
 
     void RegisterUnTreeNode(NodeId id);
     bool UnRegisterUnTreeNode(NodeId id);
@@ -164,9 +162,6 @@ private:
     std::unordered_map<NodeId, std::shared_ptr<RSLogicalDisplayRenderNode>> logicalDisplayNodeMap_;
     std::unordered_map<NodeId, std::shared_ptr<RSCanvasDrawingRenderNode>> canvasDrawingNodeMap_;
     std::unordered_map<NodeId, bool> purgeableNodeMap_;
-    // record backgroundNode
-    std::unordered_map<pid_t, std::unordered_map<uint64_t, std::vector<std::shared_ptr<RSSurfaceRenderNode>>>>
-        backgroundSurfaceNodeMap_;
     std::unordered_map<pid_t, std::unordered_map<NodeId, std::shared_ptr<RSSurfaceRenderNode>>>
         selfDrawingNodeInProcess_;
     std::unordered_set<NodeId> unInTreeNodeSet_;
