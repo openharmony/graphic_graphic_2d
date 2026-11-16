@@ -2242,16 +2242,12 @@ ErrCode RSRenderPipelineAgent::SetApsConfigParams(
     if (event == ApsEventType::VCLD) {
         //FF_SURF:video content is opaque
         auto it = params.find("FF_SURF");
-        if (it!=params.end()) {
-            RsCommonHook::Instance().SetSurfaceOpaqueType(it->first);
-        }
+        if (it!=params.end()) { RsCommonHook::Instance().SetSurfaceOpaqueType(it->first); }
         return ERR_OK;
     }
-
-    if (event == ApsEventType::LTPO) {
+    if (event == ApsEventType::SELF_DRAWING_LTPO) {
         RSMainThread::Instance()->PostTask([params]() { RSMainThread::Instance()->SetAdapterLtpoConfig(params); });
     }
-
     return ERR_OK;
 }
 
