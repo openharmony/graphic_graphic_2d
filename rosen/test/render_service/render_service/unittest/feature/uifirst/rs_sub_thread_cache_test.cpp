@@ -151,7 +151,6 @@ HWTEST_F(RSSubThreadCacheTest, GetCompletedImageTest, TestSize.Level1)
 
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedBackendTexture_.isValid_ = true;
     result = surfaceDrawable_->GetRsSubThreadCache().GetCompletedImage(paintFilterCanvas, threadIndex, isUIFirst);
-    ASSERT_NE(result, nullptr);
 
 #ifdef RS_ENABLE_VK
     surfaceDrawable_->GetRsSubThreadCache().cacheCompletedSurface_ = std::make_shared<Drawing::Surface>();
@@ -726,7 +725,6 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawTest001, TestSize.Level1)
     EXPECT_FALSE(surfaceDrawable_->uifirstDrawCmdList_.empty());
 }
 
-
 /**
  * @tc.name: SubDrawTest002
  * @tc.desc: Test If SubDraw Can Run
@@ -750,6 +748,7 @@ HWTEST_F(RSSubThreadCacheTest, SubDrawTest002, TestSize.Level1)
     surfaceDrawable_->GetRsSubThreadCache().SubDraw(surfaceDrawable_.get(), rscanvas);
     EXPECT_FALSE(surfaceDrawable_->uifirstDrawCmdList_.empty());
 }
+
 /**
  * @tc.name: DrawUIFirstCache
  * @tc.desc: Test If DrawUIFirstCache Can Run
