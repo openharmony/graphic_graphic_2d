@@ -208,7 +208,7 @@ void HgmRenderContext::UpdateSurfaceData(const std::shared_ptr<RSSurfaceHandler>
 
 void HgmRenderContext::SetAdapterLtpoConfig(const std::unordered_map<std::string, std::string>& config)
 {
-    adapterLtpoConfig_ = std::move(config);
+    adapterLtpoConfig_ = config;
 }
 } // namespace Rosen
 } // namespace OHOS

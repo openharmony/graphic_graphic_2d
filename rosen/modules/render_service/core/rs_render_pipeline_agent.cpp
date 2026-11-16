@@ -2240,9 +2240,12 @@ ErrCode RSRenderPipelineAgent::SetApsConfigParams(
         pipeline->PostMainThreadTask(updateSurfaceFilterRateTask);
     }
     if (event == ApsEventType::VCLD) {
-        //FF_SURF:video content is opaque
+        // FF_SURF:video content is opaque
         auto it = params.find("FF_SURF");
-        if (it!=params.end()) { RsCommonHook::Instance().SetSurfaceOpaqueType(it->first); }
+        if (it != params.end()) {
+            std::string surfaceOpaqueType = it->first;
+            RsCommonHook::Instance().SetSurfaceOpaqueType(surfaceOpaqueType);
+        }
         return ERR_OK;
     }
     if (event == ApsEventType::SELF_DRAWING_LTPO) {
