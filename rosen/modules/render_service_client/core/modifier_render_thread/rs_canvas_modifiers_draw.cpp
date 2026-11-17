@@ -44,10 +44,20 @@ RSCanvasModifiersContext::RSCanvasModifiersContext(std::weak_ptr<RSRenderInterfa
 
 std::shared_ptr<Drawing::GPUContext> RSCanvasModifiersContext::GetGpuContext()
 {
-    if (renderContext_ == nullptr) {
-        renderContext_ = RenderContext::Create();
-        renderContext_->Init(RenderEngineType::BASIC_RENDER, cacheDir_);
-        gpuContext_ = renderContext_->GetSharedDrGPUContext();
+    if (gpuContext_ != nullptr) {
+        return gpuContext_;
+    }
+    if (!RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).IsValid()) {
+        RS_LOGE("RSCanvasModifiersContext::GetGpuContext: VK context invalid");
+        return nullptr;
+    }
+    renderContext_ = RenderContext::Create();
+    renderContext_->Init(RenderEngineType::BASIC_RENDER, cacheDir_);
+    gpuContext_ = renderContext_->GetSharedDrGPUContext();
+    if (gpuContext_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersContext::GetGpuContext: create gpu context failed");
+        renderContext_ = nullptr;
+        return nullptr;
     }
     return gpuContext_;
 }
