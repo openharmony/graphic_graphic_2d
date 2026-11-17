@@ -1473,5 +1473,97 @@ HWTEST_F(EffectImageChainUnittest, InitWithoutCanvasImageNullTest001, TestSize.L
 #endif
 }
 
+/**
+ * @tc.name: OutlineReturnsErrorWhenNotPrepared
+ * @tc.desc: test ApplyOutline returns error when not prepared.
+ */
+HWTEST_F(EffectImageChainUnittest, OutlineReturnsErrorWhenNotPrepared, TestSize.Level1)
+{
+    EffectImageChain chain;
+    ShadowOptions shadowOptions;
+    EXPECT_EQ(chain.ApplyOutline(10.0f, shadowOptions), DrawingError::ERR_NOT_PREPARED);
+}
+
+/**
+ * @tc.name: OutlineReturnsErrorWhenForceCPU
+ * @tc.desc: test ApplyOutline returns error when forceCPU.
+ */
+HWTEST_F(EffectImageChainUnittest, OutlineReturnsErrorWhenForceCPU, TestSize.Level1)
+{
+    EffectImageChain chain;
+    chain.prepared_ = true;
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    chain.Prepare(srcPixelMap, true);
+    ShadowOptions shadowOptions;
+    EXPECT_EQ(chain.ApplyOutline(10.0f, shadowOptions), DrawingError::ERR_ILLEGAL_INPUT);
+}
+
+/**
+ * @tc.name: OutlineReturnsErrorWhenImageNull
+ * @tc.desc: test ApplyOutline returns error when image_ is null.
+ */
+HWTEST_F(EffectImageChainUnittest, OutlineReturnsErrorWhenImageNull, TestSize.Level1)
+{
+    EffectImageChain chain;
+    chain.prepared_ = true;
+    chain.forceCPU_ = false;
+    chain.image_ = nullptr;
+    ShadowOptions shadowOptions;
+    EXPECT_EQ(chain.ApplyOutline(10.0f, shadowOptions), DrawingError::ERR_IMAGE_NULL);
+}
+
+/**
+ * @tc.name: HalftoneReturnsErrorWhenNotPrepared
+ * @tc.desc: test ApplyHalftone returns error when not prepared.
+ */
+HWTEST_F(EffectImageChainUnittest, HalftoneReturnsErrorWhenNotPrepared, TestSize.Level1)
+{
+    EffectImageChain chain;
+    HalftoneParam halftoneParam;
+    halftoneParam.gridSize = 10.0f;
+    ShadowOptions shadowOptions;
+    EXPECT_EQ(chain.ApplyHalftone(halftoneParam, 0.0f, shadowOptions),
+        DrawingError::ERR_NOT_PREPARED);
+}
+
+/**
+ * @tc.name: HalftoneReturnsErrorWhenForceCPU
+ * @tc.desc: test ApplyHalftone returns error when forceCPU.
+ */
+HWTEST_F(EffectImageChainUnittest, HalftoneReturnsErrorWhenForceCPU, TestSize.Level1)
+{
+    EffectImageChain chain;
+    chain.prepared_ = true;
+    Media::InitializationOptions opts;
+    opts.size = { 1, 1 };
+    std::shared_ptr<Media::PixelMap> srcPixelMap(Media::PixelMap::Create(opts));
+    ASSERT_NE(srcPixelMap, nullptr);
+    chain.Prepare(srcPixelMap, true);
+    HalftoneParam halftoneParam;
+    halftoneParam.gridSize = 10.0f;
+    ShadowOptions shadowOptions;
+    EXPECT_EQ(chain.ApplyHalftone(halftoneParam, 0.0f, shadowOptions),
+        DrawingError::ERR_ILLEGAL_INPUT);
+}
+
+/**
+ * @tc.name: HalftoneReturnsErrorWhenImageNull
+ * @tc.desc: test ApplyHalftone returns error when image_ is null.
+ */
+HWTEST_F(EffectImageChainUnittest, HalftoneReturnsErrorWhenImageNull, TestSize.Level1)
+{
+    EffectImageChain chain;
+    chain.prepared_ = true;
+    chain.forceCPU_ = false;
+    chain.image_ = nullptr;
+    HalftoneParam halftoneParam;
+    halftoneParam.gridSize = 10.0f;
+    ShadowOptions shadowOptions;
+    EXPECT_EQ(chain.ApplyHalftone(halftoneParam, 0.0f, shadowOptions),
+        DrawingError::ERR_IMAGE_NULL);
+}
 } // namespace Rosen
 } // namespace OHOS

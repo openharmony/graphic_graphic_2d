@@ -23,12 +23,31 @@
 #include "ge_shader_filter_params_for_kits.h"
 #include "ge_shader_mask.h"
 #include "include/draw/canvas.h"
+#include "include/draw/color.h"
 #include "include/draw/surface.h"
 #include "include/effect/image_filter.h"
+#include "include/utils/point.h"
 #include "pixel_map.h"
 #include "render_context/render_context.h"
 
 namespace OHOS::Rosen {
+struct ShadowOptions {
+    float radius = 0.0f;
+    Drawing::PointF lightDirection;
+    float shadowDistance = 0.0f;
+    Drawing::Color color = Drawing::Color(0, 0, 0, 26);
+};
+
+struct HalftoneParam {
+    float gridSize = 0.0f;
+    float maxRadiusRatio = 1.0f;
+    float lumCoeff = 0.0f;
+    float colorWidthRatio = 0.5f;
+    float saturation = 1.0f;
+    float smoothness = 0.0f;
+    float angle = 0.0f;
+};
+
 enum class DrawingError {
     ERR_OK = 0,
     ERR_NOT_PREPARED,
@@ -90,6 +109,9 @@ public:
         const std::shared_ptr<Drawing::GEShaderMask>& mask, float factor, bool inverse);
     DrawingError ApplyWaterDropletTransitionFilter(const std::shared_ptr<Media::PixelMap>& topLayerMap,
         const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams);
+    DrawingError ApplyOutline(float outlineWidth, const ShadowOptions& shadowOptions);
+    DrawingError ApplyHalftone(const HalftoneParam& halftoneParam, float outlineWidth,
+        const ShadowOptions& shadowOptions);
 
     DrawingError Draw();
     DrawingError DrawNativeBuffer();

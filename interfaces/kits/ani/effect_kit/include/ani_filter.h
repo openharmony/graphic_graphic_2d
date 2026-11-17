@@ -49,6 +49,9 @@ public:
     static ani_object Brightness(ani_env* env, ani_object obj, ani_double param);
     static ani_object Invert(ani_env* env, ani_object obj);
     static ani_object SetColorMatrix(ani_env* env, ani_object obj, ani_object arrayObj);
+    static ani_object Outline(ani_env* env, ani_object obj, ani_double outlineWidth, ani_object shadowOptions);
+    static ani_object Halftone(ani_env* env, ani_object obj, ani_object halftoneParam,
+        ani_double outlineWidth, ani_object shadowOptions);
     static ani_object GetPixelMap(ani_env* env, ani_object obj);
     static ani_object CreateEffectFromPtr(ani_env* env, std::shared_ptr<Media::PixelMap> pixelMap);
     static ani_object KitTransferStaticEffect(ani_env* env, ani_class cls, ani_object obj);

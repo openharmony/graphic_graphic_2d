@@ -16,8 +16,11 @@
 #include "ani_effect_kit_utils.h"
 #include "ani_filter.h"
 
+#include <algorithm>
 #include <atomic>
+#include <cmath>
 #include <cstddef>
+#include <limits>
 #include <mutex>
 #include <shared_mutex>
 #include <unordered_map>
@@ -231,6 +234,216 @@ ani_object AniFilter::SetColorMatrix(ani_env* env, ani_object obj, ani_object ar
         env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
 }
 
+static bool GetDoubleProperty(ani_env* env, ani_object obj, const char* name, double& value)
+{
+    ani_double val = 0.0;
+    if (env->Object_GetPropertyByName_Double(obj, name, &val) != ANI_OK) {
+        return false;
+    }
+    if (!std::isfinite(val)) {
+        return false;
+    }
+    value = val;
+    return true;
+}
+
+static bool GetNumberElement(ani_env* env, ani_object arr, int index, double& value)
+{
+    ani_ref ref {};
+    if (env->Object_CallMethodByName_Ref(arr, "$_get", "i:Y", &ref, (ani_int)index) != ANI_OK) {
+        return false;
+    }
+    ani_double val = 0.0;
+    if (env->Object_CallMethodByName_Double(static_cast<ani_object>(ref), "toDouble", ":d", &val) != ANI_OK) {
+        return false;
+    }
+    if (!std::isfinite(val) || std::abs(val) > static_cast<double>(std::numeric_limits<float>::max())) {
+        return false;
+    }
+    value = val;
+    return true;
+}
+
+static bool GetObjectProperty(ani_env* env, ani_object obj, const char* name, ani_object& value)
+{
+    ani_ref ref {};
+    if (env->Object_GetPropertyByName_Ref(obj, name, &ref) != ANI_OK) {
+        return false;
+    }
+    ani_boolean isUndefined = ANI_TRUE;
+    env->Reference_IsUndefined(ref, &isUndefined);
+    if (isUndefined) {
+        return false;
+    }
+    value = static_cast<ani_object>(ref);
+    return true;
+}
+
+static void ParsePoint(ani_env* env, ani_array val, Drawing::PointF& point)
+{
+    constexpr uint32_t pointIdxX = 0;
+    constexpr uint32_t pointIdxY = 1;
+    constexpr ani_size pointArrayLength = static_cast<ani_size>(2);
+    ani_size length = 0;
+    if (env->Array_GetLength(val, &length) != ANI_OK || length != pointArrayLength) {
+        EFFECT_LOG_E("ParsePoint array length must be 2, actual=%{public}u", static_cast<uint32_t>(length));
+        return;
+    }
+    double x = 0.0;
+    double y = 0.0;
+    if (!GetNumberElement(env, val, pointIdxX, x) || !GetNumberElement(env, val, pointIdxY, y)) {
+        EFFECT_LOG_E("ParsePoint array element parse fail");
+        return;
+    }
+    point.Set(static_cast<float>(x), static_cast<float>(y));
+}
+
+static void ParseColor(ani_env* env, ani_array val, Drawing::Color& color)
+{
+    constexpr uint32_t colorIdxR = 0;
+    constexpr uint32_t colorIdxG = 1;
+    constexpr uint32_t colorIdxB = 2;
+    constexpr uint32_t colorIdxA = 3;
+    constexpr ani_size colorArrayLength = static_cast<ani_size>(4);
+    ani_size length = 0;
+    if (env->Array_GetLength(val, &length) != ANI_OK || length != colorArrayLength) {
+        EFFECT_LOG_E("ParseColor array length must be 4, actual=%{public}u", static_cast<uint32_t>(length));
+        return;
+    }
+    double r = 0.0;
+    double g = 0.0;
+    double b = 0.0;
+    double a = 0.0;
+    if (!GetNumberElement(env, val, colorIdxR, r) || !GetNumberElement(env, val, colorIdxG, g) ||
+        !GetNumberElement(env, val, colorIdxB, b) || !GetNumberElement(env, val, colorIdxA, a)) {
+        EFFECT_LOG_E("ParseColor array element parse fail");
+        return;
+    }
+    auto clampChannel = [](double v) -> uint32_t {
+        return static_cast<uint32_t>(std::clamp(std::round(v), 0.0, 255.0));
+    };
+    color.SetRgb(clampChannel(r), clampChannel(g), clampChannel(b), clampChannel(a));
+}
+
+static ShadowOptions ParseShadowOptions(ani_env* env, ani_object val)
+{
+    ShadowOptions options;
+    if (val == nullptr) {
+        return options;
+    }
+
+    double radius = 0.0;
+    if (GetDoubleProperty(env, val, "radius", radius)) {
+        options.radius = std::max(0.0f, static_cast<float>(radius));
+    }
+
+    ani_object lightDir = nullptr;
+    if (GetObjectProperty(env, val, "lightDirection", lightDir)) {
+        ParsePoint(env, static_cast<ani_array>(lightDir), options.lightDirection);
+    }
+
+    double shadowDistance = 0.0;
+    if (GetDoubleProperty(env, val, "shadowDistance", shadowDistance)) {
+        options.shadowDistance = std::max(0.0f, static_cast<float>(shadowDistance));
+    }
+
+    ani_object colorVal = nullptr;
+    if (GetObjectProperty(env, val, "color", colorVal)) {
+        ParseColor(env, static_cast<ani_array>(colorVal), options.color);
+    }
+
+    return options;
+}
+
+static HalftoneParam ParseHalftoneParam(ani_env* env, ani_object val, bool& ok)
+{
+    ok = false;
+    HalftoneParam params;
+    if (val == nullptr) {
+        return params;
+    }
+    double gridSize = 0.0;
+    if (!GetDoubleProperty(env, val, "gridSize", gridSize)) {
+        return params;
+    }
+    params.gridSize = std::max(3.0f, static_cast<float>(gridSize));
+
+    double maxRadiusRatio = 1.0;
+    if (GetDoubleProperty(env, val, "maxRadiusRatio", maxRadiusRatio)) {
+        params.maxRadiusRatio = std::clamp(static_cast<float>(maxRadiusRatio), 0.0f, 1.0f);
+    }
+    double lumCoeff = 0.0;
+    if (GetDoubleProperty(env, val, "lumCoeff", lumCoeff)) {
+        params.lumCoeff = std::max(0.0f, static_cast<float>(lumCoeff));
+    }
+    double colorWidthRatio = 0.5;
+    if (GetDoubleProperty(env, val, "colorWidthRatio", colorWidthRatio)) {
+        params.colorWidthRatio = std::clamp(static_cast<float>(colorWidthRatio), 0.0f, 1.0f);
+    }
+    double saturation = 1.0;
+    if (GetDoubleProperty(env, val, "saturation", saturation)) {
+        params.saturation = std::clamp(static_cast<float>(saturation), 0.0f, 1.0f);
+    }
+    double smoothness = 0.0;
+    if (GetDoubleProperty(env, val, "smoothness", smoothness)) {
+        params.smoothness = std::max(0.0f, static_cast<float>(smoothness));
+    }
+    double angle = 0.0;
+    if (GetDoubleProperty(env, val, "angle", angle)) {
+        params.angle = static_cast<float>(angle);
+    }
+    ok = true;
+    return params;
+}
+
+ani_object AniFilter::Outline(ani_env* env, ani_object obj, ani_double outlineWidth, ani_object shadowOptions)
+{
+    AniFilter* aniFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
+    if (aniFilter == nullptr) {
+        EFFECT_LOG_E("AniFilter Outline GetFilterFromEnv failed");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    if (!std::isfinite(outlineWidth) || outlineWidth < 0.0) {
+        EFFECT_LOG_E("AniFilter Outline outlineWidth is invalid, skip this filter");
+        return AniEffectKitUtils::CreateAniObject(
+            env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
+    }
+    float width = static_cast<float>(outlineWidth);
+    ShadowOptions options = ParseShadowOptions(env, shadowOptions);
+    auto outline = EffectImageFilter::Outline(width, options);
+    if (outline != nullptr) {
+        aniFilter->AddNextFilter(outline);
+    }
+    return AniEffectKitUtils::CreateAniObject(
+        env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
+}
+
+ani_object AniFilter::Halftone(ani_env* env, ani_object obj, ani_object halftoneParam,
+    ani_double outlineWidth, ani_object shadowOptions)
+{
+    AniFilter* aniFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
+    if (aniFilter == nullptr) {
+        EFFECT_LOG_E("AniFilter Halftone GetFilterFromEnv failed");
+        return AniEffectKitUtils::CreateAniUndefined(env);
+    }
+    bool paramOk = false;
+    HalftoneParam params = ParseHalftoneParam(env, halftoneParam, paramOk);
+    if (!paramOk) {
+        EFFECT_LOG_E("AniFilter Halftone parse halftoneParam fail, skip this filter");
+        return AniEffectKitUtils::CreateAniObject(
+            env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
+    }
+    float width = (std::isfinite(outlineWidth) && outlineWidth >= 0.0)
+        ? static_cast<float>(outlineWidth) : 0.0f;
+    ShadowOptions options = ParseShadowOptions(env, shadowOptions);
+    auto halftone = EffectImageFilter::Halftone(params, width, options);
+    if (halftone != nullptr) {
+        aniFilter->AddNextFilter(halftone);
+    }
+    return AniEffectKitUtils::CreateAniObject(
+        env, ANI_CLASS_FILTER.c_str(), nullptr, reinterpret_cast<ani_long>(aniFilter));
+}
+
 ani_object AniFilter::GetPixelMap(ani_env* env, ani_object obj)
 {
     AniFilter* thisFilter = AniEffectKitUtils::GetFilterFromEnv(env, obj);
@@ -340,6 +553,15 @@ ani_status AniFilter::Init(ani_env* env)
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::Invert) },
         ani_native_function { "setColorMatrixNative", nullptr,
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::SetColorMatrix) },
+        ani_native_function { "outlineNative",
+            "dC{@ohos.effectKit.effectKit.ShadowOptions}:C{@ohos.effectKit.effectKit.Filter}",
+            reinterpret_cast<void*>(static_cast<ani_object(*)(ani_env*, ani_object, ani_double, ani_object)>
+            (&OHOS::Rosen::AniFilter::Outline)) },
+        ani_native_function { "halftoneNative",
+            "C{@ohos.effectKit.effectKit.HalftoneParam}"
+            "dC{@ohos.effectKit.effectKit.ShadowOptions}:C{@ohos.effectKit.effectKit.Filter}",
+            reinterpret_cast<void*>(static_cast<ani_object(*)(ani_env*, ani_object, ani_object, ani_double,
+            ani_object)>(&OHOS::Rosen::AniFilter::Halftone)) },
         ani_native_function { "getPixelMapNative", ":C{@ohos.multimedia.image.image.PixelMap}",
             reinterpret_cast<void*>(OHOS::Rosen::AniFilter::GetPixelMap) },
     };

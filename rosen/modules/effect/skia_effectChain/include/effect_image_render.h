@@ -48,6 +48,9 @@ public:
         const std::shared_ptr<Drawing::GEWaterDropletTransitionFilterParams>& geWaterDropletParams);
     static std::shared_ptr<EffectImageFilter> Scale(float scaleX, float scaleY,
         Drawing::FilterMode filterMode, Drawing::MipmapMode mipmapMode);
+    static std::shared_ptr<EffectImageFilter> Outline(float outlineWidth, const ShadowOptions& shadowOptions);
+    static std::shared_ptr<EffectImageFilter> Halftone(const HalftoneParam& halftoneParam, float outlineWidth,
+        const ShadowOptions& shadowOptions);
     virtual DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) = 0;
 };
 
@@ -210,6 +213,34 @@ private:
     float scaleY_;
     Drawing::FilterMode filterMode_ = Drawing::FilterMode::LINEAR;
     Drawing::MipmapMode mipmapMode_ = Drawing::MipmapMode::LINEAR;
+};
+
+class EffectImageOutlineFilter : public EffectImageFilter {
+public:
+    EffectImageOutlineFilter(float outlineWidth, const ShadowOptions& shadowOptions)
+        : outlineWidth_(outlineWidth), shadowOptions_(shadowOptions) {}
+    ~EffectImageOutlineFilter() override = default;
+
+    DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) override;
+
+private:
+    float outlineWidth_;
+    ShadowOptions shadowOptions_;
+};
+
+class EffectImageHalftoneFilter : public EffectImageFilter {
+public:
+    EffectImageHalftoneFilter(const HalftoneParam& halftoneParam, float outlineWidth,
+        const ShadowOptions& shadowOptions)
+        : halftoneParam_(halftoneParam), outlineWidth_(outlineWidth), shadowOptions_(shadowOptions) {}
+    ~EffectImageHalftoneFilter() override = default;
+
+    DrawingError Apply(const std::shared_ptr<EffectImageChain>& image) override;
+
+private:
+    HalftoneParam halftoneParam_;
+    float outlineWidth_;
+    ShadowOptions shadowOptions_;
 };
 
 class EffectImageRender {

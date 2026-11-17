@@ -24,6 +24,9 @@
 #include "ge_radial_gradient_shader_mask.h"
 #include "ge_variable_radius_blur_shader_filter.h"
 #include "ge_sdf_from_image_filter.h"
+#include "ge_shader.h"
+#include "ge_sticker_outline_shader.h"
+#include "ge_sticker_halftone_shader.h"
 #include "rs_trace.h"
 
 #include "pipeline/rs_paint_filter_canvas.h"
@@ -288,6 +291,25 @@ DrawingError EffectImageChain::ApplyDrawingFilter(const std::shared_ptr<Drawing:
 
     std::lock_guard<std::mutex> lock(apiMutex_);
     filters_ = (filters_ == nullptr) ? filter : Drawing::ImageFilter::CreateComposeImageFilter(filter, filters_);
+    return DrawingError::ERR_OK;
+}
+
+static DrawingError DrawShaderAndComposite(Drawing::Canvas* canvas,
+    std::shared_ptr<Drawing::Image>& image, const std::shared_ptr<GEShader>& stickerShader,
+    const char* methodName)
+{
+    Drawing::Rect rect(0, 0, image->GetWidth(), image->GetHeight());
+    stickerShader->OnDrawShader(*canvas, rect);
+    auto cardShader = stickerShader->GetDrawingShader();
+    if (!cardShader) {
+        EFFECT_LOG_E("EffectImageChain::%{public}s: cardShader is null.", methodName);
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+    image = GEStickerOutlineShader::MakeCompositeImage(*canvas, cardShader, image, rect);
+    if (image == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::%{public}s: composite result is null.", methodName);
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
     return DrawingError::ERR_OK;
 }
 
@@ -1101,5 +1123,103 @@ DrawingError EffectImageChain::ApplyScale(
     UpdateImage();
     ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
     return DrawingError::ERR_OK;
+}
+
+DrawingError EffectImageChain::ApplyOutline(float outlineWidth, const ShadowOptions& shadowOptions)
+{
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    if (!prepared_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyOutline: Not ready, need prepare first.");
+        return DrawingError::ERR_NOT_PREPARED;
+    }
+    if (forceCPU_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyOutline: Not support CPU.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+    if (filters_ != nullptr) {
+        UpdateImage();
+    }
+
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyOutline");
+    if (image_ == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::ApplyOutline: image_ is null.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+    Drawing::GEStickerOutlineShaderParams params;
+    params.sticker_ = image_;
+    params.outlinePx_ = outlineWidth;
+    params.shadowDistance_ = shadowOptions.shadowDistance;
+    params.lightDir_ = Vector2f(shadowOptions.lightDirection.GetX(), shadowOptions.lightDirection.GetY());
+    params.elevationShadowColor_ = Vector4f(
+        static_cast<float>(shadowOptions.color.GetRed()) / 255.0f,
+        static_cast<float>(shadowOptions.color.GetGreen()) / 255.0f,
+        static_cast<float>(shadowOptions.color.GetBlue()) / 255.0f,
+        static_cast<float>(shadowOptions.color.GetAlpha()) / 255.0f);
+    params.elevationShadowRadius_ = shadowOptions.radius;
+
+    auto stickerShader = std::make_shared<GEStickerOutlineShader>(params);
+    if (!stickerShader) {
+        EFFECT_LOG_E("EffectImageChain::ApplyOutline: create shader fail.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    auto result = DrawShaderAndComposite(canvas_.get(), image_, stickerShader, "ApplyOutline");
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return result;
+}
+
+DrawingError EffectImageChain::ApplyHalftone(const HalftoneParam& halftoneParam, float outlineWidth,
+    const ShadowOptions& shadowOptions)
+{
+    std::lock_guard<std::mutex> lock(apiMutex_);
+    if (!prepared_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyHalftone: Not ready, need prepare first.");
+        return DrawingError::ERR_NOT_PREPARED;
+    }
+    if (forceCPU_) {
+        EFFECT_LOG_E("EffectImageChain::ApplyHalftone: Not support CPU.");
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+    if (filters_ != nullptr) {
+        UpdateImage();
+    }
+
+    ROSEN_TRACE_BEGIN(HITRACE_TAG_GRAPHIC_AGP, "EffectImageChain::ApplyHalftone");
+    if (image_ == nullptr) {
+        EFFECT_LOG_E("EffectImageChain::ApplyHalftone: image_ is null.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+    Drawing::GEStickerHalftoneShaderParams params;
+    params.sticker_ = image_;
+    params.gridSize_ = halftoneParam.gridSize;
+    params.maxRadiusRatio_ = halftoneParam.maxRadiusRatio;
+    params.lumCoeff_ = halftoneParam.lumCoeff;
+    params.colorWidthRatio_ = halftoneParam.colorWidthRatio;
+    params.saturation_ = halftoneParam.saturation;
+    params.smoothness_ = halftoneParam.smoothness;
+    params.angle_ = halftoneParam.angle;
+    params.outlinePx_ = outlineWidth;
+    params.shadowDistance_ = shadowOptions.shadowDistance;
+    params.lightDir_ = Vector2f(shadowOptions.lightDirection.GetX(), shadowOptions.lightDirection.GetY());
+    params.elevationShadowColor_ = Vector4f(
+        static_cast<float>(shadowOptions.color.GetRed()) / 255.0f,
+        static_cast<float>(shadowOptions.color.GetGreen()) / 255.0f,
+        static_cast<float>(shadowOptions.color.GetBlue()) / 255.0f,
+        static_cast<float>(shadowOptions.color.GetAlpha()) / 255.0f);
+    params.elevationShadowRadius_ = shadowOptions.radius;
+
+    auto stickerShader = std::make_shared<GEStickerHalftoneShader>(params);
+    if (!stickerShader) {
+        EFFECT_LOG_E("EffectImageChain::ApplyHalftone: create shader fail.");
+        ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+        return DrawingError::ERR_ILLEGAL_INPUT;
+    }
+
+    auto result = DrawShaderAndComposite(canvas_.get(), image_, stickerShader, "ApplyHalftone");
+    ROSEN_TRACE_END(HITRACE_TAG_GRAPHIC_AGP);
+    return result;
 }
 } // namespace OHOS::Rosen
