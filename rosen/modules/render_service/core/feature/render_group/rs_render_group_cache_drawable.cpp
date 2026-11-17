@@ -117,7 +117,7 @@ std::optional<RSRenderGroupCacheDrawable::ContinuousUpdateInfo> RSRenderGroupCac
 void RSRenderGroupCacheDrawable::SetContinuousUpdateInfo(NodeId nodeId, int32_t count, uint64_t vsyncId)
 {
     std::lock_guard<std::mutex> lock(continuousUpdateTimeMapMutex_);
-    continuousUpdateTimeMap_[nodeId] = {count, vsyncId};
+    continuousUpdateTimeMap_[nodeId] = { count, vsyncId };
 }
 
 void RSRenderGroupCacheDrawable::ClearContinuousUpdateCount(NodeId nodeId)

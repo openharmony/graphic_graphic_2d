@@ -35,10 +35,11 @@ class RSUnmarshalThread {
 public:
     static RSUnmarshalThread& Instance();
     void Start();
-    void PostTask(const std::function<void()>& task, const std::string& name = "");
+    void PostTask(const std::function<void()>& task);
+    void PostTask(const std::function<void()>& task, const std::string& name);
     void PostParallelTask(const std::function<void()>& task, const std::string& name = "");
     void WaitUntilParallelTasksFinished();
-    void RemoveTask(const std::string& name = "");
+    void RemoveTask(const std::string& name);
     void RecvParcel(std::shared_ptr<MessageParcel> &parcel, bool isNonSystemAppCalling = false, pid_t callingPid = 0,
         std::unique_ptr<AshmemFdWorker> ashmemFdWorker = nullptr,
         std::shared_ptr<AshmemFlowControlUnit> ashmemFlowControlUnit = nullptr, uint32_t parcelNumber = 0,

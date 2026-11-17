@@ -56,10 +56,10 @@ int32_t UICaptureParamParse::ParseUICaptureInternal(FeatureParamMapType &feature
     auto val = ExtractPropertyValue("value", *currNode);
     if (xmlParamType == PARSE_XML_FEATURE_SWITCH) {
         bool isEnabled = ParseFeatureSwitch(val);
-        if (name == "useOptimizedFlushAndSubmit") {
+        if (name == "UseOptimizedFlushAndSubmit") {
             uiCaptureParam_->SetUseOptimizedFlushAndSubmitEnabled(isEnabled);
             RS_LOGI("UICaptureParamParse useOptimizedFlushAndSubmitEnabled %{public}d", isEnabled);
-        } else if (name == "useDMAProcess") {
+        } else if (name == "UseDmaProcessEnabled") {
             uiCaptureParam_->SetUseDMAProcessEnabled(isEnabled);
             RS_LOGI("UICaptureParamParse useDMAProcessEnabled %{public}d", isEnabled);
         }

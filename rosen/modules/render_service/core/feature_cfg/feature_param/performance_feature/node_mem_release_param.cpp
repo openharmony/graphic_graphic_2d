@@ -42,12 +42,12 @@ bool NodeMemReleaseParam::IsCanvasDrawingNodeBufferEnabled()
 {
     return isCanvasDrawingNodeBufferEnabled_;
 }
- 
+
 void NodeMemReleaseParam::SetCanvasDrawingNodeBufferEnabled(bool isEnable)
 {
     isCanvasDrawingNodeBufferEnabled_ = isEnable;
 }
- 
+
 void NodeMemReleaseParam::AddToCanvasBufferBlacklist(std::string processName, std::string value)
 {
     if (canvasBufferBlacklist_ == nullptr) {
@@ -55,7 +55,7 @@ void NodeMemReleaseParam::AddToCanvasBufferBlacklist(std::string processName, st
     }
     canvasBufferBlacklist_->emplace(processName, value);
 }
- 
+
 bool NodeMemReleaseParam::IsCanvasBufferEnabled(const std::string& processName)
 {
     if (canvasBufferBlacklist_ == nullptr || canvasBufferBlacklist_->empty()) {
