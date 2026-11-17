@@ -236,7 +236,6 @@ public:
     static bool GetDynamicBrightnessEnabled();
     static bool GetMaskLinearBlurEnabled();
     static bool GetMotionBlurEnabled();
-    static bool GetDrmEnabled();
     static bool GetMagnifierEnabled();
     static bool GetKawaseEnabled();
     static void SetForceHpsBlurDisabled(bool flag);
@@ -315,7 +314,6 @@ public:
     static size_t GetSplitTransactionCheckInterval();
     static float GetSplitTransactionMaxTotalTimeMs();
 
-    static bool GetSecurityPermissionCheckEnabled();
     static bool GetEffectMergeEnabled();
     static SubTreePrepareCheckType GetSubTreePrepareCheckType();
     static bool IsForceClient();
@@ -413,11 +411,11 @@ public:
 
     static bool GetReleaseImageOneByOneFlag();
     static bool GetUIFirstDirtyFrameControlEnabled();
-    static bool GetUsePrimList();
 
     static bool GetRebuildSceneEnabled();
     static bool IsRenderNodeRebuildEnabled();
     static bool RebuildDebugEnabled();
+    static bool GetUsePrimList();
     static bool GetVirtualScreenParallelEnabled();
 
     static bool GetRsDelegateCompositeCleanCacheDfxEnable();

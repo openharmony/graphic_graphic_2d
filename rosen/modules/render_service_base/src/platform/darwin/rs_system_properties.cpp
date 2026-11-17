@@ -555,11 +555,6 @@ bool RSSystemProperties::GetWideColorSpaceEnabled()
     return true;
 }
 
-bool RSSystemProperties::GetSecurityPermissionCheckEnabled()
-{
-    return false;
-}
-
 bool RSSystemProperties::GetEffectMergeEnabled()
 {
     return true;
