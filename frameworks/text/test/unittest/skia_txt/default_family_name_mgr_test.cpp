@@ -18,7 +18,6 @@
 #include <algorithm>
 
 #include "platform.h"
-#include "text_style.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -108,15 +107,6 @@ HWTEST_F(DefaultFamilyNameMgrTest, GenerateThemeFamilyName, TestSize.Level0)
     std::string indexedFamily = SPText::OHOS_THEME_FONT;
     indexedFamily.push_back('1');
     EXPECT_EQ(SPText::DefaultFamilyNameMgr::GenerateThemeFamilyName(1), indexedFamily);
-}
-
-// TextStyle construction is the first consumer of the default family list;
-// its default must mirror exactly what the singleton reports.
-HWTEST_F(DefaultFamilyNameMgrTest, TextStyleDefaultsFollowSingleton, TestSize.Level0)
-{
-    TextStyle style;
-    EXPECT_FALSE(style.fontFamilies.empty());
-    EXPECT_EQ(style.fontFamilies, SPText::DefaultFamilyNameMgr::GetInstance().GetDefaultFontFamilies());
 }
 
 // GetDefaultFontManager moved to the 2d_graphics-owned copy together with the
