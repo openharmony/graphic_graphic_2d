@@ -29,8 +29,6 @@
 
 namespace OHOS {
 namespace Rosen {
-class EffectImageChain;
-
 class RsVulkanContext {
 public:
     static RsVulkanContext& Get(RenderEngineType type = RenderEngineType::BASIC_RENDER);
@@ -84,9 +82,7 @@ public:
 private:
     std::shared_ptr<RsVulkanInterface> vulkanInterface_;
     RenderEngineType type_ = RenderEngineType::BASIC_RENDER;
-
     // only for effect kit
-    friend class EffectImageChain;
     static std::unique_ptr<RsVulkanContext> GetForEffectKit();
     static void ReleaseContextForEffectKit(std::unique_ptr<RsVulkanContext>& vkContext);
 };

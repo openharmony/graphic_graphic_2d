@@ -37,7 +37,8 @@ bool Filter::Render(bool forceCPU)
     return error == DrawingError::ERR_OK;
 }
 
-bool Filter::RenderNativeBuffer(bool forceCPU, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd)
+bool Filter::RenderNativeBuffer(
+    bool forceCPU, OH_NativeBuffer *dstNativeBuffer, int32_t *syncFenceFd, bool releaseGpuContext)
 {
     if (dstNativeBuffer == nullptr) {
         return false;
@@ -47,7 +48,8 @@ bool Filter::RenderNativeBuffer(bool forceCPU, OH_NativeBuffer *dstNativeBuffer,
     }
     EffectImageRender imageRender;
     auto dstNativeBufferSharedPtr = std::shared_ptr<OH_NativeBuffer>(dstNativeBuffer, [](OH_NativeBuffer* p) {});
-    auto error = imageRender.RenderNativeBuffer(srcPixelMap_, dstNativeBufferSharedPtr, effectFilters_, syncFenceFd);
+    auto error = imageRender.RenderNativeBuffer(
+        srcPixelMap_, dstNativeBufferSharedPtr, effectFilters_, syncFenceFd, releaseGpuContext);
     return error == DrawingError::ERR_OK;
 }
 

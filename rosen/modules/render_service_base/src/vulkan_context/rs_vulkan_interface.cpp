@@ -399,11 +399,11 @@ skgpu::VulkanGetProc RsVulkanInterface::CreateSkiaGetProc() const
         }
         std::string_view s { proc_name };
         if (s.find("vkQueueSubmit") == 0) {
-            if (type_ == RenderEngineType::BASIC_RENDER) {
+            if (type_ == RenderEngineType::BASIC_RENDER || type_ == RenderEngineType::EFFECT_KIT) {
                 return (PFN_vkVoidFunction)RsVulkanInterface::HookedVkQueueSubmitForBasicRender;
             } else if (type_ == RenderEngineType::UNPROTECTED_REDRAW) {
                 return (PFN_vkVoidFunction)RsVulkanInterface::HookedVkQueueSubmitForUnprotectedRedraw;
-            } else if (type_ == RenderEngineType::PROTECTED_REDRAW) {
+            } else {
                 return (PFN_vkVoidFunction)RsVulkanInterface::HookedVkQueueSubmitForProtectedRedraw;
             }
         }
