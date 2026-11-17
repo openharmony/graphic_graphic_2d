@@ -20,6 +20,7 @@
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_simple_draw_cmd_list.h"
 #include "pipeline/rs_surface_render_node.h"
+#include "pipeline/rs_effect_utils.h"
 #include "platform/common/rs_log.h"
 #include "common/rs_optional_trace.h"
 #include "feature/layer/rs_layer_cache_manager_base.h"
