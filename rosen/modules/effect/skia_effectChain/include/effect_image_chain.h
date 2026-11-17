@@ -16,7 +16,6 @@
 #ifndef EFFECT_IMAGE_CHAIN_H
 #define EFFECT_IMAGE_CHAIN_H
 
-#include <atomic>
 #include <memory>
 #include <mutex>
 
@@ -30,8 +29,6 @@
 #include "render_context/render_context.h"
 
 namespace OHOS::Rosen {
-class RsVulkanContext;
-
 enum class DrawingError {
     ERR_OK = 0,
     ERR_NOT_PREPARED,
@@ -72,7 +69,7 @@ private:
 
 class EffectImageChain {
 public:
-    EffectImageChain();
+    EffectImageChain() = default;
     ~EffectImageChain();
 
     DrawingError Prepare(const std::shared_ptr<Media::PixelMap>& srcPixelMap, bool forceCPU);
@@ -99,8 +96,7 @@ public:
     int32_t GetfenceId();
 
     std::shared_ptr<Media::PixelMap> GetPixelMap();
-    static void ReleaseCaches(int32_t* errorCode = nullptr);
-    static void ReleaseGpuContext(int32_t* errorCode = nullptr);
+    void SetForceReleaseGpuContext(bool releaseGpuContext);
 
 private:
     bool CheckPixelMap(const std::shared_ptr<Media::PixelMap>& pixelMap);
@@ -119,6 +115,7 @@ private:
 
     bool prepared_ = false;
     bool forceCPU_ = true;
+    bool forceReleaseGpuContext_ = true;
 
     Drawing::ImageInfo imageInfo_ = {};
     std::shared_ptr<Drawing::Image> image_ = nullptr;
@@ -132,16 +129,6 @@ private:
 
     std::shared_ptr<RenderContext> renderContext_ = nullptr;
     static thread_local std::shared_ptr<Drawing::GPUContext> gpuContext_;
-    std::shared_ptr<Drawing::GPUContext> gpuContextRef_ = nullptr;
-    static std::atomic<RsVulkanContext*> processVkContext_;
-    static std::mutex vkContextMutex_;
-    static std::atomic<uint32_t> activeChainCount_;
-    static std::atomic<bool> gpuEnvInitialized_;
-
-    static void EnsureVkContext();
-    static void ReleaseContext(const std::shared_ptr<Drawing::GPUContext>& ctx);
-    static void ReleaseVkContext(RsVulkanContext* vkCtx);
-
     int32_t fenceId_ = -1;
     std::shared_ptr<Drawing::Canvas> canvas_ = nullptr;
     std::shared_ptr<Drawing::Surface> surface_ = nullptr;

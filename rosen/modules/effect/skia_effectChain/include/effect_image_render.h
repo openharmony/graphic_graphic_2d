@@ -224,7 +224,8 @@ public:
     DrawingError RenderNativeBuffer(const std::shared_ptr<Media::PixelMap>& srcPixelMap,
         std::shared_ptr<OH_NativeBuffer>& dstNativeBuffer,
         const std::vector<std::shared_ptr<EffectImageFilter>>& effectFilters,
-        int32_t* syncFenceFd);
+        int32_t* syncFenceFd,
+        bool releaseGpuContext);
 #endif
 };
 } // namespace OHOS::Rosen
