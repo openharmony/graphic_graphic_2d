@@ -47,30 +47,19 @@ std::shared_ptr<Drawing::GPUContext> RSCanvasModifiersContext::GetGpuContext()
     if (gpuContext_ != nullptr) {
         return gpuContext_;
     }
-
-    constexpr RenderEngineType candidateTypes[] = {
-        RenderEngineType::UNPROTECTED_REDRAW,
-        RenderEngineType::BASIC_RENDER,
-    };
-    for (const auto type : candidateTypes) {
-        if (!RsVulkanContext::Get(type).IsValid()) {
-            RS_LOGE(
-                "RSCanvasModifiersContext::GetGpuContext: VK context invalid, type=%{public}d", static_cast<int>(type));
-            continue;
-        }
-        renderContext_ = RenderContext::Create();
-        renderContext_->Init(type, cacheDir_);
-        gpuContext_ = renderContext_->GetSharedDrGPUContext();
-        if (gpuContext_ != nullptr) {
-            return gpuContext_;
-        }
-        RS_LOGE("RSCanvasModifiersContext::GetGpuContext: create gpu context failed, type=%{public}d",
-            static_cast<int>(type));
-        renderContext_ = nullptr;
+    if (!RsVulkanContext::Get(RenderEngineType::BASIC_RENDER).IsValid()) {
+        RS_LOGE("RSCanvasModifiersContext::GetGpuContext: VK context invalid");
+        return nullptr;
     }
-
-    RS_LOGE("RSCanvasModifiersContext::GetGpuContext: no available gpu context");
-    return nullptr;
+    renderContext_ = RenderContext::Create();
+    renderContext_->Init(RenderEngineType::BASIC_RENDER, cacheDir_);
+    gpuContext_ = renderContext_->GetSharedDrGPUContext();
+    if (gpuContext_ == nullptr) {
+        RS_LOGE("RSCanvasModifiersContext::GetGpuContext: create gpu context failed");
+        renderContext_ = nullptr;
+        return nullptr;
+    }
+    return gpuContext_;
 }
 
 void RSCanvasModifiersContext::ReleaseGpuContext()
