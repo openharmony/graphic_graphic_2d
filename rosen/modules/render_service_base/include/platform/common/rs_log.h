@@ -278,7 +278,7 @@ private:
         isFirst##__func__##__line__ = false;                                                                       \
         RS_LOGI(format, ##__VA_ARGS__);                                                                            \
     }                                                                                                              \
-}                                                                                                                  \
+}
 
 // USER log macros - basic version
 #define RS_USER_LOGI(screenId, format, ...) \
