@@ -76,6 +76,50 @@ HWTEST_F(EffectImageFilterUnittest, FilterTest001, TestSize.Level1)
     Drawing::ColorMatrix matrix;
     filter = EffectImageFilter::ApplyColorMatrix(matrix);
     EXPECT_TRUE(filter != nullptr);
+
+    ShadowOptions shadowOptions;
+    filter = EffectImageFilter::Outline(10.0f, shadowOptions);
+    EXPECT_TRUE(filter != nullptr);
+
+    filter = EffectImageFilter::Outline(0.0f, shadowOptions);
+    EXPECT_TRUE(filter != nullptr);
+
+    HalftoneParam halftoneParam;
+    halftoneParam.gridSize = 10.0f;
+    filter = EffectImageFilter::Halftone(halftoneParam, 0.0f, shadowOptions);
+    EXPECT_TRUE(filter != nullptr);
+
+    halftoneParam.gridSize = 3.0f;
+    filter = EffectImageFilter::Halftone(halftoneParam, 10.0f, shadowOptions);
+    EXPECT_TRUE(filter != nullptr);
+}
+
+/**
+ * @tc.name: OutlineApplyTest_001
+ * @tc.desc: Verify Outline filter Apply with null chain
+ */
+HWTEST_F(EffectImageFilterUnittest, OutlineApplyTest_001, TestSize.Level1)
+{
+    ShadowOptions shadowOptions;
+    auto filter = EffectImageFilter::Outline(10.0f, shadowOptions);
+    EXPECT_TRUE(filter != nullptr);
+    auto ret = filter->Apply(nullptr);
+    EXPECT_EQ(ret, DrawingError::ERR_IMAGE_NULL);
+}
+
+/**
+ * @tc.name: HalftoneApplyTest_001
+ * @tc.desc: Verify Halftone filter Apply with null chain
+ */
+HWTEST_F(EffectImageFilterUnittest, HalftoneApplyTest_001, TestSize.Level1)
+{
+    HalftoneParam halftoneParam;
+    halftoneParam.gridSize = 10.0f;
+    ShadowOptions shadowOptions;
+    auto filter = EffectImageFilter::Halftone(halftoneParam, 0.0f, shadowOptions);
+    EXPECT_TRUE(filter != nullptr);
+    auto ret = filter->Apply(nullptr);
+    EXPECT_EQ(ret, DrawingError::ERR_IMAGE_NULL);
 }
 
 /**

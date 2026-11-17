@@ -375,4 +375,31 @@ DrawingError EffectImageScaleFilter::Apply(const std::shared_ptr<EffectImageChai
     }
     return image->ApplyScale(scaleX_, scaleY_, filterMode_, mipmapMode_);
 }
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::Outline(float outlineWidth, const ShadowOptions& shadowOptions)
+{
+    return std::make_shared<EffectImageOutlineFilter>(outlineWidth, shadowOptions);
+}
+
+std::shared_ptr<EffectImageFilter> EffectImageFilter::Halftone(const HalftoneParam& halftoneParam,
+    float outlineWidth, const ShadowOptions& shadowOptions)
+{
+    return std::make_shared<EffectImageHalftoneFilter>(halftoneParam, outlineWidth, shadowOptions);
+}
+
+DrawingError EffectImageOutlineFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+    return image->ApplyOutline(outlineWidth_, shadowOptions_);
+}
+
+DrawingError EffectImageHalftoneFilter::Apply(const std::shared_ptr<EffectImageChain>& image)
+{
+    if (image == nullptr) {
+        return DrawingError::ERR_IMAGE_NULL;
+    }
+    return image->ApplyHalftone(halftoneParam_, outlineWidth_, shadowOptions_);
+}
 } // namespace OHOS::Rosen

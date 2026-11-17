@@ -12,8 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <algorithm>
 #include <atomic>
 #include <cstddef>
+#include <cmath>
+#include <limits>
 #include <mutex>
 #include <shared_mutex>
 #include <unordered_map>
@@ -186,6 +189,8 @@ napi_value FilterNapi::Init(napi_env env, napi_value exports)
         DECLARE_NAPI_FUNCTION("grayscale", Grayscale),
         DECLARE_NAPI_FUNCTION("invert", Invert),
         DECLARE_NAPI_FUNCTION("setColorMatrix", SetColorMatrix),
+        DECLARE_NAPI_FUNCTION("outline", Outline),
+        DECLARE_NAPI_FUNCTION("halftone", Halftone),
         DECLARE_NAPI_FUNCTION("getPixelMap", GetPixelMap),
         DECLARE_NAPI_FUNCTION("getPixelMapAsync", GetPixelMapAsync),
         DECLARE_NAPI_FUNCTION("getEffectPixelMap", GetPixelMapAsync),
@@ -847,6 +852,281 @@ napi_value FilterNapi::SetColorMatrix(napi_env env, napi_callback_info info)
 #ifndef CROSS_PLATFORM
     HISTOGRAM_BOOLEAN("Arkgraphics2d.EffectKit.setColorMatrix", 1);
 #endif
+    return _this;
+}
+
+static bool GetFloatProperty(napi_env env, napi_value obj, const char* name, float& value)
+{
+    napi_value prop = nullptr;
+    if (napi_get_named_property(env, obj, name, &prop) != napi_ok) {
+        return false;
+    }
+    napi_valuetype type = napi_undefined;
+    if (napi_typeof(env, prop, &type) != napi_ok || type != napi_number) {
+        return false;
+    }
+    double val = 0.0;
+    if (napi_get_value_double(env, prop, &val) != napi_ok ||
+        !std::isfinite(val) || std::abs(val) > static_cast<double>(std::numeric_limits<float>::max())) {
+        return false;
+    }
+    value = static_cast<float>(val);
+    return true;
+}
+
+static bool GetNumberElement(napi_env env, napi_value arr, uint32_t index, double& value)
+{
+    napi_value elem = nullptr;
+    if (napi_get_element(env, arr, index, &elem) != napi_ok) {
+        return false;
+    }
+    napi_valuetype type = napi_undefined;
+    if (napi_typeof(env, elem, &type) != napi_ok || type != napi_number) {
+        return false;
+    }
+    double val = 0.0;
+    if (napi_get_value_double(env, elem, &val) != napi_ok ||
+        !std::isfinite(val) || std::abs(val) > static_cast<double>(std::numeric_limits<float>::max())) {
+        return false;
+    }
+    value = val;
+    return true;
+}
+
+static bool GetObjectProperty(napi_env env, napi_value obj, const char* name, napi_value& value)
+{
+    napi_value prop = nullptr;
+    if (napi_get_named_property(env, obj, name, &prop) != napi_ok) {
+        return false;
+    }
+    napi_valuetype type = napi_undefined;
+    if (napi_typeof(env, prop, &type) != napi_ok || type != napi_object) {
+        return false;
+    }
+    value = prop;
+    return true;
+}
+
+static void ParsePoint(napi_env env, napi_value val, Drawing::PointF& point)
+{
+    constexpr uint32_t pointArrayLength = 2;
+    constexpr uint32_t pointIdxX = 0;
+    constexpr uint32_t pointIdxY = 1;
+    bool isArray = false;
+    napi_is_array(env, val, &isArray);
+    if (!isArray) {
+        EFFECT_LOG_E("ParsePoint input is not array");
+        return;
+    }
+    uint32_t length = 0;
+    napi_get_array_length(env, val, &length);
+    if (length != pointArrayLength) {
+        EFFECT_LOG_E("ParsePoint array length must be 2, actual=%{public}u", length);
+        return;
+    }
+    double x = 0.0;
+    double y = 0.0;
+    if (!GetNumberElement(env, val, pointIdxX, x) || !GetNumberElement(env, val, pointIdxY, y)) {
+        EFFECT_LOG_E("ParsePoint array element parse fail");
+        return;
+    }
+    point.Set(static_cast<float>(x), static_cast<float>(y));
+}
+
+static void ParseColor(napi_env env, napi_value val, Drawing::Color& color)
+{
+    constexpr uint32_t colorArrayLength = 4;
+    constexpr uint32_t colorIdxR = 0;
+    constexpr uint32_t colorIdxG = 1;
+    constexpr uint32_t colorIdxB = 2;
+    constexpr uint32_t colorIdxA = 3;
+    bool isArray = false;
+    napi_is_array(env, val, &isArray);
+    if (!isArray) {
+        EFFECT_LOG_E("ParseColor input is not array");
+        return;
+    }
+    uint32_t length = 0;
+    napi_get_array_length(env, val, &length);
+    if (length != colorArrayLength) {
+        EFFECT_LOG_E("ParseColor array length must be 4, actual=%{public}u", length);
+        return;
+    }
+    double r = 0.0;
+    double g = 0.0;
+    double b = 0.0;
+    double a = 0.0;
+    if (!GetNumberElement(env, val, colorIdxR, r) || !GetNumberElement(env, val, colorIdxG, g) ||
+        !GetNumberElement(env, val, colorIdxB, b) || !GetNumberElement(env, val, colorIdxA, a)) {
+        EFFECT_LOG_E("ParseColor array element parse fail");
+        return;
+    }
+    auto clampChannel = [](double v) -> uint32_t {
+        return static_cast<uint32_t>(std::clamp(std::round(v), 0.0, 255.0));
+    };
+    color.SetRgb(clampChannel(r), clampChannel(g), clampChannel(b), clampChannel(a));
+}
+
+static uint32_t ParseShadowOptions(napi_env env, napi_value val, ShadowOptions& shadowOptions)
+{
+    napi_valuetype type = EffectKitNapiUtils::GetInstance().GetType(env, val);
+    if (type != napi_object) {
+        EFFECT_LOG_E("FilterNapi ParseShadowOptions is not an object");
+        return ERR_INVALID_PARAM;
+    }
+
+    float radius = 0.0f;
+    if (GetFloatProperty(env, val, "radius", radius)) {
+        shadowOptions.radius = std::max(0.0f, radius);
+    }
+
+    napi_value lightDir = nullptr;
+    if (GetObjectProperty(env, val, "lightDirection", lightDir)) {
+        ParsePoint(env, lightDir, shadowOptions.lightDirection);
+    }
+
+    float shadowDistance = 0.0f;
+    if (GetFloatProperty(env, val, "shadowDistance", shadowDistance)) {
+        shadowOptions.shadowDistance = std::max(0.0f, shadowDistance);
+    }
+
+    napi_value colorVal = nullptr;
+    if (GetObjectProperty(env, val, "color", colorVal)) {
+        ParseColor(env, colorVal, shadowOptions.color);
+    }
+
+    return SUCCESS;
+}
+
+static uint32_t ParseHalftoneParam(napi_env env, napi_value val, HalftoneParam& halftoneParam)
+{
+    napi_valuetype type = EffectKitNapiUtils::GetInstance().GetType(env, val);
+    if (type != napi_object) {
+        EFFECT_LOG_E("FilterNapi ParseHalftoneParam is not an object");
+        return ERR_INVALID_PARAM;
+    }
+
+    float gridSize = 0.0f;
+    if (!GetFloatProperty(env, val, "gridSize", gridSize)) {
+        EFFECT_LOG_E("FilterNapi ParseHalftoneParam gridSize is required");
+        return ERR_INVALID_PARAM;
+    }
+    halftoneParam.gridSize = std::max(3.0f, gridSize);
+
+    float maxRadiusRatio = 1.0f;
+    if (GetFloatProperty(env, val, "maxRadiusRatio", maxRadiusRatio)) {
+        halftoneParam.maxRadiusRatio = std::clamp(maxRadiusRatio, 0.0f, 1.0f);
+    }
+
+    float lumCoeff = 0.0f;
+    if (GetFloatProperty(env, val, "lumCoeff", lumCoeff)) {
+        halftoneParam.lumCoeff = std::max(0.0f, lumCoeff);
+    }
+
+    float colorWidthRatio = 0.5f;
+    if (GetFloatProperty(env, val, "colorWidthRatio", colorWidthRatio)) {
+        halftoneParam.colorWidthRatio = std::clamp(colorWidthRatio, 0.0f, 1.0f);
+    }
+
+    float saturation = 1.0f;
+    if (GetFloatProperty(env, val, "saturation", saturation)) {
+        halftoneParam.saturation = std::clamp(saturation, 0.0f, 1.0f);
+    }
+
+    float smoothness = 0.0f;
+    if (GetFloatProperty(env, val, "smoothness", smoothness)) {
+        halftoneParam.smoothness = std::max(0.0f, smoothness);
+    }
+
+    float angle = 0.0f;
+    if (GetFloatProperty(env, val, "angle", angle)) {
+        halftoneParam.angle = angle;
+    }
+
+    return SUCCESS;
+}
+
+napi_value FilterNapi::Outline(napi_env env, napi_callback_info info)
+{
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_2;
+    napi_value argv[NUM_2];
+    napi_value _this;
+    napi_status status;
+    EFFECT_JS_ARGS(env, info, status, realArgc, argv, _this);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok, _this, EFFECT_LOG_E("FilterNapi Outline parsing input fail"));
+
+    double dWidth = 0.0;
+    if (realArgc < requireArgc || EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_0]) != napi_number ||
+        napi_get_value_double(env, argv[NUM_0], &dWidth) != napi_ok || !std::isfinite(dWidth) || dWidth < 0.0) {
+        EFFECT_LOG_E("FilterNapi Outline outlineWidth is invalid, skip this filter");
+        return _this;
+    }
+    float outlineWidth = static_cast<float>(dWidth);
+
+    ShadowOptions shadowOptions;
+    if (realArgc >= NUM_2 && EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_1]) == napi_object) {
+        uint32_t res = ParseShadowOptions(env, argv[NUM_1], shadowOptions);
+        if (res != SUCCESS) {
+            EFFECT_LOG_E("FilterNapi Outline parse shadowOptions fail, use default");
+            shadowOptions = ShadowOptions();
+        }
+    }
+
+    FilterNapi* thisFilter = nullptr;
+    status = napi_unwrap_s(env, _this, &FilterNapi::NAPI_TYPE_TAG, reinterpret_cast<void**>(&thisFilter));
+    EFFECT_NAPI_CHECK_RET_D(
+        status == napi_ok && thisFilter != nullptr, _this, EFFECT_LOG_E("FilterNapi Outline napi_unwrap fail"));
+    auto outline = EffectImageFilter::Outline(outlineWidth, shadowOptions);
+    EFFECT_NAPI_CHECK_RET_D(outline != nullptr, _this, EFFECT_LOG_E("FilterNapi Outline create filter fail"));
+    thisFilter->AddEffectFilter(outline);
+
+    API_STATS_HISTOGRAM("Arkgraphics2d.EffectKit.outline", 1);
+    return _this;
+}
+
+napi_value FilterNapi::Halftone(napi_env env, napi_callback_info info)
+{
+    const size_t requireArgc = NUM_1;
+    size_t realArgc = NUM_3;
+    napi_value argv[NUM_3];
+    napi_value _this;
+    napi_status status;
+    EFFECT_JS_ARGS(env, info, status, realArgc, argv, _this);
+    EFFECT_NAPI_CHECK_RET_D(status == napi_ok && realArgc >= requireArgc, _this,
+        EFFECT_LOG_E("FilterNapi Halftone parsing input fail, skip this filter"));
+
+    HalftoneParam halftoneParam;
+    uint32_t res = ParseHalftoneParam(env, argv[NUM_0], halftoneParam);
+    EFFECT_NAPI_CHECK_RET_D(
+        res == SUCCESS, _this, EFFECT_LOG_E("FilterNapi Halftone parse halftoneParam fail, skip this filter"));
+
+    float outlineWidth = 0.0f;
+    if (realArgc >= NUM_2 && EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_1]) == napi_number) {
+        double dWidth = 0.0;
+        if (napi_get_value_double(env, argv[NUM_1], &dWidth) == napi_ok && std::isfinite(dWidth) && dWidth >= 0.0) {
+            outlineWidth = static_cast<float>(dWidth);
+        }
+    }
+
+    ShadowOptions shadowOptions;
+    if (realArgc >= NUM_3 && EffectKitNapiUtils::GetInstance().GetType(env, argv[NUM_2]) == napi_object) {
+        res = ParseShadowOptions(env, argv[NUM_2], shadowOptions);
+        if (res != SUCCESS) {
+            EFFECT_LOG_E("FilterNapi Halftone parse shadowOptions fail, use default");
+            shadowOptions = ShadowOptions();
+        }
+    }
+
+    FilterNapi* thisFilter = nullptr;
+    status = napi_unwrap_s(env, _this, &FilterNapi::NAPI_TYPE_TAG, reinterpret_cast<void**>(&thisFilter));
+    EFFECT_NAPI_CHECK_RET_D(
+        status == napi_ok && thisFilter != nullptr, _this, EFFECT_LOG_E("FilterNapi Halftone napi_unwrap fail"));
+    auto halftone = EffectImageFilter::Halftone(halftoneParam, outlineWidth, shadowOptions);
+    EFFECT_NAPI_CHECK_RET_D(halftone != nullptr, _this, EFFECT_LOG_E("FilterNapi Halftone create filter fail"));
+    thisFilter->AddEffectFilter(halftone);
+
+    API_STATS_HISTOGRAM("Arkgraphics2d.EffectKit.halftone", 1);
     return _this;
 }
 }  // namespace Rosen
