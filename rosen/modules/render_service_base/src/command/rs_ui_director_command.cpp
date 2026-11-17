@@ -15,10 +15,9 @@
 
 #include "command/rs_ui_director_command.h"
 
-#include "common/rs_common_def.h"
 #include "pipeline/rs_render_node_map.h"
-#include "pipeline/rs_ui_render_director.h"
 #include "platform/common/rs_log.h"
+#include "pipeline/rs_ui_render_director.h"
 
 namespace OHOS {
 namespace Rosen {
