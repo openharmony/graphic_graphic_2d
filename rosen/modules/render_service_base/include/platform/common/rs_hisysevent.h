@@ -16,7 +16,7 @@
 #ifndef RENDER_SERVICE_BASE_COMMON_RS_HISYSEVENT_H
 #define RENDER_SERVICE_BASE_COMMON_RS_HISYSEVENT_H
 
-#include "hisysevent.h"
+#include "base/hiviewdfx/hisysevent/interfaces/native/innerkits/hisysevent/include/hisysevent.h"
 #include "platform/common/rs_log.h"
 #include <string>
 #include <unordered_map>
@@ -32,6 +32,9 @@ namespace RSEventName {
     inline const std::string JANK_STATS_RS = "JANK_STATS_RS";
     inline const std::string JANK_FRAME_RS = "JANK_FRAME_RS";
     inline const std::string CALENDAR_ICON_TRANSPARENT = "CALENDAR_ICON_TRANSPARENT";
+    inline const std::string INTERACTION_RESPONSE_LATENCY = "INTERACTION_RESPONSE_LATENCY";
+    inline const std::string INTERACTION_COMPLETED_LATENCY = "INTERACTION_COMPLETED_LATENCY";
+    inline const std::string INTERACTION_RENDER_JANK = "INTERACTION_RENDER_JANK";
     inline const std::string INTERACTION_HITCH_TIME_RATIO = "INTERACTION_HITCH_TIME_RATIO";
     inline const std::string FIRST_FRAME_DRAWN = "FIRST_FRAME_DRAWN";
     inline const std::string RS_NODE_LIMIT_EXCEEDED = "RS_NODE_LIMIT_EXCEEDED";
@@ -46,6 +49,7 @@ namespace RSEventName {
     inline const std::string RENDER_DRAWABLE_MULTI_ACCESS = "RENDER_DRAWABLE_MULTI_ACCESS";
     inline const std::string RS_RENDER_EXCEPTION = "RS_RENDER_EXCEPTION";
     inline const std::string RNEDERFIT_TYPE_RT_MONITORING = "RNEDERFIT_TYPE_RT_MONITORING";
+    inline const std::string UEC_ANOMALY_RESPONSE = "UEC_ANOMALY_RESPONSE";
     inline const std::string RS_CMD_OVER_THRESHOLD = "RS_CMD_OVER_THRESHOLD";
 } // namespace RSEventName
 

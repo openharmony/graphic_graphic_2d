@@ -15,10 +15,11 @@
 
 #include "command/rs_node_command.h"
 
+#include <algorithm>
+
 #include "modifier_ng/rs_render_modifier_ng.h"
 #include "pipeline/rs_simple_draw_cmd_list.h"
 #include "pipeline/rs_surface_render_node.h"
-#include "pipeline/rs_effect_utils.h"
 #include "platform/common/rs_log.h"
 #include "common/rs_optional_trace.h"
 #include "feature/layer/rs_layer_cache_manager_base.h"
@@ -444,6 +445,15 @@ void RSNodeCommandHelper::SetColorPickerCallbackProcessor(ColorPickerCallbackPro
     gColorPickerCallbackProcessor = processor;
 }
 
+void RSNodeCommandHelper::ReSortChildrenByZIndex(RSContext& context, NodeId nodeId)
+{
+    auto& nodeMap = context.GetNodeMap();
+    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
+    if (node) {
+        node->ReSortChildrenByZIndex();
+    }
+}
+
 void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLayer)
 {
     if (!RSSystemProperties::GetLayerEnabled()) {
@@ -466,7 +476,6 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
             DEBUG_NODE, "RSRenderNode::MarkLayer isLayer:%{public}d id:%{public}" PRIu64 "", isLayer, node->GetId());
 
         node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, true, false);
-
         if (RSSystemProperties::GetLayerDebugEnabled()) {
             std::vector<NodeId> nodeIds;
             node->CollectAllChildren(node, nodeIds);
@@ -476,15 +485,6 @@ void RSNodeCommandHelper::MarkLayer(RSContext& context, NodeId nodeId, bool isLa
 
     if (!isLayer) {
         node->MarkNodeGroup(RSRenderNode::NodeGroupType::GROUPED_BY_LAYER, false, false);
-    }
-}
-
-void RSNodeCommandHelper::ReSortChildrenByZIndex(RSContext& context, NodeId nodeId)
-{
-    auto& nodeMap = context.GetNodeMap();
-    auto node = nodeMap.GetRenderNode<RSRenderNode>(nodeId);
-    if (node) {
-        node->ReSortChildrenByZIndex();
     }
 }
 } // namespace Rosen
