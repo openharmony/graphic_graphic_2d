@@ -26,6 +26,7 @@
 #include "common/rs_common_def.h"
 #include "engine/rs_uni_render_engine.h"
 #include "drawable/rs_render_node_drawable.h"
+#include "event_handler.h"
 #include "ffrt.h"
 #include "params/rs_screen_render_params.h"
 #include "pipeline/render_thread/rs_uni_render_thread.h"
@@ -37,7 +38,7 @@ namespace Rosen {
 class RSVirtualScreenParallelManager {
 public:
     RSVirtualScreenParallelManager() = default;
-    ~RSVirtualScreenParallelManager() = default;
+    ~RSVirtualScreenParallelManager();
 
     void CollectVirtualScreenNodeId(ScreenId screenId, NodeId nodeId, CompositeType compositeType);
     void GetStagingNodeIds(std::unordered_set<NodeId>& nodeIds);
@@ -66,6 +67,7 @@ private:
     void FilterExcessScreenNodes();
     void VirtualScreenRenderTask(std::shared_ptr<RSRenderThreadParams> renderThreadParams,
         ScreenDrawableInfo info, int32_t tid);
+    bool CreateVirtualThread();
 
     ffrt::mutex taskMutex_;
     std::unordered_set<NodeId> virtualScreenNodeIds_;
@@ -81,6 +83,8 @@ private:
     std::unordered_map<ScreenId, std::shared_ptr<RSUniRenderEngine>> tidToUniRenderEngineMap_;
     std::unordered_set<int32_t> usedTidSet_;
     int32_t virtualScreenCnt_ = 0;
+    std::shared_ptr<AppExecFwk::EventRunner> virtualThreadRunner_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> virtualThreadManager_ = nullptr;
 };
 } // namespace Rosen
 } // namespace OHOS

@@ -227,6 +227,7 @@ RSScreenRenderNodeDrawable::~RSScreenRenderNodeDrawable()
     auto curScreenId = params ? params->GetScreenId() : INVALID_SCREEN_ID;
     auto manager = params ? params->GetVirtualScreenParallelManager() : nullptr;
     if (manager) {
+        ClearVirtualSurfaces();
         manager->CleanupThreadResources(curScreenId);
     }
     RSUniRenderThread::Instance().UnRegisterCond(curScreenId);
