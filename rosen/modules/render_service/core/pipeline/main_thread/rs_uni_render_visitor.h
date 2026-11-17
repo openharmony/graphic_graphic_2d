@@ -174,11 +174,6 @@ private:
     RotationStatus GetRotationStatus() const;
     // considering occlusion info for app surface as well as widget
     bool IsSubTreeOccluded(RSRenderNode& node) const;
-    void CollectHwcAndFilterNodesInSkippedSubTree(RSRenderNode& node);
-    void CollectHwcAndFilterNodesToParent(RSRenderNode& node, bool isParentPrepareInReverseOrder = false,
-        bool isBlendNeedFilter = false);
-    // Propagate the cross-node subtree's selfDrawing/filter nodes to the parent when its traversal is skipped.
-    void CollectHwcAndFilterNodesForCrossNode(RSSurfaceRenderNode& node, bool isParentPrepareInReverseOrder = false);
     // restore node's flag and filter dirty collection
     void PostPrepare(RSRenderNode& node, bool isParentPrepareInReverseOrder = false, bool subTreeSkipped = false);
     void UpdateNodeVisibleRegion(RSSurfaceRenderNode& node);

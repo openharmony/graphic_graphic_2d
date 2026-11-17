@@ -1200,60 +1200,6 @@ bool RSUniRenderVisitor::CheckQuickSkipSurfaceRenderNode(RSSurfaceRenderNode& no
     return isQuickSkip;
 }
 
-void RSUniRenderVisitor::CollectHwcAndFilterNodesInSkippedSubTree(RSRenderNode& node)
-{
-    // Rebuild the aggregated list from children's lists; drop last frame's stale entries first.
-    node.ClearAllHwcNodeAndFilterNode();
-    auto children = node.GetSortedChildren();
-    std::for_each((*children).begin(), (*children).end(), [this, &node](
-        const std::shared_ptr<RSRenderNode>& child) {
-        if (!child) {
-            return;
-        }
-        // Forward order: append at the end
-        node.GetAllHwcNodeAndFilterNode().insert(node.GetAllHwcNodeAndFilterNode().end(),
-            child->GetAllHwcNodeAndFilterNode().begin(), child->GetAllHwcNodeAndFilterNode().end());
-    });
-}
-
-void RSUniRenderVisitor::CollectHwcAndFilterNodesToParent(RSRenderNode& node, bool isParentPrepareInReverseOrder,
-    bool isBlendNeedFilter)
-{
-    if (isBlendNeedFilter || node.IsHardwareEnabledType()) {
-        node.GetAllHwcNodeAndFilterNode().insert(node.GetAllHwcNodeAndFilterNode().begin(),
-            node.weak_from_this());
-    }
-    if (auto nodeParent = node.GetParent().lock()) {
-        auto& parentList = nodeParent->GetAllHwcNodeAndFilterNode();
-        auto& childList = node.GetAllHwcNodeAndFilterNode();
-        if (isParentPrepareInReverseOrder) {
-            parentList.insert(parentList.begin(), childList.begin(), childList.end());
-        } else {
-            parentList.insert(parentList.end(), childList.begin(), childList.end());
-        }
-    }
-}
-
-void RSUniRenderVisitor::CollectHwcAndFilterNodesForCrossNode(RSSurfaceRenderNode& node,
-    bool isParentPrepareInReverseOrder)
-{
-    auto sourceRenderNode = node.GetSourceCrossNode().lock();
-    auto sourceSurfaceNode = sourceRenderNode ?
-        sourceRenderNode->ReinterpretCastTo<RSSurfaceRenderNode>() : nullptr;
-    if (sourceSurfaceNode) {
-        // Clone: mirror the source's aggregated list into the current node.
-        auto& cloneNodeList = node.GetAllHwcNodeAndFilterNode();
-        cloneNodeList = sourceSurfaceNode->GetAllHwcNodeAndFilterNode();
-    } else if (node.IsCloneCrossNode()) {
-        // Error case: no resolvable source, drop stale data.
-        node.ClearAllHwcNodeAndFilterNode();
-    }
-    if (curScreenNode_ && curScreenNode_->GetId() != node.GetId()) {
-        CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder,
-            RSUniHwcComputeUtil::IsBlendNeedFilter(node));
-    }
-}
-
 void RSUniRenderVisitor::QuickPrepareDepthRenderNode(RSDepthRenderNode& node, bool isParentPrepareInReverseOrder)
 {
     RS_OPTIONAL_TRACE_BEGIN_LEVEL(TRACE_LEVEL_PRINT_NODEID, "QuickPrepareDepthRenderNode nodeId[%llu]", node.GetId());
@@ -1287,7 +1233,7 @@ void RSUniRenderVisitor::QuickPrepareDepthRenderNode(RSDepthRenderNode& node, bo
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
     } else {
-        CollectHwcAndFilterNodesInSkippedSubTree(node);
+        hwcVisitor_->CollectHwcAndFilterNodesInSkippedSubTree(node);
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_, prepareClipRect_);
     }
     PostPrepare(node, isParentPrepareInReverseOrder, !isSubTreeNeedPrepare);
@@ -1330,8 +1276,8 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
             static_cast<uint>(node.GetSurfaceNodeType()), node.IsSubTreeDirty(), node.IsFirstLevelCrossNode(),
             isBgWindowTraversalStarted_, node.ChildHasVisibleFilter());
         node.ResetChildHardwareEnabledNodes();
-        CollectHwcAndFilterNodesInSkippedSubTree(node);
-        CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder,
+        hwcVisitor_->CollectHwcAndFilterNodesInSkippedSubTree(node);
+        hwcVisitor_->CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder,
             RSUniHwcComputeUtil::IsBlendNeedFilter(node));
         if (node.IsLeashOrMainWindow()) {
             node.UpdateChildHardwareEnabledNode();
@@ -1381,7 +1327,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     RSSpecialLayerUtils::DealWithSpecialLayer(node, *curLogicalDisplayNode_, needCalcScreenSpecialLayer);
     // avoid cross node subtree visited twice or more
     if (CheckSkipAndPrepareForCrossNode(node)) {
-        CollectHwcAndFilterNodesForCrossNode(node, isParentPrepareInReverseOrder);
+        hwcVisitor_->CollectHwcAndFilterNodesForCrossNode(node, isParentPrepareInReverseOrder);
         return;
     }
     // 0. init curSurface info and check node info
@@ -1472,7 +1418,7 @@ void RSUniRenderVisitor::QuickPrepareSurfaceRenderNode(RSSurfaceRenderNode& node
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
     } else {
-        CollectHwcAndFilterNodesInSkippedSubTree(node);
+        hwcVisitor_->CollectHwcAndFilterNodesInSkippedSubTree(node);
         node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_, prepareClipRect_,
             curLayerPartRenderDirtyManager_);
     }
@@ -1618,7 +1564,7 @@ void RSUniRenderVisitor::QuickPrepareUnionRenderNode(RSUnionRenderNode& node, bo
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
     } else {
-        CollectHwcAndFilterNodesInSkippedSubTree(node);
+        hwcVisitor_->CollectHwcAndFilterNodesInSkippedSubTree(node);
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_, prepareClipRect_,
             curLayerPartRenderDirtyManager_);
     }
@@ -2072,7 +2018,7 @@ void RSUniRenderVisitor::QuickPrepareEffectRenderNode(RSEffectRenderNode& node, 
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
     } else {
-        CollectHwcAndFilterNodesInSkippedSubTree(node);
+        hwcVisitor_->CollectHwcAndFilterNodesInSkippedSubTree(node);
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_, prepareClipRect_,
             curLayerPartRenderDirtyManager_);
     }
@@ -2277,7 +2223,7 @@ void RSUniRenderVisitor::QuickPrepareCanvasRenderNode(RSCanvasRenderNode& node, 
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
     } else {
-        CollectHwcAndFilterNodesInSkippedSubTree(node);
+        hwcVisitor_->CollectHwcAndFilterNodesInSkippedSubTree(node);
         node.SubTreeSkipPrepare(*dirtyManager, curDirty_, dirtyFlag_, prepareClipRect_,
             curLayerPartRenderDirtyManager_);
     }
@@ -3870,7 +3816,7 @@ CM_INLINE void RSUniRenderVisitor::PostPrepare(RSRenderNode& node, bool isParent
     CollectEffectInfo(node, isBlendNeedFilter, nodeParent);
     node.NodePostPrepare(curSurfaceNode_, prepareClipRect_);
     if (curScreenNode_ && curScreenNode_->GetId() != node.GetId()) {
-        CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder, isBlendNeedFilter);
+        hwcVisitor_->CollectHwcAndFilterNodesToParent(node, isParentPrepareInReverseOrder, isBlendNeedFilter);
     }
     dynamicLayerSkipController_->VisitRenderNode(curSurfaceNode_, node);
     UpdateDrawingCacheInfoAfterChildren(node);
@@ -4293,7 +4239,7 @@ void RSUniRenderVisitor::PrepareRootRenderNode(RSRootRenderNode& node)
     if (isSubTreeNeedPrepare) {
         QuickPrepareChildren(node);
     } else {
-        CollectHwcAndFilterNodesInSkippedSubTree(node);
+        hwcVisitor_->CollectHwcAndFilterNodesInSkippedSubTree(node);
         node.SubTreeSkipPrepare(*curSurfaceDirtyManager_, curDirty_, dirtyFlag_, prepareClipRect_,
             curLayerPartRenderDirtyManager_);
     }

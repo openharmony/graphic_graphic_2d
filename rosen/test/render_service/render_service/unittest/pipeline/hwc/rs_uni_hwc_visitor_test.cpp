@@ -5026,4 +5026,290 @@ HWTEST_F(RSUniHwcVisitorTest, UpdateRectInfoAndLeftTopForDelegateModeCoverage001
     EXPECT_FLOAT_EQ(srcRect.GetLeft(), 6.f);
     EXPECT_FLOAT_EQ(srcRect.GetTop(), 8.f);
 }
+
+/**
+ * @tc.name: CollectHwcAndFilterNodesToParentTest
+ * @tc.desc: Test CollectHwcAndFilterNodesToParent:
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcVisitorTest, CollectHwcAndFilterNodesToParentTest, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // nonHwcNode: base RSRenderNode whose IsHardwareEnabledType() returns false.
+    auto nonHwcNode = std::make_shared<RSRenderNode>(1);
+    ASSERT_NE(nonHwcNode, nullptr);
+    ASSERT_FALSE(nonHwcNode->IsHardwareEnabledType());
+    ASSERT_TRUE(nonHwcNode->GetParent().expired());
+
+    // hwcNode: a surface node configured so IsHardwareEnabledType() returns true.
+    auto hwcNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(hwcNode, nullptr);
+    hwcNode->isHardwareEnabledNode_ = true;
+    hwcNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    ASSERT_TRUE(hwcNode->IsHardwareEnabledType());
+    ASSERT_TRUE(hwcNode->GetParent().expired());
+
+    // Combination 1: isBlendNeedFilter=true, IsHardwareEnabledType()=true -> condition TRUE -> self inserted.
+    hwcNode->ClearAllHwcNodeAndFilterNode();
+    rsUniRenderVisitor->hwcVisitor_->CollectHwcAndFilterNodesToParent(*hwcNode, false, true);
+    ASSERT_EQ(hwcNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+    auto hwcLocked1 = hwcNode->GetAllHwcNodeAndFilterNode().front().lock();
+    ASSERT_NE(hwcLocked1, nullptr);
+    EXPECT_EQ(hwcLocked1->GetId(), hwcNode->GetId());
+
+    // Combination 2: isBlendNeedFilter=true, IsHardwareEnabledType()=false -> condition TRUE.
+    nonHwcNode->ClearAllHwcNodeAndFilterNode();
+    rsUniRenderVisitor->hwcVisitor_->CollectHwcAndFilterNodesToParent(*nonHwcNode, false, true);
+    ASSERT_EQ(nonHwcNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+    auto nonHwcLocked2 = nonHwcNode->GetAllHwcNodeAndFilterNode().front().lock();
+    ASSERT_NE(nonHwcLocked2, nullptr);
+    EXPECT_EQ(nonHwcLocked2->GetId(), nonHwcNode->GetId());
+
+    // Combination 3: isBlendNeedFilter=false, IsHardwareEnabledType()=true -> condition TRUE.
+    hwcNode->ClearAllHwcNodeAndFilterNode();
+    rsUniRenderVisitor->hwcVisitor_->CollectHwcAndFilterNodesToParent(*hwcNode, false, false);
+    ASSERT_EQ(hwcNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+    auto hwcLocked3 = hwcNode->GetAllHwcNodeAndFilterNode().front().lock();
+    ASSERT_NE(hwcLocked3, nullptr);
+    EXPECT_EQ(hwcLocked3->GetId(), hwcNode->GetId());
+
+    // Combination 4: isBlendNeedFilter=false, IsHardwareEnabledType()=false -> condition FALSE -> not inserted.
+    nonHwcNode->ClearAllHwcNodeAndFilterNode();
+    rsUniRenderVisitor->hwcVisitor_->CollectHwcAndFilterNodesToParent(*nonHwcNode, false, false);
+    EXPECT_EQ(nonHwcNode->GetAllHwcNodeAndFilterNode().size(), 0u);
+}
+
+/**
+ * @tc.name: CollectHwcAndFilterNodesForCrossNode001
+ * @tc.desc: Clone cross-node with a valid source mirrors the source's aggregated node list into
+ *           itself and propagates it to the parent; the parent ends up holding both source subtree
+ *           nodes and the clone self when the clone is hardware-enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcVisitorTest, CollectHwcAndFilterNodesForCrossNode001, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // Source cross-node: carries one hardware-enabled child node aggregated in its list.
+    auto sourceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(sourceNode, nullptr);
+    sourceNode->isCrossNode_ = true;
+    auto sourceChild = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(sourceChild, nullptr);
+    sourceChild->isHardwareEnabledNode_ = true;
+    sourceChild->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    sourceNode->ClearAllHwcNodeAndFilterNode();
+    sourceNode->GetAllHwcNodeAndFilterNode().push_back(sourceChild);
+
+    // Clone cross-node referencing the source; it is hardware-enabled so it will also insert itself.
+    auto cloneNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(cloneNode, nullptr);
+    cloneNode->isCrossNode_ = true;
+    cloneNode->isCloneCrossNode_ = true;
+    cloneNode->sourceCrossNode_ = sourceNode;
+    cloneNode->isHardwareEnabledNode_ = true;
+    cloneNode->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    // Pre-populate stale data to verify the rebuild clears it.
+    auto staleNode = RSTestUtil::CreateSurfaceNode();
+    cloneNode->GetAllHwcNodeAndFilterNode().push_back(staleNode);
+    ASSERT_EQ(cloneNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+
+    // Parent surface node so collection has somewhere to propagate.
+    auto parent = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(parent, nullptr);
+    parent->AddChild(cloneNode, -1);
+    ASSERT_FALSE(cloneNode->GetParent().expired());
+
+    // curScreenNode_ with a different id from cloneNode so the collection guard passes.
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(1000, 0, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_->GetId(), cloneNode->GetId());
+
+    rsUniRenderVisitor->hwcVisitor_->CollectHwcAndFilterNodesForCrossNode(*cloneNode, false);
+
+    // Clone list now holds the clone self at the front (self-inserted by
+    // CollectHwcAndFilterNodesToParent because the clone is hardware-enabled) followed by the
+    // mirrored source child; the stale entry was cleared.
+    ASSERT_EQ(cloneNode->GetAllHwcNodeAndFilterNode().size(), 2u);
+    auto cloneFront = cloneNode->GetAllHwcNodeAndFilterNode()[0].lock();
+    auto cloneSecond = cloneNode->GetAllHwcNodeAndFilterNode()[1].lock();
+    ASSERT_NE(cloneFront, nullptr);
+    ASSERT_NE(cloneSecond, nullptr);
+    EXPECT_EQ(cloneFront->GetId(), cloneNode->GetId());
+    EXPECT_EQ(cloneSecond->GetId(), sourceChild->GetId());
+
+    // Parent holds the same entries, appended in forward order.
+    ASSERT_EQ(parent->GetAllHwcNodeAndFilterNode().size(), 2u);
+    auto parentFirst = parent->GetAllHwcNodeAndFilterNode()[0].lock();
+    auto parentSecond = parent->GetAllHwcNodeAndFilterNode()[1].lock();
+    ASSERT_NE(parentFirst, nullptr);
+    ASSERT_NE(parentSecond, nullptr);
+    EXPECT_EQ(parentFirst->GetId(), cloneNode->GetId());
+    EXPECT_EQ(parentSecond->GetId(), sourceChild->GetId());
+}
+
+/**
+ * @tc.name: CollectHwcAndFilterNodesForCrossNode002
+ * @tc.desc: Clone cross-node whose source cannot be resolved (error case) clears any stale data and
+ *           does not propagate stale entries to the parent.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcVisitorTest, CollectHwcAndFilterNodesForCrossNode002, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto cloneNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(cloneNode, nullptr);
+    cloneNode->isCrossNode_ = true;
+    cloneNode->isCloneCrossNode_ = true;
+    // sourceCrossNode_ intentionally left empty to simulate the error case.
+    auto staleNode = RSTestUtil::CreateSurfaceNode();
+    cloneNode->GetAllHwcNodeAndFilterNode().push_back(staleNode);
+    ASSERT_EQ(cloneNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+
+    auto parent = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(parent, nullptr);
+    parent->AddChild(cloneNode, -1);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(1001, 0, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    rsUniRenderVisitor->hwcVisitor_->CollectHwcAndFilterNodesForCrossNode(*cloneNode, false);
+
+    // Clone list cleared; clone is not hardware-enabled so nothing is inserted back.
+    EXPECT_EQ(cloneNode->GetAllHwcNodeAndFilterNode().size(), 0u);
+    EXPECT_EQ(parent->GetAllHwcNodeAndFilterNode().size(), 0u);
+}
+
+/**
+ * @tc.name: CollectHwcAndFilterNodesForCrossNode003
+ * @tc.desc: Source cross-node (not a clone) keeps its existing aggregated list untouched and just
+ *           propagates it to the parent; its own contents are neither cleared nor rebuilt.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcVisitorTest, CollectHwcAndFilterNodesForCrossNode003, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    // Source cross-node already holds a hardware-enabled child aggregated during the first-visit prepare.
+    auto sourceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(sourceNode, nullptr);
+    sourceNode->isCrossNode_ = true;
+    auto sourceChild = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(sourceChild, nullptr);
+    sourceChild->isHardwareEnabledNode_ = true;
+    sourceChild->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    sourceNode->GetAllHwcNodeAndFilterNode().push_back(sourceChild);
+    ASSERT_EQ(sourceNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+
+    auto parent = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(parent, nullptr);
+    parent->AddChild(sourceNode, -1);
+
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(1002, 0, rsContext);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_, nullptr);
+    ASSERT_NE(rsUniRenderVisitor->curScreenNode_->GetId(), sourceNode->GetId());
+
+    rsUniRenderVisitor->hwcVisitor_->CollectHwcAndFilterNodesForCrossNode(*sourceNode, true);
+
+    // Source list is preserved as-is (not cleared, not rebuilt).
+    ASSERT_EQ(sourceNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+    auto preservedChild = sourceNode->GetAllHwcNodeAndFilterNode().front().lock();
+    ASSERT_NE(preservedChild, nullptr);
+    EXPECT_EQ(preservedChild->GetId(), sourceChild->GetId());
+
+    // Parent receives the source child in reverse-order insertion (front), source itself not added
+    // because it is not hardware-enabled.
+    ASSERT_EQ(parent->GetAllHwcNodeAndFilterNode().size(), 1u);
+    auto parentChild = parent->GetAllHwcNodeAndFilterNode().front().lock();
+    ASSERT_NE(parentChild, nullptr);
+    EXPECT_EQ(parentChild->GetId(), sourceChild->GetId());
+}
+
+/**
+ * @tc.name: CollectHwcAndFilterNodesForCrossNode004
+ * @tc.desc: When curScreenNode_ is null the collection guard skips CollectHwcAndFilterNodesToParent;
+ *           the clone list rebuild still runs but nothing is propagated upward.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcVisitorTest, CollectHwcAndFilterNodesForCrossNode004, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+    ASSERT_EQ(rsUniRenderVisitor->curScreenNode_, nullptr);
+
+    auto sourceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(sourceNode, nullptr);
+    sourceNode->isCrossNode_ = true;
+    auto sourceChild = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(sourceChild, nullptr);
+    sourceChild->isHardwareEnabledNode_ = true;
+    sourceChild->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    sourceNode->GetAllHwcNodeAndFilterNode().push_back(sourceChild);
+
+    auto cloneNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(cloneNode, nullptr);
+    cloneNode->isCrossNode_ = true;
+    cloneNode->isCloneCrossNode_ = true;
+    cloneNode->sourceCrossNode_ = sourceNode;
+
+    auto parent = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(parent, nullptr);
+    parent->AddChild(cloneNode, -1);
+    ASSERT_EQ(parent->GetAllHwcNodeAndFilterNode().size(), 0u);
+
+    rsUniRenderVisitor->hwcVisitor_->CollectHwcAndFilterNodesForCrossNode(*cloneNode, false);
+
+    // Clone list rebuild happened; parent propagation skipped because curScreenNode_ is null.
+    ASSERT_EQ(cloneNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+    EXPECT_EQ(parent->GetAllHwcNodeAndFilterNode().size(), 0u);
+}
+
+/**
+ * @tc.name: CollectHwcAndFilterNodesForCrossNode005
+ * @tc.desc: When the node itself is the current screen root (same id) the collection guard skips
+ *           propagation to a non-existent parent, while the clone list rebuild still runs.
+ * @tc.type: FUNC
+ */
+HWTEST_F(RSUniHwcVisitorTest, CollectHwcAndFilterNodesForCrossNode005, TestSize.Level1)
+{
+    auto rsUniRenderVisitor = std::make_shared<RSUniRenderVisitor>();
+    ASSERT_NE(rsUniRenderVisitor, nullptr);
+
+    auto sourceNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(sourceNode, nullptr);
+    sourceNode->isCrossNode_ = true;
+    auto sourceChild = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(sourceChild, nullptr);
+    sourceChild->isHardwareEnabledNode_ = true;
+    sourceChild->nodeType_ = RSSurfaceNodeType::SELF_DRAWING_NODE;
+    sourceNode->GetAllHwcNodeAndFilterNode().push_back(sourceChild);
+
+    auto cloneNode = RSTestUtil::CreateSurfaceNode();
+    ASSERT_NE(cloneNode, nullptr);
+    cloneNode->isCrossNode_ = true;
+    cloneNode->isCloneCrossNode_ = true;
+    cloneNode->sourceCrossNode_ = sourceNode;
+
+    // Make curScreenNode_ share the clone id to hit the skip-collection guard.
+    auto rsContext = std::make_shared<RSContext>();
+    rsUniRenderVisitor->curScreenNode_ = std::make_shared<RSScreenRenderNode>(cloneNode->GetId(), 0, rsContext);
+    ASSERT_EQ(rsUniRenderVisitor->curScreenNode_->GetId(), cloneNode->GetId());
+
+    rsUniRenderVisitor->hwcVisitor_->CollectHwcAndFilterNodesForCrossNode(*cloneNode, false);
+
+    // Rebuild of the clone list still happened; no parent to propagate to in this config.
+    ASSERT_EQ(cloneNode->GetAllHwcNodeAndFilterNode().size(), 1u);
+    auto mirrored = cloneNode->GetAllHwcNodeAndFilterNode().front().lock();
+    ASSERT_NE(mirrored, nullptr);
+    EXPECT_EQ(mirrored->GetId(), sourceChild->GetId());
+}
 } // namespace OHOS::Rosen
