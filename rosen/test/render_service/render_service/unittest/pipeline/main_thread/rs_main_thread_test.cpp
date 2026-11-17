@@ -10273,6 +10273,121 @@ HWTEST_F(RSMainThreadTest, CheckCmdOverThreshold_Combined006, TestSize.Level1)
     EXPECT_TRUE(mainThread->lastCommandReportTimeMap_.count(TEST_PID_2) > 0);
 }
 
+static void ResetMainThreadForceAllDisplayDirtyInputs(RSMainThread* mainThread)
+{
+    mainThread->isForceRefresh_ = false;
+    mainThread->forceUpdateUniRenderFlag_ = false;
+    mainThread->screenPowerOnChanged_.store(false);
+    mainThread->isAccessibilityConfigChanged_ = false;
+    mainThread->isCachedSurfaceUpdated_ = false;
+    mainThread->pendingNonSystemUiCaptureTasks_.clear();
+    mainThread->nonSystemUiCaptureTasks_ = {};
+    mainThread->pendingSystemUiCaptureTasks_.clear();
+    mainThread->systemUiCaptureTasks_ = {};
+    mainThread->pendingSyncWindowCaptureTasks_.clear();
+    mainThread->syncWindowCaptureTasks_ = {};
+    mainThread->pendingWindowCapTasks_.clear();
+    mainThread->windowCapTasks_ = {};
+}
+
+/**
+ * @tc.name: CheckForceAllDisplayDirty001
+ * @tc.desc: Test CheckForceAllDisplayDirty returns true when any single force condition is set
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckForceAllDisplayDirty001, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+
+    EXPECT_FALSE(mainThread->CheckForceAllDisplayDirty());
+}
+
+/**
+ * @tc.name: CheckForceAllDisplayDirty002
+ * @tc.desc: Test CheckForceAllDisplayDirty with the public setters of the force conditions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckForceAllDisplayDirty002, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->isForceRefresh_ = true;
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->forceUpdateUniRenderFlag_ = true;
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->screenPowerOnChanged_.store(true);
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->isAccessibilityConfigChanged_ = true;
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->isCachedSurfaceUpdated_ = true;
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+}
+
+/**
+ * @tc.name: CheckForceAllDisplayDirty003
+ * @tc.desc: Each pending capture task container alone forces all displays to be prepared.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSMainThreadTest, CheckForceAllDisplayDirty003, TestSize.Level1)
+{
+    auto mainThread = RSMainThread::Instance();
+    ASSERT_NE(mainThread, nullptr);
+    constexpr NodeId nodeId{6001};
+    auto task = std::make_tuple(nodeId, std::function<void()>([]() {}));
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->pendingNonSystemUiCaptureTasks_.emplace_back(task);
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->nonSystemUiCaptureTasks_.emplace(task);
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->pendingSystemUiCaptureTasks_.emplace_back(task);
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->systemUiCaptureTasks_.emplace(task);
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->pendingSyncWindowCaptureTasks_.emplace_back(task);
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->syncWindowCaptureTasks_.emplace(task);
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->pendingWindowCapTasks_.emplace_back(
+        std::make_tuple(nodeId, std::function<void()>([]() {}), uint64_t{0}, uint64_t{0}, false));
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+    mainThread->windowCapTasks_.emplace(task);
+    EXPECT_TRUE(mainThread->CheckForceAllDisplayDirty());
+
+    ResetMainThreadForceAllDisplayDirtyInputs(mainThread);
+}
+
 /**
  * @tc.name: CleanResourcesReportTimeMap001
  * @tc.desc: Test CleanResources erases per-pid entries in report time maps

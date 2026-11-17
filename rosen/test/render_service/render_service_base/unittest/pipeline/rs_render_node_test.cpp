@@ -5825,6 +5825,74 @@ HWTEST_F(RSRenderNodeTest, IsPureBackgroundColor_OpincSplitTrue_NonPureSlotWithM
 }
 
 /**
+ * @tc.name: SetDirtyRecordsDirtyDisplayNodeTest001
+ * @tc.desc: SetDirty records the logical display id of the node into the context dirty display set.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetDirtyRecordsDirtyDisplayNodeTest001, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    constexpr NodeId nodeId{4001};
+    constexpr NodeId displayId{5001};
+    auto node = std::make_shared<RSRenderNode>(nodeId, context);
+    ASSERT_NE(node, nullptr);
+    node->logicalDisplayNodeId_ = displayId;
+
+    node->SetDirty();
+
+    auto dirtyDisplayNodes = context->GetAndClearDirtyDisplayNodes();
+    EXPECT_EQ(dirtyDisplayNodes.size(), 1);
+    EXPECT_EQ(dirtyDisplayNodes.count(displayId), 1);
+    EXPECT_EQ(node->dirtyStatus_, RSRenderNode::NodeDirty::DIRTY);
+}
+
+/**
+ * @tc.name: SetDirtyRecordsDirtyDisplayNodeTest002
+ * @tc.desc: SetDirty on an on-tree node without logical display id records nothing and does not crash.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetDirtyRecordsDirtyDisplayNodeTest002, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    constexpr NodeId nodeId{4002};
+    auto node = std::make_shared<RSRenderNode>(nodeId, context);
+    ASSERT_NE(node, nullptr);
+    ASSERT_EQ(node->logicalDisplayNodeId_, INVALID_NODEID);
+
+    node->SetDirty();
+
+    auto dirtyDisplayNodes = context->GetAndClearDirtyDisplayNodes();
+    EXPECT_TRUE(dirtyDisplayNodes.empty());
+    EXPECT_EQ(node->dirtyStatus_, RSRenderNode::NodeDirty::DIRTY);
+}
+
+/**
+ * @tc.name: SetDirtyRecordsDirtyDisplayNodeTest003
+ * @tc.desc: SetDirty on an on-tree surface node without logical display id records nothing and does not crash.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderNodeTest, SetDirtyRecordsDirtyDisplayNodeTest003, TestSize.Level1)
+{
+    auto context = std::make_shared<RSContext>();
+    constexpr NodeId nodeId{4003};
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(nodeId, context);
+    ASSERT_NE(surfaceNode, nullptr);
+    surfaceNode->SetIsOnTheTree(true);
+    ASSERT_TRUE(surfaceNode->IsOnTheTree());
+    ASSERT_EQ(surfaceNode->GetType(), RSRenderNodeType::SURFACE_NODE);
+    ASSERT_EQ(surfaceNode->logicalDisplayNodeId_, INVALID_NODEID);
+
+    surfaceNode->SetDirty();
+
+    auto dirtyDisplayNodes = context->GetAndClearDirtyDisplayNodes();
+    EXPECT_TRUE(dirtyDisplayNodes.empty());
+    EXPECT_EQ(surfaceNode->dirtyStatus_, RSRenderNode::NodeDirty::DIRTY);
+}
+
+/**
  * @tc.name: HasValidModifierInOpincSplit_ContentStyle_EmptyDrawOpItems
  * @tc.desc: Test HasValidModifierInOpincSplit with CONTENT_STYLE slot having modifier with empty drawOpItems
  * @tc.type: FUNC

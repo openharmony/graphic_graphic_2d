@@ -3167,6 +3167,24 @@ void RSMainThread::ProcessWindowCapTasks()
     }
 }
 
+bool RSMainThread::CheckForceAllDisplayDirty() const
+{
+    bool pendingCaptureTask = !pendingNonSystemUiCaptureTasks_.empty() || !nonSystemUiCaptureTasks_.empty() ||
+        !pendingSystemUiCaptureTasks_.empty() || !systemUiCaptureTasks_.empty() ||
+        !pendingSyncWindowCaptureTasks_.empty() || !syncWindowCaptureTasks_.empty() ||
+        !pendingWindowCapTasks_.empty() || !windowCapTasks_.empty();
+    bool force = isForceRefresh_ || forceUpdateUniRenderFlag_ || screenPowerOnChanged_.load() ||
+        isAccessibilityConfigChanged_ || isCachedSurfaceUpdated_ || pendingCaptureTask;
+    if (force) {
+        RS_TRACE_NAME_FMT("RSUniRender:force all display dirty isForceRefresh[%d] forceUpdateUniRender[%d] "
+            "screenPowerOnChanged[%d] accessibilityChanged[%d] cachedSurfaceUpdated[%d] captureTask[%d]",
+            static_cast<int>(isForceRefresh_), static_cast<int>(forceUpdateUniRenderFlag_),
+            static_cast<int>(screenPowerOnChanged_.load()), static_cast<int>(isAccessibilityConfigChanged_),
+            static_cast<int>(isCachedSurfaceUpdated_), static_cast<int>(pendingCaptureTask));
+    }
+    return force;
+}
+
 void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
 {
 #ifdef RS_ENABLE_GPU
@@ -3290,7 +3308,17 @@ void RSMainThread::UniRender(std::shared_ptr<RSBaseRenderNode> rootNode)
         uniVisitor->SetFocusedNodeId(focusNodeId_, focusLeashWindowId_);
         rsVsyncRateReduceManager_.SetFocusedNodeId(focusNodeId_);
         RSSpatialEffectManager::Instance()->ProcessDepthNodeAndSpatialEffectNodeDirty();
+        auto dirtyDisplayNodes = GetContext().GetAndClearDirtyDisplayNodes();
+        RS_TRACE_NAME_FMT("RSUniRender:hetero display skip forceAll[%d] dirtyDisplayNum[%zu]",
+            static_cast<int>(forceAllDisplayDirty_), dirtyDisplayNodes.size());
+        uniVisitor->SetForceAllDisplayDirty(forceAllDisplayDirty_);
+        uniVisitor->SetSkippedDisplayNodesLastFrame(std::move(skippedDisplayNodesLastFrame_));
+        if (!forceAllDisplayDirty_) {
+            uniVisitor->SetDirtyDisplayNodes(std::move(dirtyDisplayNodes));
+        }
         rootNode->QuickPrepare(uniVisitor);
+        skippedDisplayNodesLastFrame_ = uniVisitor->GetSkippedDisplayNodes();
+        uniVisitor->CheckUnmatchedDirtyDisplays();
         uniVisitor->ResetCrossNodesVisitedStatus();
 
 #ifdef RES_SCHED_ENABLE
@@ -3683,6 +3711,8 @@ void RSMainThread::Render()
         RSTvMetadataManager::Instance().SetUniRenderThreadParam(renderThreadParams_);
 #endif
         // If use DoDirectComposition, we do not sync renderThreadParams,
+        // Evaluate before isForceRefresh_ is cleared below, because UniRender consumes the result.
+        forceAllDisplayDirty_ = CheckForceAllDisplayDirty();
         pipelineParam_.isForceRefresh = isForceRefresh_;
         isForceRefresh_ = false;
         uint64_t fastComposeTimeStampDiff = 0;

@@ -1641,11 +1641,21 @@ void RSRenderNode::SetContentDirty()
 
 void RSRenderNode::SetDirty(bool forceAddToActiveList)
 {
+    auto context = GetContext().lock();
     // TO avoid redundant add, only add if both: 1. on-tree node 2. newly dirty node (or forceAddToActiveList = true)
     if (dirtyStatus_ == NodeDirty::CLEAN || dirtyTypesNG_.none() || forceAddToActiveList) {
-        if (auto context = GetContext().lock()) {
+        if (context) {
             context->AddActiveNode(shared_from_this());
         }
+    }
+    if (context) {
+        auto displayNodeId = GetLogicalDisplayNodeId();
+        if (displayNodeId == INVALID_NODEID && IsOnTheTree() &&
+            GetType() == RSRenderNodeType::SURFACE_NODE) {
+            RS_LOGE("RSRenderNode::SetDirty on-tree surface[%{public}" PRIu64 "] has no display node",
+                GetId());
+        }
+        context->AddDirtyDisplayNode(displayNodeId);
     }
     isParentTreeDirty_ = true;
     SetParentSubTreeDirty();

@@ -123,6 +123,11 @@ bool RSSystemProperties::GetVirtualExpandScreenDirtyEnabled()
     return false;
 }
 
+bool RSSystemProperties::GetHeteroProjectionScreenSkipEnabled()
+{
+    return false;
+}
+
 bool RSSystemProperties::GetOcclusionEnabled()
 {
     return {};
