@@ -788,20 +788,6 @@ HWTEST_F(GpuContextTest, GPUContextOptionsSetIsUniRenderTest, TestSize.Level1)
 }
 
 /**
- * @tc.name: SetAbnormalPidTest001
- * @tc.desc: Test for SetAbnormalPid
- * @tc.type: FUNC
- * @tc.require:
- */
-HWTEST_F(GpuContextTest, SetAbnormalPidTest001, TestSize.Level1)
-{
-    std::unique_ptr<GPUContext> gpuContext = std::make_unique<GPUContext>();
-    ASSERT_TRUE(gpuContext != nullptr);
-    pid_t pid = 1234;
-    gpuContext->SetAbnormalPid(pid);
-}
-
-/**
  * @tc.name: RegisterCreatePipelineTimeCallback001
  * @tc.desc: Test RegisterCreatePipelineTimeCallback
  * @tc.type: FUNC
