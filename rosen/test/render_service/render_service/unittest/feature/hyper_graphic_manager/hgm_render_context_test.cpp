@@ -17,6 +17,7 @@
 
 #include "feature/hyper_graphic_manager/hgm_render_context.h"
 #include "feature/hyper_graphic_manager/rp_hgm_xml_parser.h"
+#include "consumer_surface.h"
 #include "hgm_core.h"
 #include "hgm_frame_rate_manager.h"
 #include "params/rs_render_params.h"
@@ -28,6 +29,7 @@
 #include "screen_manager/public/rs_screen_manager_agent.h"
 #include "screen_manager/rs_screen.h"
 #include "screen_manager/rs_screen_manager.h"
+#include "surface.h"
 #include "transaction/rs_render_to_service_connection.h"
 
 using namespace testing;
@@ -723,5 +725,86 @@ HWTEST_F(HgmRenderContextTest, ShowRefreshRateChangeProcessTest, TestSize.Level1
     EXPECT_FALSE(mgr.GetShowRefreshRateEnabled());
     HgmRenderContext::ShowRefreshRateChangeProcess(propKey.c_str(), initial ? "1" : "0", nullptr);
     EXPECT_EQ(mgr.GetShowRefreshRateEnabled(), initial);
+}
+
+/**
+ * @tc.name: UpdateSurfaceData_LtpoConfig
+ * @tc.desc: Test UpdateSurfaceData with different adapterLtpoConfig_ scenarios
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, UpdateSurfaceData_LtpoConfig, TestSize.Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+    auto savedAdapterLtpoConfig = hgmRenderContext.adapterLtpoConfig_;
+    auto savedSurfaceData = hgmRenderContext.surfaceData_;
+
+    RSSurfaceRenderNodeConfig config;
+    config.id = 1;
+    config.name = "testSurface";
+    auto surfaceNode = std::make_shared<RSSurfaceRenderNode>(config);
+
+    sptr<IConsumerSurface> csurf = IConsumerSurface::Create("testSurface");
+    csurf->SetSurfaceSourceType(OHSurfaceSource::OH_SURFACE_SOURCE_DEFAULT);
+    csurf->SetSurfaceAppFrameworkType("webview");
+
+    auto surfaceHandler = std::make_shared<RSSurfaceHandler>(config.id);
+    surfaceHandler->SetConsumer(csurf);
+
+    // Branch 1: adapterLtpoConfig_ is empty, iter == end, data should be added
+    hgmRenderContext.adapterLtpoConfig_.clear();
+    hgmRenderContext.surfaceData_.clear();
+    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
+    ASSERT_EQ(hgmRenderContext.surfaceData_.size(), 1);
+
+    // Branch 2: config key does not match fwkType, iter == end, data should be added
+    hgmRenderContext.adapterLtpoConfig_ = { { "webview", "ENABLE" } };
+    hgmRenderContext.surfaceData_.clear();
+    csurf->SetSurfaceAppFrameworkType("not_match_key");
+    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
+    ASSERT_EQ(hgmRenderContext.surfaceData_.size(), 1);
+
+    // Branch 3: config key matches but value is "DISABLE", iter != end, data not added
+    hgmRenderContext.adapterLtpoConfig_ = { { "webview", "DISABLE" } };
+    hgmRenderContext.surfaceData_.clear();
+    csurf->SetSurfaceAppFrameworkType("webview_test");
+    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
+    ASSERT_TRUE(hgmRenderContext.surfaceData_.empty());
+
+    // Branch 4: config key matches and value is "ENABLE", iter != end, disableLtpo == false, data not added
+    hgmRenderContext.adapterLtpoConfig_ = { { "webview", "ENABLE" } };
+    hgmRenderContext.surfaceData_.clear();
+    hgmRenderContext.UpdateSurfaceData(surfaceHandler, surfaceNode);
+    ASSERT_TRUE(hgmRenderContext.surfaceData_.empty());
+
+    hgmRenderContext.adapterLtpoConfig_ = savedAdapterLtpoConfig;
+    hgmRenderContext.surfaceData_ = savedSurfaceData;
+}
+
+/**
+ * @tc.name: SetAdapterLtpoConfig_Basic
+ * @tc.desc: Test SetAdapterLtpoConfig can be triggered once with assertion
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(HgmRenderContextTest, SetAdapterLtpoConfig_Basic, TestSize.Level1)
+{
+    sptr<RSIRenderToServiceConnection> renderToServiceConnection = nullptr;
+    HgmRenderContext hgmRenderContext(renderToServiceConnection);
+    auto savedAdapterLtpoConfig = hgmRenderContext.adapterLtpoConfig_;
+    auto savedSurfaceData = hgmRenderContext.surfaceData_;
+
+    std::unordered_map<std::string, std::string> config = {
+        { "key1", "value1" }, { "key2", "value2" }
+    };
+    hgmRenderContext.SetAdapterLtpoConfig(config);
+
+    EXPECT_EQ(hgmRenderContext.adapterLtpoConfig_.size(), config.size());
+    EXPECT_EQ(hgmRenderContext.adapterLtpoConfig_["key1"], "value1");
+    EXPECT_EQ(hgmRenderContext.adapterLtpoConfig_["key2"], "value2");
+
+    hgmRenderContext.adapterLtpoConfig_ = savedAdapterLtpoConfig;
+    hgmRenderContext.surfaceData_ = savedSurfaceData;
 }
 } // namespace OHOS::Rosen

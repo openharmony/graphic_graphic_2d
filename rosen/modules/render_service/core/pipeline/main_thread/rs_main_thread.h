@@ -528,6 +528,8 @@ public:
         return canvasDrawingNodeOpCountMap_;
     }
 
+    void SetAdapterLtpoConfig(const std::unordered_map<std::string, std::string>& config);
+
 private:
     // TransactionDataIndexMap is Pid to {index of RSTransactionData, vector of std::unique_ptr<RSTransactionData>}
     using TransactionDataIndexMap = std::unordered_map<pid_t,

@@ -30,6 +30,7 @@
 #include "common/rs_special_layer_manager.h"
 #include "consumer_surface.h"
 #include "feature/capture/rs_surface_capture_task_parallel.h"
+#include "feature/hyper_graphic_manager/hgm_render_context.h"
 #include "ipc_callbacks/rs_frame_stability_callback_stub.h"
 #include "ipc_callbacks/rs_surface_occlusion_change_callback_stub.h"
 #include "pipeline/main_thread/rs_main_thread.h"
@@ -2845,5 +2846,30 @@ HWTEST_F(RSRenderPipelineAgentTest, RegisterSurfaceOcclusionChangeCallback004, T
     mainThread_->ClearSurfaceOcclusionChangeCallback(otherPid);
     EXPECT_EQ(mainThread_->surfaceOcclusionListeners_.size(), 0);
     EXPECT_TRUE(mainThread_->surfaceOcclusionListenerCount_.empty());
+}
+
+/**
+ * @tc.name: SetApsConfigParams_LTPO_InvalidEnum
+ * @tc.desc: Test SetApsConfigParams covers: (1) ApsEventType::SELF_DRAWING_LTPO; (2) invalid enum value
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(RSRenderPipelineAgentTest, SetApsConfigParams_LTPO_InvalidEnum, TestSize.Level1)
+{
+    auto renderPipeline = std::make_shared<RSRenderPipeline>();
+    sptr<RSRenderPipelineAgent> agent = sptr<RSRenderPipelineAgent>::MakeSptr(renderPipeline);
+    ASSERT_NE(agent, nullptr);
+
+    std::unordered_map<std::string, std::string> params = { { "key", "value" } };
+
+    // Branch 1: event == ApsEventType::SELF_DRAWING_LTPO, triggers SetAdapterLtpoConfig
+    renderPipeline->mainThread_ = mainThread_;
+    auto ret1 = agent->SetApsConfigParams(ApsEventType::SELF_DRAWING_LTPO, params);
+    EXPECT_EQ(ret1, ERR_OK);
+    usleep(DEFAULT_TIME);
+
+    // Branch 2: invalid enum value (100), falls through to return ERR_OK
+    auto ret2 = agent->SetApsConfigParams(static_cast<ApsEventType>(100), params);
+    EXPECT_EQ(ret2, ERR_OK);
 }
 } // namespace OHOS::Rosen
