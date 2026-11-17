@@ -74,7 +74,7 @@ private:
     void GetBufferReleaseInfo(std::map<pid_t, std::queue<OnCompletedRet>>& outmap);
     void GetSurfaceTransactionCmdInfoLocked(std::map<uint64_t, std::queue<uint64_t>>& targetsListenerMap);
     void DumpTotleInfo(std::string& dumpString);
-    void CleanDelegateCompositeCommandInner(NodeId id, std::queue<std::unique_ptr<RSCommand>>& queue);
+    void CleanDelegateCompositeCommandInner(NodeId nodeId, std::queue<std::unique_ptr<RSCommand>>& queue);
     void PrepareDelegateCompositeCommandInner(std::unique_ptr<RSTransactionData>& transactionData,
         std::queue<std::unique_ptr<RSCommand>> &cmdQueue);
     pid_t webProxyComposerTid_ = 0;

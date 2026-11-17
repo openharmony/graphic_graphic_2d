@@ -18,18 +18,19 @@
 #include <message_parcel.h>
 #include "rs_trace.h"
 #include "common/rs_optional_trace.h"
+
 namespace OHOS {
 namespace Rosen {
 
 #ifndef ROSEN_CROSS_PLATFORM
-static void RsDelegateCompositeCallbackProxyPrintLog(const std::string &log)
+static void RsDelegateCompositeCallbackProxyPrintLog(const std::string& log)
 {
     ROSEN_LOGE("DelegateModeDebugTag: %{public}s:%{public}s", __func__, log.c_str());
     RS_OPTIONAL_TRACE_NAME_FMT("DelegateModeDebugTag: %s:%s", __func__, log.c_str());
 }
 #endif
 
-GSError RSWebProxyComposerCallbackProxy::OnComplete(uint64_t timestamp, uint64_t srcId, std::queue<uint64_t> &seqNums)
+GSError RSWebProxyComposerCallbackProxy::OnComplete(uint64_t timestamp, uint64_t srcId, std::queue<uint64_t>& seqNums)
 {
 #ifndef ROSEN_CROSS_PLATFORM
     uint32_t size = seqNums.size();
@@ -49,10 +50,11 @@ GSError RSWebProxyComposerCallbackProxy::OnComplete(uint64_t timestamp, uint64_t
 
     RS_OPTIONAL_TRACE_NAME_FMT("RSWebProxyComposerCallbackProxy OnComplete: %llu, srcId=%llu, queueSize=%u",
         timestamp, srcId, size);
+
     while (!seqNums.empty()) {
-        RS_OPTIONAL_TRACE_NAME_FMT("seqNum=%llu", seqNums.front());
+        RS_OPTIONAL_TRACE_NAME_FMT("seqNums=%llu", seqNums.front());
         if (!arguments.WriteUint64(seqNums.front())) {
-            RsDelegateCompositeCallbackProxyPrintLog("OnComplete::write seqnum fail");
+            RsDelegateCompositeCallbackProxyPrintLog("OnComplete::Write seqNum fail");
         }
         seqNums.pop();
     }
@@ -69,7 +71,7 @@ GSError RSWebProxyComposerCallbackProxy::OnComplete(uint64_t timestamp, uint64_t
 #endif
 }
 
-GSError SurfaceNodeBufferReleaseCallbackProxy::OnBufferComplete(std::queue<OnCompletedRet> &queue)
+GSError SurfaceNodeBufferReleaseCallbackProxy::OnBufferComplete(std::queue<OnCompletedRet>& queue)
 {
 #ifndef ROSEN_CROSS_PLATFORM
     MessageParcel data;

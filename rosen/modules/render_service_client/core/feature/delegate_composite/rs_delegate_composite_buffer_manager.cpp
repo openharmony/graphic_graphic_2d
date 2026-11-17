@@ -43,8 +43,7 @@ bool RSDelegateCompositeBufferManager::SetBuffer(sptr<SurfaceBuffer> buffer,
     release_callback_ = callback;
     needSyncBufferToNode_ = true;
 
-    DFX_LOGD(g_enableDfx, "RsDelegateCompositeCleanCacheDfx: SetBuffer bufferSeqnum=%{public}u",
-        buffer_->GetSeqNum());
+    DFX_LOGD(g_enableDfx, "RsDelegateCompositeCleanCacheDfx: SetBuffer bufferSeqnum=%{public}u", buffer_->GetSeqNum());
     std::vector<RSTransactionConfig> configList;
     auto config = GenerateTransactionConfigIfNecessary(desiredPresentTime_);
     if (config.nodeId != 0) {
@@ -75,7 +74,7 @@ void RSDelegateCompositeBufferManager::SetBufferTransform(GraphicTransformType t
 }
 
 void RSDelegateCompositeBufferManager::GenerateBufferParams(SetBufferParams &params,
-    const int64_t &desire_present_time)
+    const int64_t &desired_present_time)
 {
     if (!buffer_) {
         return;
@@ -91,7 +90,7 @@ void RSDelegateCompositeBufferManager::GenerateBufferParams(SetBufferParams &par
             rect.y = params.buffer->GetHeight() - rect.y - rect.h;
         }
     }
-    params.timestamp = desire_present_time;
+    params.timestamp = desired_present_time;
 }
 
 RSTransactionConfig RSDelegateCompositeBufferManager::GenerateTransactionConfigIfNecessary(int64_t desiredPresentTime)
@@ -166,7 +165,7 @@ void RSDelegateCompositeBufferManager::GenerateTransactionConfigInner(SetBufferP
             name_.c_str(), nodeId_, transactionCacheForSetBuffer_.size(), seqNum);
         auto iter = transactionCacheForSetBuffer_.find(bufferSequence);
         if (iter == transactionCacheForSetBuffer_.end()) {
-            RS_TRACE_NAME_FMT("not find buffer: bufferSeqNum=%u", seqNum);
+            RS_TRACE_NAME_FMT("not find buffer, bufferSeqNum=%u", seqNum);
             config.hasBuffer = true;
             if (transactionCacheForSetBuffer_.size() >= MAX_CACHE_SIZE) {
                 GenerateTransactionConfigDelList(config);
@@ -190,7 +189,7 @@ void RSDelegateCompositeBufferManager::GenerateTransactionConfigInner(SetBufferP
         std::lock_guard<std::mutex> lock(cacheMutex_);
         RS_TRACE_NAME_FMT("transactionCacheForSetBuffer size=%u, node:[name: %s, id: %" PRIu64 "]",
             transactionCacheForSetBuffer_.size(), name_.c_str(), nodeId_);
-        for (auto & [bufferSequence, cacheInfo] : transactionCacheForSetBuffer_) {
+        for (auto& [bufferSequence, cacheInfo] : transactionCacheForSetBuffer_) {
             RS_TRACE_NAME_FMT("bufferSequence=%u, state=%u", bufferSequence, cacheInfo.state);
         }
     }
@@ -204,8 +203,8 @@ void RSDelegateCompositeBufferManager::GenerateTransactionConfigDelList(RSTransa
             config.delList.push_back(iter->first);
             iter = transactionCacheForSetBuffer_.erase(iter);
         } else {
-        RS_TRACE_NAME_FMT("seqNum=%u, state=QUEUED", iter->first);
-        ++iter;
+            RS_TRACE_NAME_FMT("seqNum=%u, state=QUEUED", iter->first);
+            ++iter;
         }
     }
 }

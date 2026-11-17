@@ -12,8 +12,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef RS_DELEGATE_COMPOSITE_COMMAND_H
-#define RS_DELEGATE_COMPOSITE_COMMAND_H
+#ifndef RENDER_SERVICE_BASE_COMMAND_RS_DELEGATE_COMPOSITE_COMMAND_H
+#define RENDER_SERVICE_BASE_COMMAND_RS_DELEGATE_COMPOSITE_COMMAND_H
 
 #ifndef ROSEN_CROSS_PLATFORM
 #include <vector>
@@ -103,7 +103,7 @@ private:
     bool MarshallingCmdTypeSetBuffer(MessageParcel* messageParcel) const;
     std::vector<RSTransactionConfig> configList_;
 
-    // set rect
+    // setRect
     void ProcessCmdTypeSetRect(RSContext& context);
     static RSCommand* UnmarshallingCmdTypeSetRect(MessageParcel* messageParcel);
     bool MarshallingCmdTypeSetRect(MessageParcel* messageParcel) const;
@@ -164,4 +164,4 @@ private:
 } // namespace Rosen
 } // namespace OHOS
 #endif // ROSEN_CROSS_PLATFORM
-#endif // RS_DELEGATE_COMPOSITE_COMMAND_H
+#endif // RENDER_SERVICE_BASE_COMMAND_RS_DELEGATE_COMPOSITE_COMMAND_H
