@@ -56,6 +56,12 @@ public:
     void UpdateWindowStatus(bool active);
 
     int32_t GetTid();
+    // Whether the caller runs on the RSRenderThread event loop itself. Render-thread-owned resources can be
+    // released synchronously in that case instead of being deferred to the end of the task queue.
+    bool IsOnRenderThread() const
+    {
+        return std::this_thread::get_id() == threadId_;
+    }
 
     std::string DumpRenderTree() const;
 #ifdef RS_ENABLE_GPU
@@ -170,6 +176,7 @@ private:
     uint64_t prevTimestamp_ = 0;
     uint64_t lastAnimateTimestamp_ = 0;
     int32_t tid_ = -1;
+    std::thread::id threadId_ = std::thread::id();
     uint64_t mValue = 0;
 
     uint64_t uiTimestamp_ = 0;
