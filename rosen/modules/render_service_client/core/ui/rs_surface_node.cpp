@@ -846,7 +846,11 @@ RSSurfaceNode::RSSurfaceNode(
 RSSurfaceNode::~RSSurfaceNode()
 {
 #ifdef ROSEN_ARKUI_X
-    RSRenderThread::Instance().PostTask([surface = std::move(surface_)]() {});
+    if (RSRenderThread::Instance().IsOnRenderThread()) {
+        surface_ = nullptr;
+    } else {
+        RSRenderThread::Instance().PostTask([surface = std::move(surface_)]() {});
+    }
 #endif
     if (isShadowNode_) {
         auto rsUIContext = GetRSUIContext();
